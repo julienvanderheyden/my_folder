@@ -1,0 +1,169 @@
+{
+    "rson_version": "0.1.0",
+    "type": "mechanism",
+    "name": "inerter_robot",
+    "description": "A simple 2R robot with linear inerters at the centre of mass of each link, instead of point masses.",
+    "frames": [
+        "root_frame",
+        "L1_frame",
+        "L2_frame",
+        "EE_frame"
+    ],
+    "joints": {
+        "J1": {
+            "type": "revolute",
+            "parent": "root_frame",
+            "child": "L1_frame",
+            "axis": [
+                0,
+                1,
+                0
+            ]
+        },
+        "J2": {
+            "type": "revolute",
+            "parent": "L1_frame",
+            "child": "L2_frame",
+            "axis": [
+                0,
+                1,
+                0
+            ],
+            "origin": [
+                0,
+                0,
+                1
+            ]
+        },
+        "ee_joint": {
+            "type": "rigid",
+            "parent": "L2_frame",
+            "child": "EE_frame",
+            "origin": [
+                0,
+                0,
+                1
+            ]
+        }
+    },
+    "coordinates": {
+        "root": {
+            "type": "frame_origin",
+            "frame": "root_frame"
+        },
+        "L1_point": {
+            "type": "frame_point",
+            "frame": "L1_frame",
+            "point": [
+                0,
+                0,
+                0.5
+            ]
+        },
+        "L2_point": {
+            "type": "frame_point",
+            "frame": "L2_frame",
+            "point": [
+                0,
+                0,
+                0.5
+            ]
+        }
+    },
+    "components": {
+        "i1": {
+            "type": "linear_inerter",
+            "coord": "L1_point",
+            "inertance": 1.0
+        },
+        "i2": {
+            "type": "linear_inerter",
+            "coord": "L2_point",
+            "inertance": 1.0
+        }
+    },
+    "materials": {
+        "blue": [
+            0.0,
+            0.0,
+            0.2,
+            1.0
+        ]
+    },
+    "visuals": {
+        "base_box": {
+            "type": "box",
+            "frame": {
+                "parent": "root_frame",
+                "origin": [
+                    0,
+                    0,
+                    -0.1
+                ]
+            },
+            "material": "blue",
+            "size": [
+                0.2,
+                0.2,
+                0.2
+            ]
+        },
+        "l1_cyclinder": {
+            "type": "cylinder",
+            "frame": {
+                "parent": "L1_frame",
+                "origin": [
+                    0,
+                    0,
+                    0.5
+                ]
+            },
+            "material": "blue",
+            "length": 1,
+            "radius": 0.075
+        },
+        "l2_cylinder": {
+            "type": "cylinder",
+            "frame": {
+                "parent": "L2_frame",
+                "origin": [
+                    0,
+                    0,
+                    0.25
+                ]
+            },
+            "material": "blue",
+            "length": 0.5,
+            "radius": 0.075
+        },
+        "l2_shaft": {
+            "type": "cylinder",
+            "frame": {
+                "parent": "L2_frame",
+                "origin": [
+                    0,
+                    0,
+                    0.75
+                ]
+            },
+            "material": "blue",
+            "length": 0.5,
+            "radius": 0.015
+        },
+        "j2_motor_housing": {
+            "type": "cylinder",
+            "frame": {
+                "parent": "L2_frame",
+                "rotation": [
+                    0.7071,
+                    0,
+                    0.7071,
+                    0
+                ]
+            },
+            "material": "blue",
+            "length": 0.2,
+            "radius": 0.1
+        }
+    }
+}

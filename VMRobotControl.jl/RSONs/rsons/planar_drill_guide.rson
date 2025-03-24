@@ -1,0 +1,339 @@
+{
+    "rson_version": "0.1.0",
+    "type": "virtual_mechanism_system",
+    "name": "planar_drill_guide",
+    "robot": {
+        "type": "mechanism",
+        "name": "drill_robot",
+        "frames": [
+            "root_frame",
+            "J1_vis_frame",
+            "L1_frame",
+            "J2_vis_frame",
+            "L2_frame",
+            "EE_frame"
+        ],
+        "joints": {
+            "J1": {
+                "type": "revolute",
+                "parent": "root_frame",
+                "child": "L1_frame",
+                "axis": [
+                    0,
+                    1,
+                    0
+                ]
+            },
+            "J2": {
+                "type": "revolute",
+                "parent": "L1_frame",
+                "child": "L2_frame",
+                "axis": [
+                    0,
+                    1,
+                    0
+                ],
+                "origin": [
+                    0,
+                    0,
+                    1
+                ]
+            },
+            "ee_joint": {
+                "type": "rigid",
+                "parent": "L2_frame",
+                "child": "EE_frame",
+                "origin": [
+                    0,
+                    0,
+                    1
+                ]
+            },
+            "J1_vis_joint": {
+                "type": "rigid",
+                "parent": "L1_frame",
+                "child": "J1_vis_frame",
+                "rotation": [
+                    0.7071,
+                    0.7071,
+                    0,
+                    0
+                ]
+            },
+            "J2_vis_joint": {
+                "type": "rigid",
+                "parent": "L2_frame",
+                "child": "J2_vis_frame",
+                "rotation": [
+                    0.7071,
+                    0.7071,
+                    0,
+                    0
+                ]
+            }
+        },
+        "coordinates": {
+            "drill_tip": {
+                "type": "frame_point",
+                "frame": "EE_frame",
+                "point": [
+                    0,
+                    0,
+                    0.05
+                ]
+            },
+            "drill_base": {
+                "type": "frame_point",
+                "frame": "EE_frame",
+                "point": [
+                    0,
+                    0,
+                    -0.05
+                ]
+            }
+        },
+        "components": {
+            "i1": {
+                "type": "inertial",
+                "frame": "L2_frame",
+                "mass": 1.0,
+                "inertia": {}
+            },
+            "i2": {
+                "type": "inertial",
+                "frame": "EE_frame",
+                "mass": 1.0,
+                "inertia": {}
+            }
+        },
+        "materials": {
+            "white": [
+                0.9,
+                0.9,
+                0.9,
+                1.0
+            ],
+            "black": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "grey": [
+                0.8,
+                0.8,
+                0.8,
+                1.0
+            ]
+        },
+        "visuals": {
+            "base_box": {
+                "type": "box",
+                "frame": {
+                    "parent": "root_frame",
+                    "origin": [
+                        0,
+                        0,
+                        -0.1
+                    ]
+                },
+                "material": "grey",
+                "size": [
+                    0.18,
+                    0.18,
+                    0.18
+                ]
+            },
+            "l1_cyclinder": {
+                "type": "cylinder",
+                "frame": {
+                    "parent": "L1_frame",
+                    "origin": [
+                        0,
+                        0,
+                        0.5
+                    ]
+                },
+                "material": "white",
+                "length": 1,
+                "radius": 0.075
+            },
+            "l2_cylinder": {
+                "type": "cylinder",
+                "frame": {
+                    "parent": "L2_frame",
+                    "origin": [
+                        0,
+                        0,
+                        0.25
+                    ]
+                },
+                "material": "white",
+                "length": 0.5,
+                "radius": 0.075
+            },
+            "l2_shaft": {
+                "type": "cylinder",
+                "frame": {
+                    "parent": "L2_frame",
+                    "origin": [
+                        0,
+                        0,
+                        0.75
+                    ]
+                },
+                "material": "black",
+                "length": 0.5,
+                "radius": 0.015
+            },
+            "j1_motor_housing": {
+                "type": "cylinder",
+                "frame": "J1_vis_frame",
+                "material": "grey",
+                "length": 0.2,
+                "radius": 0.1
+            },
+            "j1_motor_housing_outer": {
+                "type": "cylinder",
+                "frame": "J1_vis_frame",
+                "material": "black",
+                "length": 0.19,
+                "radius": 0.11
+            },
+            "j2_motor_housing": {
+                "type": "cylinder",
+                "frame": "J2_vis_frame",
+                "material": "grey",
+                "length": 0.2,
+                "radius": 0.1
+            },
+            "j2_motor_housing_outer": {
+                "type": "cylinder",
+                "frame": "J2_vis_frame",
+                "material": "black",
+                "length": 0.19,
+                "radius": 0.11
+            }
+        }
+    },
+    "virtual_mechanism": {
+        "type": "mechanism",
+        "name": "virtual_drill_guide",
+        "frames": [
+            "root_frame",
+            "drill_frame"
+        ],
+        "joints": {
+            "P1": {
+                "type": "prismatic",
+                "parent": "root_frame",
+                "child": "drill_frame",
+                "axis": [
+                    0,
+                    0,
+                    1
+                ],
+                "origin": [
+                    0.5,
+                    0,
+                    0.5
+                ]
+            }
+        },
+        "coordinates": {
+            "drill_tip": {
+                "type": "frame_point",
+                "frame": "drill_frame",
+                "point": [
+                    0,
+                    0,
+                    0.05
+                ]
+            },
+            "drill_base": {
+                "type": "frame_point",
+                "frame": "drill_frame",
+                "point": [
+                    0,
+                    0,
+                    -0.05
+                ]
+            },
+            "root_coord": {
+                "type": "frame_origin",
+                "frame": "root_frame"
+            },
+            "inerter_coord": {
+                "type": "coord_difference",
+                "parent": "root_coord",
+                "child": "drill_tip"
+            },
+            "P1": {
+                "type": "joint_subspace",
+                "joint": "P1"
+            }
+        },
+        "components": {
+            "m1": {
+                "type": "linear_inerter",
+                "coord": "inerter_coord",
+                "inertance": 0.1
+            },
+            "drill_damping": {
+                "type": "linear_damper",
+                "coord": "P1",
+                "damping_coefficient": 0.5
+            }
+        },
+        "visuals": {
+            "drill_box": {
+                "type": "box",
+                "frame": "drill_frame",
+                "material": [
+                    1,
+                    0,
+                    0,
+                    1
+                ],
+                "size": [
+                    0.01,
+                    0.01,
+                    0.1
+                ]
+            }
+        }
+    },
+    "coordinates": {
+        "tip_error_world": {
+            "type": "coord_difference",
+            "parent": ".robot.drill_tip",
+            "child": ".virtual_mechanism.drill_tip"
+        },
+        "tip_error_link_frame": {
+            "type": "rotated_coord",
+            "frame": ".robot.EE_frame",
+            "world_frame_coord": "tip_error_world"
+        },
+        "test_const_coord": {
+            "type": "const_coord",
+            "val": [
+                0.1,
+                0.2,
+                0.3
+            ]
+        },
+        "test_unrotated_coord": {
+            "type": "unrotated_coord",
+            "frame": ".robot.EE_frame",
+            "link_frame_coord": "test_const_coord"
+        }
+    },
+    "components": {
+        "tip_spring": {
+            "type": "tanh_spring",
+            "coord": "tip_error_world",
+            "stiffness": 500.0,
+            "max_force": 10.0
+        }
+    }
+}

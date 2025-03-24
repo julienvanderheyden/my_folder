@@ -1,0 +1,116 @@
+{
+    "rson_version": "0.1.0",
+    "type": "mechanism",
+    "name": "pendulum",
+    "frames": [
+        "root_frame",
+        "L1_frame",
+        "EE_frame"
+    ],
+    "joints": {
+        "J1": {
+            "type": "revolute",
+            "parent": "root_frame",
+            "child": "L1_frame",
+            "axis": [
+                0,
+                1,
+                0
+            ]
+        },
+        "ee_joint": {
+            "type": "rigid",
+            "parent": "L1_frame",
+            "child": "EE_frame",
+            "origin": [
+                0,
+                0,
+                1
+            ]
+        }
+    },
+    "coordinates": {
+        "EE_coord": {
+            "type": "frame_origin",
+            "frame": "EE_frame"
+        }
+    },
+    "components": {
+        "m1": {
+            "type": "point_mass",
+            "coord": "EE_coord",
+            "mass": 1.0
+        }
+    },
+    "materials": {
+        "white": [
+            0.9,
+            0.9,
+            0.9,
+            1.0
+        ],
+        "black": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+        ],
+        "grey": [
+            0.8,
+            0.8,
+            0.8,
+            1.0
+        ]
+    },
+    "visuals": {
+        "base_cyl": {
+            "type": "cylinder",
+            "frame": {
+                "parent": "root_frame",
+                "rotation": [
+                    0.7071,
+                    0.7071,
+                    0,
+                    0
+                ]
+            },
+            "material": "black",
+            "length": 0.2,
+            "radius": 0.1
+        },
+        "l1": {
+            "type": "box",
+            "frame": {
+                "parent": "L1_frame",
+                "origin": [
+                    0,
+                    0,
+                    0.5
+                ]
+            },
+            "material": "white",
+            "size": [
+                0.1,
+                0.1,
+                1.0
+            ]
+        },
+        "l1_border": {
+            "type": "box",
+            "frame": {
+                "parent": "L1_frame",
+                "origin": [
+                    0,
+                    0,
+                    0.5
+                ]
+            },
+            "material": "black",
+            "size": [
+                0.12,
+                0.08,
+                1.02
+            ]
+        }
+    }
+}

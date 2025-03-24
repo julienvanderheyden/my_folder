@@ -1,0 +1,202 @@
+{
+    "rson_version": "0.1.0",
+    "type": "mechanism",
+    "name": "robot2L",
+    "frames": [
+        "root_frame",
+        "L1_frame",
+        "L2_frame",
+        "EE_frame"
+    ],
+    "joints": {
+        "J1": {
+            "type": "revolute",
+            "parent": "root_frame",
+            "child": "L1_frame",
+            "axis": [
+                0,
+                1,
+                0
+            ]
+        },
+        "J2": {
+            "type": "revolute",
+            "parent": "L1_frame",
+            "child": "L2_frame",
+            "axis": [
+                0,
+                1,
+                0
+            ],
+            "origin": [
+                0,
+                0,
+                1
+            ]
+        },
+        "ee_joint": {
+            "type": "rigid",
+            "parent": "L2_frame",
+            "child": "EE_frame",
+            "origin": [
+                0,
+                0,
+                1
+            ]
+        }
+    },
+    "coordinates": {
+        "L1_com": {
+            "type": "frame_point",
+            "frame": "L1_frame",
+            "point": [
+                0,
+                0,
+                0.5
+            ]
+        },
+        "L2_com": {
+            "type": "frame_point",
+            "frame": "L2_frame",
+            "point": [
+                0,
+                0,
+                0.5
+            ]
+        },
+        "ref": {
+            "type": "const_coord",
+            "val": [
+                0.5,
+                0,
+                0.5
+            ]
+        },
+        "EE_pos": {
+            "type": "frame_origin",
+            "frame": "EE_frame"
+        },
+        "spring_extension": {
+            "type": "coord_difference",
+            "parent": "EE_pos",
+            "child": "ref"
+        }
+    },
+    "components": {
+        "i1": {
+            "type": "point_mass",
+            "coord": "L1_com",
+            "mass": 1.0
+        },
+        "i2": {
+            "type": "point_mass",
+            "coord": "L2_com",
+            "mass": 1.0
+        },
+        "s1": {
+            "type": "linear_spring",
+            "coord": "spring_extension",
+            "stiffness": [
+                [
+                    100.0,
+                    0.0,
+                    0.0
+                ],
+                [
+                    0.0,
+                    100.0,
+                    0.0
+                ],
+                [
+                    0.0,
+                    0.0,
+                    100.0
+                ]
+            ]
+        }
+    },
+    "materials": {
+        "blue": [
+            0.0,
+            0.0,
+            0.2,
+            1.0
+        ]
+    },
+    "visuals": {
+        "base_box": {
+            "type": "box",
+            "frame": {
+                "parent": "root_frame",
+                "origin": [
+                    0,
+                    0,
+                    -0.1
+                ]
+            },
+            "material": "blue",
+            "size": [
+                0.2,
+                0.2,
+                0.2
+            ]
+        },
+        "l1_cyclinder": {
+            "type": "cylinder",
+            "frame": {
+                "parent": "L1_frame",
+                "origin": [
+                    0,
+                    0,
+                    0.5
+                ]
+            },
+            "material": "blue",
+            "length": 1,
+            "radius": 0.075
+        },
+        "l2_cylinder": {
+            "type": "cylinder",
+            "frame": {
+                "parent": "L2_frame",
+                "origin": [
+                    0,
+                    0,
+                    0.25
+                ]
+            },
+            "material": "blue",
+            "length": 0.5,
+            "radius": 0.075
+        },
+        "l2_shaft": {
+            "type": "cylinder",
+            "frame": {
+                "parent": "L2_frame",
+                "origin": [
+                    0,
+                    0,
+                    0.75
+                ]
+            },
+            "material": "blue",
+            "length": 0.5,
+            "radius": 0.015
+        },
+        "j2_motor_housing": {
+            "type": "cylinder",
+            "frame": {
+                "parent": "L2_frame",
+                "rotation": [
+                    0.7071,
+                    0,
+                    0.7071,
+                    0
+                ]
+            },
+            "material": "blue",
+            "length": 0.2,
+            "radius": 0.1
+        }
+    }
+}

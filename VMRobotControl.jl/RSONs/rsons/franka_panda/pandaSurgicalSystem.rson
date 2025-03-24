@@ -1,0 +1,99 @@
+{
+    "rson_version": "0.1.0",
+    "type": "virtual_mechanism_system",
+    "name": "panda_surgical_system",
+    "robot": "./pandaSurgicalV2.rson",
+    "virtual_mechanism": "../virtual_instrument.rson",
+    "coordinates": {
+        "vi_ee_error_world": {
+            "type": "coord_difference",
+            "parent": ".robot.instrument_EE",
+            "child": ".virtual_mechanism.instrument_ee"
+        },
+        "vi_base_error_world": {
+            "type": "coord_difference",
+            "parent": ".robot.instrument_base",
+            "child": ".virtual_mechanism.instrument_base"
+        },
+        "ref_error_world": {
+            "type": "coord_difference",
+            "parent": ".robot.instrument_EE",
+            "child": ".virtual_mechanism.ref_position"
+        },
+        "ref_error": {
+            "type": "rotated_coord",
+            "frame": ".robot.instrument_EE_frame",
+            "world_frame_coord": "ref_error_world"
+        },
+        "vi_base_error": {
+            "type": "rotated_coord",
+            "frame": ".robot.instrument_EE_frame",
+            "world_frame_coord": "vi_base_error_world"
+        },
+        "vi_ee_error": {
+            "type": "rotated_coord",
+            "frame": ".robot.instrument_EE_frame",
+            "world_frame_coord": "vi_ee_error_world"
+        },
+        "port_error_world": {
+            "type": "coord_difference",
+            "parent": ".robot.instrument_EE",
+            "child": ".virtual_mechanism.rcm"
+        },
+        "port_error_ee_frame_xyz": {
+            "type": "rotated_coord",
+            "frame": ".robot.instrument_EE_frame",
+            "world_frame_coord": "port_error_world"
+        },
+        "port_error": {
+            "type": "coord_slice",
+            "coord": "port_error_ee_frame_xyz",
+            "idxs": [
+                1,
+                2
+            ]
+        }
+    },
+    "components": {
+        "ref_spring": {
+            "type": "linear_spring",
+            "coord": "ref_error_world",
+            "stiffness": 1000.0
+        },
+        "vi_base_spring": {
+            "type": "linear_spring",
+            "coord": "vi_base_error_world",
+            "stiffness": 1000.0
+        },
+        "vi_ee_spring": {
+            "type": "linear_spring",
+            "coord": "vi_ee_error_world",
+            "stiffness": 1000.0
+        },
+        "ref_damper": {
+            "type": "linear_damper",
+            "coord": "ref_error_world",
+            "damping_coefficient": 10.0
+        },
+        "vi_base_damper": {
+            "type": "linear_damper",
+            "coord": "vi_base_error_world",
+            "damping_coefficient": 10.0
+        },
+        "vi_ee_damper": {
+            "type": "linear_damper",
+            "coord": "vi_ee_error_world",
+            "damping_coefficient": 10.0
+        },
+        "J1_damper": {
+            "type": "linear_damper",
+            "coord": ".robot.J1",
+            "damping_coefficient": 1.0
+        },
+        "J4_damper": {
+            "type": "linear_damper",
+            "coord": ".robot.J4",
+            "damping_coefficient": 1.0
+        }
+    }
+}

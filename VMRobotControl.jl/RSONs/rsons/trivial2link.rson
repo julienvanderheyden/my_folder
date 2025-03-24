@@ -1,0 +1,96 @@
+{
+    "rson_version": "0.1.0",
+    "type": "mechanism",
+    "name": "robot2L",
+    "frames": [
+        "root_frame",
+        "L1_frame",
+        "L2_frame"
+    ],
+    "joints": {
+        "J1": {
+            "type": "revolute",
+            "parent": "root_frame",
+            "child": "L1_frame",
+            "axis": [
+                0,
+                1,
+                0
+            ]
+        },
+        "J2": {
+            "type": "revolute",
+            "parent": "L1_frame",
+            "child": "L2_frame",
+            "axis": [
+                0,
+                1,
+                0
+            ],
+            "origin": [
+                0,
+                0,
+                1
+            ]
+        }
+    },
+    "coordinates": {
+        "L1_com": {
+            "type": "frame_point",
+            "frame": "L1_frame",
+            "point": [
+                0,
+                0,
+                0.5
+            ]
+        },
+        "L2_com": {
+            "type": "frame_point",
+            "frame": "L2_frame",
+            "point": [
+                0,
+                0,
+                0.5
+            ]
+        },
+        "end_effector_pos": {
+            "type": "frame_point",
+            "frame": "L2_frame",
+            "point": [
+                0,
+                0,
+                1
+            ]
+        },
+        "ref": {
+            "type": "const_coord",
+            "val": [
+                1.25,
+                0,
+                0.75
+            ]
+        },
+        "spring_extension": {
+            "type": "coord_difference",
+            "parent": "end_effector_pos",
+            "child": "ref"
+        }
+    },
+    "components": {
+        "L1_mass": {
+            "type": "point_mass",
+            "coord": "L1_com",
+            "mass": 1.0
+        },
+        "L2_mass": {
+            "type": "point_mass",
+            "coord": "L2_com",
+            "mass": 1.0
+        },
+        "EE_spring": {
+            "type": "linear_spring",
+            "coord": "spring_extension",
+            "stiffness": 100.0
+        }
+    }
+}

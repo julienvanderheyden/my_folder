@@ -1,0 +1,460 @@
+{
+    "rson_version": "0.1.0",
+    "type": "mechanism",
+    "name": "panda",
+    "frames": [
+        "root_frame",
+        "L1_frame",
+        "L2_frame",
+        "L3_frame",
+        "L4_frame",
+        "L5_frame",
+        "L6_frame",
+        "L7_frame",
+        "robot_EE_frame",
+        "instrument_frame",
+        "instrument_EE_frame"
+    ],
+    "joints": {
+        "J1": {
+            "type": "revolute",
+            "parent": "root_frame",
+            "child": "L1_frame",
+            "axis": [
+                0,
+                0,
+                1
+            ],
+            "origin": [
+                0,
+                0,
+                0.333
+            ]
+        },
+        "J2": {
+            "type": "revolute",
+            "parent": "L1_frame",
+            "child": "L2_frame",
+            "axis": [
+                0,
+                0,
+                1
+            ],
+            "rotation": [
+                -1.57079632679,
+                0,
+                0
+            ]
+        },
+        "J3": {
+            "type": "revolute",
+            "parent": "L2_frame",
+            "child": "L3_frame",
+            "axis": [
+                0,
+                0,
+                1
+            ],
+            "origin": [
+                0,
+                -0.316,
+                0
+            ],
+            "rotation": [
+                1.57079632679,
+                0,
+                0
+            ]
+        },
+        "J4": {
+            "type": "revolute",
+            "parent": "L3_frame",
+            "child": "L4_frame",
+            "axis": [
+                0,
+                0,
+                1
+            ],
+            "origin": [
+                0.0825,
+                0,
+                0
+            ],
+            "rotation": [
+                1.57079632679,
+                0,
+                0
+            ]
+        },
+        "J5": {
+            "type": "revolute",
+            "parent": "L4_frame",
+            "child": "L5_frame",
+            "axis": [
+                0,
+                0,
+                1
+            ],
+            "origin": [
+                -0.0825,
+                0.384,
+                0
+            ],
+            "rotation": [
+                -1.57079632679,
+                0,
+                0
+            ]
+        },
+        "J6": {
+            "type": "revolute",
+            "parent": "L5_frame",
+            "child": "L6_frame",
+            "axis": [
+                0,
+                0,
+                1
+            ],
+            "rotation": [
+                1.57079632679,
+                0,
+                0
+            ]
+        },
+        "J7": {
+            "type": "revolute",
+            "parent": "L6_frame",
+            "child": "L7_frame",
+            "axis": [
+                0,
+                0,
+                1
+            ],
+            "origin": [
+                0.088,
+                0,
+                0
+            ],
+            "rotation": [
+                1.57079632679,
+                0,
+                0
+            ]
+        },
+        "robot_EE_joint": {
+            "type": "rigid",
+            "parent": "L7_frame",
+            "child": "robot_EE_frame",
+            "origin": [
+                0,
+                0,
+                0.107
+            ]
+        },
+        "instrument_EE_joint": {
+            "type": "rigid",
+            "parent": "robot_EE_frame",
+            "child": "instrument_EE_frame",
+            "origin": [
+                0.377,
+                0,
+                0.042
+            ],
+            "rotation": [
+                0,
+                1.570796,
+                0
+            ]
+        },
+        "instrument_joint": {
+            "type": "rigid",
+            "parent": "instrument_EE_frame",
+            "child": "instrument_frame",
+            "origin": [
+                0.0,
+                0.0,
+                -0.1675
+            ]
+        }
+    },
+    "coordinates": {
+        "instrument_EE": {
+            "type": "frame_point",
+            "frame": "instrument_EE_frame",
+            "point": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "instrument_base": {
+            "type": "frame_point",
+            "frame": "instrument_EE_frame",
+            "point": [
+                0.0,
+                0.0,
+                -0.335
+            ]
+        },
+        "J1": {
+            "type": "joint_subspace",
+            "joint": "J1"
+        },
+        "J2": {
+            "type": "joint_subspace",
+            "joint": "J2"
+        },
+        "J3": {
+            "type": "joint_subspace",
+            "joint": "J3"
+        },
+        "J4": {
+            "type": "joint_subspace",
+            "joint": "J4"
+        },
+        "J5": {
+            "type": "joint_subspace",
+            "joint": "J5"
+        },
+        "J6": {
+            "type": "joint_subspace",
+            "joint": "J6"
+        },
+        "J7": {
+            "type": "joint_subspace",
+            "joint": "J7"
+        }
+    },
+    "components": {
+        "i1": {
+            "type": "inertial",
+            "frame": "L1_frame",
+            "com": [
+                0.003875,
+                0.002081,
+                -0.04762
+            ],
+            "mass": 4.970684,
+            "inertia": {
+                "xy": -0.000139,
+                "xx": 0.70337,
+                "yz": 0.019169,
+                "zz": 0.009117,
+                "yy": 0.70661,
+                "xz": 0.006772
+            }
+        },
+        "i2": {
+            "type": "inertial",
+            "frame": "L2_frame",
+            "com": [
+                -0.003141,
+                -0.02872,
+                0.003495
+            ],
+            "mass": 0.646926,
+            "inertia": {
+                "xy": -0.003925,
+                "xx": 0.007962,
+                "yz": 0.000704,
+                "zz": 0.025995,
+                "yy": 0.02811,
+                "xz": 0.010254
+            }
+        },
+        "i3": {
+            "type": "inertial",
+            "frame": "L3_frame",
+            "com": [
+                0.027518,
+                0.039252,
+                -0.066502
+            ],
+            "mass": 3.228604,
+            "inertia": {
+                "xy": -0.004761,
+                "xx": 0.037242,
+                "yz": -0.012805,
+                "zz": 0.01083,
+                "yy": 0.036155,
+                "xz": -0.011396
+            }
+        },
+        "i4": {
+            "type": "inertial",
+            "frame": "L4_frame",
+            "com": [
+                -0.05317,
+                0.104419,
+                0.027454
+            ],
+            "mass": 3.587895,
+            "inertia": {
+                "xy": 0.007796,
+                "xx": 0.025853,
+                "yz": 0.008641,
+                "zz": 0.028323,
+                "yy": 0.019552,
+                "xz": -0.001332
+            }
+        },
+        "i5": {
+            "type": "inertial",
+            "frame": "L5_frame",
+            "com": [
+                -0.011953,
+                0.041065,
+                -0.038437
+            ],
+            "mass": 1.225946,
+            "inertia": {
+                "xy": -0.002117,
+                "xx": 0.035549,
+                "yz": 0.000229,
+                "zz": 0.008627,
+                "yy": 0.029474,
+                "xz": -0.004037
+            }
+        },
+        "i6": {
+            "type": "inertial",
+            "frame": "L6_frame",
+            "com": [
+                0.060149,
+                -0.014117,
+                -0.010517
+            ],
+            "mass": 1.666555,
+            "inertia": {
+                "xy": 0.000109,
+                "xx": 0.001964,
+                "yz": 0.000341,
+                "zz": 0.005433,
+                "yy": 0.004354,
+                "xz": -0.001158
+            }
+        },
+        "i7": {
+            "type": "inertial",
+            "frame": "L7_frame",
+            "com": [
+                0.010517,
+                -0.004252,
+                0.061597
+            ],
+            "mass": 0.735522,
+            "inertia": {
+                "xy": -0.000428,
+                "xx": 0.012516,
+                "yz": -0.000741,
+                "zz": 0.004815,
+                "yy": 0.010027,
+                "xz": -0.001196
+            }
+        },
+        "dummy_instrument_mass": {
+            "type": "inertial",
+            "frame": "robot_EE_frame",
+            "com": [
+                0.1095,
+                0,
+                0.042
+            ],
+            "mass": 0.3,
+            "inertia": {
+                "xx": 0.01,
+                "zz": 0.01,
+                "yy": 0.01
+            }
+        }
+    },
+    "materials": {
+        "PLA_black": [
+            0.2,
+            0.2,
+            0.2,
+            1.0
+        ],
+        "panda_white": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+        ]
+    },
+    "visuals": {
+        "L0_mesh": {
+            "type": "mesh",
+            "frame": "root_frame",
+            "material": "panda_white",
+            "filename": "./meshes/visual/link0.dae"
+        },
+        "L1_mesh": {
+            "type": "mesh",
+            "frame": "L1_frame",
+            "material": "panda_white",
+            "filename": "./meshes/visual/link1.dae"
+        },
+        "L2_mesh": {
+            "type": "mesh",
+            "frame": "L2_frame",
+            "material": "panda_white",
+            "filename": "./meshes/visual/link2.dae"
+        },
+        "L3_mesh": {
+            "type": "mesh",
+            "frame": "L3_frame",
+            "material": "panda_white",
+            "filename": "./meshes/visual/link3.dae"
+        },
+        "L4_mesh": {
+            "type": "mesh",
+            "frame": "L4_frame",
+            "material": "panda_white",
+            "filename": "./meshes/visual/link4.dae"
+        },
+        "L5_mesh": {
+            "type": "mesh",
+            "frame": "L5_frame",
+            "material": "panda_white",
+            "filename": "./meshes/visual/link5.dae"
+        },
+        "L6_mesh": {
+            "type": "mesh",
+            "frame": "L6_frame",
+            "material": "panda_white",
+            "filename": "./meshes/visual/link6.dae"
+        },
+        "L7_mesh": {
+            "type": "mesh",
+            "frame": "L7_frame",
+            "material": "panda_white",
+            "filename": "./meshes/visual/link7.dae"
+        },
+        "InstrumentClamp": {
+            "type": "mesh",
+            "frame": {
+                "parent": "robot_EE_frame",
+                "origin": [
+                    0.042,
+                    0,
+                    0.042
+                ],
+                "rotation": [
+                    0,
+                    0,
+                    -1.570796
+                ]
+            },
+            "material": "PLA_black",
+            "filename": "./meshes/visual/myInstrumentClampUnitsMeters.stl"
+        },
+        "instrument": {
+            "type": "cylinder",
+            "frame": "instrument_frame",
+            "material": "panda_white",
+            "length": 0.335,
+            "radius": 0.003
+        }
+    }
+}

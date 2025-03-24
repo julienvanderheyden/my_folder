@@ -1,0 +1,310 @@
+{
+    "rson_version": "0.1.0",
+    "type": "mechanism",
+    "name": "simple3link",
+    "frames": [
+        "root_frame",
+        "L1_frame",
+        "L2_frame",
+        "L3_frame",
+        "EE_frame",
+        "J1_vis_frame",
+        "J2_vis_frame",
+        "J3_vis_frame"
+    ],
+    "joints": {
+        "J1": {
+            "type": "revolute",
+            "parent": "root_frame",
+            "child": "L1_frame",
+            "axis": [
+                0,
+                1,
+                0
+            ]
+        },
+        "J2": {
+            "type": "revolute",
+            "parent": "L1_frame",
+            "child": "L2_frame",
+            "axis": [
+                0,
+                1,
+                0
+            ],
+            "origin": [
+                0,
+                0,
+                1
+            ]
+        },
+        "J3": {
+            "type": "revolute",
+            "parent": "L2_frame",
+            "child": "L3_frame",
+            "axis": [
+                0,
+                1,
+                0
+            ],
+            "origin": [
+                0,
+                0,
+                1
+            ]
+        },
+        "ee_joint": {
+            "type": "rigid",
+            "parent": "L3_frame",
+            "child": "EE_frame",
+            "origin": [
+                0,
+                0,
+                1
+            ]
+        },
+        "J1_vis_joint": {
+            "type": "rigid",
+            "parent": "L1_frame",
+            "child": "J1_vis_frame",
+            "rotation": [
+                0.7071,
+                0.7071,
+                0,
+                0
+            ]
+        },
+        "J2_vis_joint": {
+            "type": "rigid",
+            "parent": "L2_frame",
+            "child": "J2_vis_frame",
+            "rotation": [
+                0.7071,
+                0.7071,
+                0,
+                0
+            ]
+        },
+        "J3_vis_joint": {
+            "type": "rigid",
+            "parent": "L3_frame",
+            "child": "J3_vis_frame",
+            "rotation": [
+                0.7071,
+                0.7071,
+                0,
+                0
+            ]
+        }
+    },
+    "coordinates": {
+        "L1_com": {
+            "type": "frame_point",
+            "frame": "L1_frame",
+            "point": [
+                0,
+                0,
+                0.5
+            ]
+        },
+        "L2_com": {
+            "type": "frame_point",
+            "frame": "L2_frame",
+            "point": [
+                0,
+                0,
+                0.5
+            ]
+        },
+        "L3_com": {
+            "type": "frame_point",
+            "frame": "L3_frame",
+            "point": [
+                0,
+                0,
+                0.5
+            ]
+        },
+        "J1": {
+            "type": "joint_subspace",
+            "joint": "J1"
+        },
+        "J2": {
+            "type": "joint_subspace",
+            "joint": "J2"
+        },
+        "J3": {
+            "type": "joint_subspace",
+            "joint": "J3"
+        }
+    },
+    "components": {
+        "i1": {
+            "type": "point_mass",
+            "coord": "L1_com",
+            "mass": 1.0
+        },
+        "i2": {
+            "type": "point_mass",
+            "coord": "L2_com",
+            "mass": 1.0
+        },
+        "i3": {
+            "type": "point_mass",
+            "coord": "L3_com",
+            "mass": 1.0
+        },
+        "d1": {
+            "type": "linear_damper",
+            "coord": "J1",
+            "damping_coefficient": 1.0
+        },
+        "d2": {
+            "type": "linear_damper",
+            "coord": "J2",
+            "damping_coefficient": 0.5
+        },
+        "d3": {
+            "type": "linear_damper",
+            "coord": "J3",
+            "damping_coefficient": 0.1
+        }
+    },
+    "materials": {
+        "white": [
+            0.9,
+            0.9,
+            0.9,
+            1.0
+        ],
+        "black": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+        ],
+        "grey": [
+            0.8,
+            0.8,
+            0.8,
+            1.0
+        ]
+    },
+    "visuals": {
+        "base_box": {
+            "type": "box",
+            "frame": {
+                "parent": "root_frame",
+                "origin": [
+                    0,
+                    0,
+                    -0.1
+                ]
+            },
+            "material": "black",
+            "size": [
+                0.18,
+                0.18,
+                0.18
+            ]
+        },
+        "l1_cyclinder": {
+            "type": "cylinder",
+            "frame": {
+                "parent": "L1_frame",
+                "origin": [
+                    0,
+                    0,
+                    0.5
+                ]
+            },
+            "material": "white",
+            "length": 1,
+            "radius": 0.075
+        },
+        "l2_cyclinder": {
+            "type": "cylinder",
+            "frame": {
+                "parent": "L2_frame",
+                "origin": [
+                    0,
+                    0,
+                    0.5
+                ]
+            },
+            "material": "white",
+            "length": 1,
+            "radius": 0.075
+        },
+        "l3_cylinder": {
+            "type": "cylinder",
+            "frame": {
+                "parent": "L3_frame",
+                "origin": [
+                    0,
+                    0,
+                    0.25
+                ]
+            },
+            "material": "white",
+            "length": 0.5,
+            "radius": 0.075
+        },
+        "l3_shaft": {
+            "type": "cylinder",
+            "frame": {
+                "parent": "L3_frame",
+                "origin": [
+                    0,
+                    0,
+                    0.75
+                ]
+            },
+            "material": "black",
+            "length": 0.5,
+            "radius": 0.015
+        },
+        "j1_motor_housing": {
+            "type": "cylinder",
+            "frame": "J1_vis_frame",
+            "material": "grey",
+            "length": 0.2,
+            "radius": 0.1
+        },
+        "j2_motor_housing": {
+            "type": "cylinder",
+            "frame": "J2_vis_frame",
+            "material": "grey",
+            "length": 0.2,
+            "radius": 0.1
+        },
+        "j3_motor_housing": {
+            "type": "cylinder",
+            "frame": "J3_vis_frame",
+            "material": "grey",
+            "length": 0.2,
+            "radius": 0.1
+        },
+        "j1_motor_housing_outer": {
+            "type": "cylinder",
+            "frame": "J1_vis_frame",
+            "material": "black",
+            "length": 0.19,
+            "radius": 0.11
+        },
+        "j2_motor_housing_outer": {
+            "type": "cylinder",
+            "frame": "J2_vis_frame",
+            "material": "black",
+            "length": 0.19,
+            "radius": 0.11
+        },
+        "j3_motor_housing_outer": {
+            "type": "cylinder",
+            "frame": "J3_vis_frame",
+            "material": "black",
+            "length": 0.19,
+            "radius": 0.11
+        }
+    }
+}
