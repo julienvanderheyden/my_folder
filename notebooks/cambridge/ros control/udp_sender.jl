@@ -1,7 +1,7 @@
 using Sockets
 
 # Sender settings
-HOST = ip"172.29.130.141"  # IP address of the receiver (localhost in this case)
+HOST = ip"179.29.130.141"  # IP address of the receiver (localhost in this case)
 PORT = 25342        # UDP port to send data to
 
 #When sending and listening on 172.29.130.141, I got this :
