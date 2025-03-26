@@ -184,7 +184,7 @@ function update_medium_wrap_coord(args, cache, coord)
     cache[target_rail_id] = remake(cache[target_rail_id] ; coord_data=ConstCoord(rail_value))
 
     #update the length of the spring between the thumb and the ff finger
-    th_spring_end_coord = 0.6
+    th_spring_end_coord = 0.
     if coord <= th_spring_end_coord
         length_max = 0.07
         length_min = 0.0
@@ -194,10 +194,10 @@ function update_medium_wrap_coord(args, cache, coord)
     
 
     #update the angle of the thumb
-    angle_max = 1.22
-    angle_min = 0.0
-    angle_value = angle_max - (angle_max - angle_min)*coord
-    cache[th_j5_target_angle_id] = remake(cache[th_j5_target_angle_id] ; coord_data = ConstCoord(angle_value))
+    # angle_max = 1.22
+    # angle_min = 0.0
+    # angle_value = angle_max - (angle_max - angle_min)*coord
+    # cache[th_j5_target_angle_id] = remake(cache[th_j5_target_angle_id] ; coord_data = ConstCoord(angle_value))
 
     nothing
 end
