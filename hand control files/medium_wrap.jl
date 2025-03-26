@@ -145,7 +145,7 @@ add_component!(vms, LinearSpring(0.1, "th position error"); id="th position spri
 add_component!(vms, LinearDamper(0.1, "th position error"); id="th position damper")
 
 add_coordinate!(vms, ConstCoord(1.22); id="th j4 target angle")
-add_coordinate!(vms, JointSubspace(".virtual_mechanism.rh_THJ4_coord"); id= "th j4 angle")
+add_coordinate!(vms, JointSubspace(".virtual_mechanism.rh_THJ4"); id= "th j4 angle")
 add_coordinate!(vms, CoordDifference("th j4 target angle", "th j4 angle"); id="th j4 angle error")
 
 add_component!(vms, LinearSpring(1.0, "th j4 angle error"); id="th j4 angular spring")
