@@ -199,7 +199,7 @@ function update_medium_wrap_coord(args, cache, coord)
 end
 
 function f_setup(cache) 
-    return (get_compiled_coordID(cache, ".virtual_mechanism.Cart target position") , get_compiled_coordID(cache, "th spring length"), get_compiled_coordID(cache, "th j5 target angle"))
+    return (get_compiled_coordID(cache, ".virtual_mechanism.Cart target position") , get_compiled_coordID(cache, "th spring length"), get_compiled_coordID(cache, "th j4 target angle"))
 end
 
 function f_control(cache, t, args, extra)
