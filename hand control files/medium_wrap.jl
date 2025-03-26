@@ -138,14 +138,14 @@ add_coordinate!(vms, FrameOrigin(".virtual_mechanism.rh_thtip"); id ="th positio
 add_coordinate!(vms, FrameOrigin(".virtual_mechanism.rh_ffmiddle"); id= "ff middle position")
 add_coordinate!(vms, CoordDifference("th position", "ff middle position"); id = "th ff dist")
 add_coordinate!(vms, CoordNorm("th ff dist"); id="th ff norm")
-add_coordinate!(vms, ConstCoord(0.15); id="th spring length")
+add_coordinate!(vms, ConstCoord(0.2); id="th spring length")
 add_coordinate!(vms, CoordDifference("th ff norm", "th spring length"); id = "th position error")
 
 add_component!(vms, LinearSpring(1.0, "th position error"); id="th position spring")
 add_component!(vms, LinearDamper(1.0, "th position error"); id="th position damper")
 
 add_coordinate!(vms, ConstCoord(1.22); id="th j4 target angle")
-add_coordinate!(vms, JointSubspace(".robot.rh_THJ5"); id= "th j4 angle")
+add_coordinate!(vms, JointSubspace(".robot.rh_THJ4"); id= "th j4 angle")
 add_coordinate!(vms, CoordDifference("th j4 target angle", "th j4 angle"); id="th j4 angle error")
 
 add_component!(vms, LinearSpring(1.0, "th j4 angle error"); id="th j4 angular spring")

@@ -447,7 +447,7 @@ function ros_vm_position_controller(
             qr, qv = get_q(control_cache)
             # instead of sending torque the state of the virtual hand is sent :
             hand_state = get_virtual_hand_state(qv, robot_vm_idxs) 
-            display(hand_state)
+            #display(hand_state)
             torques .= hand_state
             return false
         end
