@@ -174,7 +174,7 @@ println("Linked !")
 print("Definition of the control and setup functions....")
 
 function update_medium_wrap_coord(args, cache, coord)
-    target_rail_id, th_spring_length_id, th_j4_angular_spring_id = args
+    target_rail_id, th_spring_length_id, th_j4_angular_spring_id, th_j4_target_angle_id = args
     # target_rail_id = args
 
     #update the cart position on the track
@@ -191,9 +191,17 @@ function update_medium_wrap_coord(args, cache, coord)
         length_value = length_max - (length_max - length_min)*(coord/th_spring_end_coord)
         cache[th_spring_length_id] = remake(cache[th_spring_length_id] ; coord_data = ConstCoord(length_value))
     end
-    
 
     #update the angle of the thumb
+    th_angle_end_coord = 0.5
+    if coord <= th_angle_end_coord 
+        angle_max = 1.22
+        angle_min = 0.8
+        angle_value = angle_max - (angle_max - angle_min)*(coord/th_angle_end_coord)
+        cache[th_j4_target_angle_id] = remake(cache[th_j4_target_angle_id] ; coord_data = ConstCoord(angle_value))
+    end
+
+    #update the stiffness of the angular spring
     th_stiff_end_coord = 0.5
     if coord <= th_stiff_end_coord
         stiff_max = 0.01
@@ -206,7 +214,8 @@ function update_medium_wrap_coord(args, cache, coord)
 end
 
 function f_setup(cache) 
-    return (get_compiled_coordID(cache, ".virtual_mechanism.Cart target position") , get_compiled_coordID(cache, "th spring length"), get_compiled_componentID(cache, "th j4 angular spring"))
+    return (get_compiled_coordID(cache, ".virtual_mechanism.Cart target position") , get_compiled_coordID(cache, "th spring length"), 
+    get_compiled_componentID(cache, "th j4 angular spring"), get_compiled_coordID(cache, "th j4 target angle"))
 end
 
 function f_control(cache, t, args, extra)
