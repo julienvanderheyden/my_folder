@@ -72,7 +72,7 @@ add_frame!(vm_robot; id = "cart_frame")
 add_joint!(vm_robot, Rail(spline, zero(Transform{Float64})); parent=root_frame(vm_robot), child="cart_frame", id="RailJoint")
 add_coordinate!(vm_robot, FrameOrigin("cart_frame"); id="cart position")
 add_coordinate!(vm_robot, JointSubspace("RailJoint");  id="CartDistance")
-add_coordinate!(vvm_robotm, ConstCoord(0.0); id = "Cart target position")
+add_coordinate!(vm_robot, ConstCoord(0.0); id = "Cart target position")
 add_coordinate!(vm_robot, CoordDifference("CartDistance", "Cart target position"); id ="Cart position error")
 add_component!(vm_robot, LinearInerter(1.0, "cart position");  id="CartInertance") # Cart mass
 add_component!(vm_robot, LinearSpring(10.0, "Cart position error"); id = "cart positioning spring")
