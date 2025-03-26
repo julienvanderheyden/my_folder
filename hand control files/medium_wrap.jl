@@ -227,5 +227,5 @@ joint_names = ["rh_WRJ1", "rh_WRJ2", "rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4",
 
 
 with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-    ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=5.0)
+    ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=10.0)
 end
