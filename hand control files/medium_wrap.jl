@@ -194,10 +194,10 @@ function update_medium_wrap_coord(args, cache, coord)
     
 
     #update the angle of the thumb
-    # angle_max = 1.22
-    # angle_min = 0.0
-    # angle_value = angle_max - (angle_max - angle_min)*coord
-    # cache[th_j4_target_angle_id] = remake(cache[th_j4_target_angle_id] ; coord_data = ConstCoord(angle_value))
+    angle_max = 1.22
+    angle_min = 0.9
+    angle_value = angle_max - (angle_max - angle_min)*coord
+    cache[th_j4_target_angle_id] = remake(cache[th_j4_target_angle_id] ; coord_data = ConstCoord(angle_value))
 
     nothing
 end
