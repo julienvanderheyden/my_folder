@@ -184,7 +184,7 @@ function update_medium_wrap_coord(args, cache, coord)
     cache[target_rail_id] = remake(cache[target_rail_id] ; coord_data=ConstCoord(rail_value))
 
     #update the length of the spring between the thumb and the ff finger
-    th_spring_end_coord = 0.
+    th_spring_end_coord = 0.6
     if coord <= th_spring_end_coord
         length_max = 0.07
         length_min = 0.0
