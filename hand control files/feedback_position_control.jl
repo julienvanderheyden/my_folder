@@ -18,7 +18,7 @@ try
 catch
 end
 
-print("parsing robot URDF...")
+print("parsing robot URDF...  ")
 
 module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
 
