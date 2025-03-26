@@ -193,7 +193,7 @@ function update_medium_wrap_coord(args, cache, coord)
     end
 
     #update the angle of the thumb
-    th_angle_end_coord = 0.5
+    th_angle_end_coord = 0.4
     if coord <= th_angle_end_coord 
         angle_max = 1.22
         angle_min = 0.8
