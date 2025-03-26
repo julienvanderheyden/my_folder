@@ -174,7 +174,7 @@ println("Linked !")
 print("Definition of the control and setup functions....")
 
 function update_medium_wrap_coord(args, cache, coord)
-    target_rail_id, th_spring_length_id, th_j5_target_angle_id = args
+    target_rail_id, th_spring_length_id, th_j4_target_angle_id = args
     # target_rail_id = args
 
     #update the cart position on the track
@@ -194,10 +194,10 @@ function update_medium_wrap_coord(args, cache, coord)
     
 
     #update the angle of the thumb
-    # angle_max = 1.22
-    # angle_min = 0.0
-    # angle_value = angle_max - (angle_max - angle_min)*coord
-    # cache[th_j5_target_angle_id] = remake(cache[th_j5_target_angle_id] ; coord_data = ConstCoord(angle_value))
+    angle_max = 1.22
+    angle_min = 0.0
+    angle_value = angle_max - (angle_max - angle_min)*coord
+    cache[th_j4_target_angle_id] = remake(cache[th_j4_target_angle_id] ; coord_data = ConstCoord(angle_value))
 
     nothing
 end
