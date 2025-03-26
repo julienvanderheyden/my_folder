@@ -144,7 +144,7 @@ add_coordinate!(vms, CoordDifference("th ff norm", "th spring length"); id = "th
 add_component!(vms, LinearSpring(0.1, "th position error"); id="th position spring")
 add_component!(vms, LinearDamper(0.1, "th position error"); id="th position damper")
 
-add_coordinate!(vms, ConstCoord(1.22); id="th j4 target angle")
+add_coordinate!(vms, ConstCoord(1.00); id="th j4 target angle")
 add_coordinate!(vms, JointSubspace(".virtual_mechanism.rh_THJ4"); id= "th j4 angle")
 add_coordinate!(vms, CoordDifference("th j4 target angle", "th j4 angle"); id="th j4 angle error")
 
@@ -194,10 +194,10 @@ function update_medium_wrap_coord(args, cache, coord)
     
 
     #update the angle of the thumb
-    angle_max = 1.22
-    angle_min = 0.9
-    angle_value = angle_max - (angle_max - angle_min)*coord
-    cache[th_j4_target_angle_id] = remake(cache[th_j4_target_angle_id] ; coord_data = ConstCoord(angle_value))
+    # angle_max = 1.22
+    # angle_min = 0.9
+    # angle_value = angle_max - (angle_max - angle_min)*coord
+    # cache[th_j4_target_angle_id] = remake(cache[th_j4_target_angle_id] ; coord_data = ConstCoord(angle_value))
 
     nothing
 end
