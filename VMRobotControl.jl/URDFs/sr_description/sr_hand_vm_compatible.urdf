@@ -1,4 +1,4 @@
-<?xml version="1.0" ?>
+   <?xml version="1.0" ?>
 
 <robot name="shadowhand_motor"
    xmlns:controller="http://playerstage.sourceforge.net/gazebo/xmlschema/#controller"
