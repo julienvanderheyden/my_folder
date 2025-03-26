@@ -4,7 +4,7 @@ using LinearAlgebra
 using StaticArrays
 using VMRobotControl
 using VMRobotControl.Splines: CubicSpline
-#using DifferentialEquations
+using DifferentialEquations
 #using MeshIO
 
 module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
