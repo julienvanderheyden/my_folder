@@ -83,6 +83,7 @@ vms = VirtualMechanismSystem("myShadowVMS", shadow_robot, vm_robot)
 # MOTION MECHANISMS
 m = compile(vm_robot)
 kcache = new_kinematics_cache(m)  
+cart_init_pos = SVector(0.011, -0.01, 0.442)
 
 K = SMatrix{3, 3}(1., 0., 0., 0., 1., 0., 0., 0., 1.)
 D = SMatrix{3, 3}(0.1, 0., 0., 0., 0.1, 0., 0., 0., 0.1)
