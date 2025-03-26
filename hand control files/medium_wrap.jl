@@ -148,8 +148,8 @@ add_coordinate!(vms, ConstCoord(1.22); id="th j4 target angle")
 add_coordinate!(vms, JointSubspace(".virtual_mechanism.rh_THJ4"); id= "th j4 angle")
 add_coordinate!(vms, CoordDifference("th j4 target angle", "th j4 angle"); id="th j4 angle error")
 
-add_component!(vms, LinearSpring(1.0, "th j4 angle error"); id="th j4 angular spring")
-add_component!(vms, LinearDamper(0.1, "th j4 angle error"); id="th j4 angular damper")
+add_component!(vms, LinearSpring(0.01, "th j4 angle error"); id="th j4 angular spring")
+add_component!(vms, LinearDamper(0.001, "th j4 angle error"); id="th j4 angular damper")
 
 
 println("Virtual Mechanism Built !")
