@@ -4,6 +4,7 @@ using LinearAlgebra
 using StaticArrays
 using VMRobotControl
 using VMRobotControl.Splines: CubicSpline
+using VMRobotControl : remake
 #using DifferentialEquations
 #using MeshIO
 
