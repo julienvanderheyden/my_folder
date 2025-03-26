@@ -198,8 +198,8 @@ function update_medium_wrap_coord(args, cache, coord)
     if coord <= th_stiff_end_coord
         stiff_max = 0.01
         stiff_min = 0.0
-        stiffness= stiff_max - (stiff_max - stiff_min)*(coord/th_stiff_end_coord)
-        cache[th_j4_angular_spring_id] = remake(cache[th_j4_angular_spring_id] ; stiffness = )
+        stiff_value = stiff_max - (stiff_max - stiff_min)*(coord/th_stiff_end_coord)
+        cache[th_j4_angular_spring_id] = remake(cache[th_j4_angular_spring_id] ; stiffness = stiff_value)
     end
 
     nothing
