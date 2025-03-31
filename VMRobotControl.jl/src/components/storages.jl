@@ -306,7 +306,7 @@ end
     coord::C
     flipped::Bool
     function RectifiedSpring(stiffness::K, c::C, flipped::Bool) where {K, C}
-        stiffness > 0 || @warn "Expected ReLU spring stiffness to be positive: '$(stiffness)'"
+        #stiffness > 0 || @warn "Expected ReLU spring stiffness to be positive: '$(stiffness)'"
         new{eltype(K), K, C}(stiffness, c, flipped)
     end
 end

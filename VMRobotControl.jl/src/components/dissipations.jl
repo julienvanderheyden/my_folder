@@ -69,7 +69,7 @@ If `diodic` is true, the damper is applied only when the velocity is positive
     flipped::Bool
     diodic::Bool
     function RectifiedDamper(damping::K, coord::C, bounds::Tuple{B, B}, flipped::Bool, diodic::Bool) where {K, C<:CoordID, B}
-        isposdef(damping) || @warn "Expected damper damping to be positive definite: '$(damping)'"
+        #isposdef(damping) || @warn "Expected damper damping to be positive definite: '$(damping)'"
         all(bounds[1] .< bounds[2]) || throw(ErrorException("Expected lower bound(s) to be less than upper bound(s): $(bounds[1]), $(bounds[2])"))
         new{eltype(K), K, C, B}(damping, coord, bounds, flipped, diodic)
     end
