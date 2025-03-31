@@ -441,6 +441,7 @@ function ros_vm_position_controller(
             control_steps = 10
             for j in 0:(control_steps-1)
                 t_sub = t + j * dt / control_steps  # Intermediate time step
+                display(t_sub)
                 f_control(control_cache, t_sub, args, (dt/control_steps, i)) # Call user control function
                 control_step!(control_cache, t_sub, qʳ, q̇ʳ) 
             end
