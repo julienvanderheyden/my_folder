@@ -423,27 +423,28 @@ function ros_vm_position_controller(
         control_step!(control_cache, 0.0, qʳ, q̇ʳ) # Step at t=0 to set initial state
     end
 
-
-
     # create indices list
     robot_vm_idxs = generate_virtual_robot_idxs(vms, joint_names)
-
-    # _, q̈ᵛ = get_q̈(control_cache)
-    # println(get_virtual_hand_state(q̈ᵛ, robot_vm_idxs))
-    # println(q̈ᵛ)
 
     args = f_setup(control_cache) # Call user setup function
 
     # Create control callback
     control_func! = let control_cache=control_cache, args=args
         function control_func!(torques, state, i, t, dt)
+
             NDOF = robot_ndof(control_cache)
             @assert length(state) == 2*NDOF
             qʳ = view(state, 1:NDOF)
             q̇ʳ = view(state, NDOF+1:2*NDOF)
-            # Main control step
-            f_control(control_cache, t, args, (dt, i)) # Call user control function
-            control_step!(control_cache, t, qʳ, q̇ʳ) 
+
+            # Main control step : loop control_steps times to increase simulation frequency
+            control_steps = 10
+            for j in 0:(control_steps-1)
+                t_sub = t + j * dt / control_steps  # Intermediate time step
+                f_control(control_cache, t_sub, args, (dt/control_steps, i)) # Call user control function
+                control_step!(control_cache, t_sub, qʳ, q̇ʳ) 
+            end
+
             qr, qv = get_q(control_cache)
             # instead of sending torque the state of the virtual hand is sent :
             hand_state = get_virtual_hand_state(qv, robot_vm_idxs) 
