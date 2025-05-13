@@ -63,7 +63,7 @@ vms = VirtualMechanismSystem("myShadowVMS", shadow_robot, vm_robot)
 root = root_frame(vms.robot)
 
 #Lightly constraint some joints to avoid unwanted motions
-add_component!(vms, LinearSpring(0.01), ".virtual_mechanism.rh_LFJ5_coord"); id = "lf j5 angular spring")
+add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_LFJ5_coord"); id = "lf j5 angular spring")
 
 # PHASE 1 : FINGERS SPACING
 
