@@ -215,10 +215,19 @@ function update_power_sphere_coord(args, cache, coord)
         j3_angle_value = j3_angle_min + (j3_angle_max - j3_angle_min)*j3_coord_value
         cache[j3_target_angle_id] = remake(cache[j3_target_angle_id]; coord_data = ConstCoord(j3_angle_value))
 
+    end
+
+    #shift metacarpophalangeal joints (MCP joints) of the thumb
+    th_j3_start_coord = 0.6
+    th_j3_end_coord = 0.9
+    if coord >= th_j3_start_coord && coord <= th_j3_end_coord
+
+        th_j3_coord_value = (coord - th_j3_start_coord)/(j3_end_coord - th_j3_start_coord) 
+
         #thumb
         th_j5_angle_min = 0.0
         th_j5_angle_max = 1.05
-        th_j5_angle_value = th_j5_angle_min + (th_j5_angle_max - th_j5_angle_min)*j3_coord_value
+        th_j5_angle_value = th_j5_angle_min + (th_j5_angle_max - th_j5_angle_min)*th_j3_coord_value
         cache[th_j5_target_angle_id] = remake(cache[th_j5_target_angle_id] ; coord_data = ConstCoord(th_j5_angle_value))
     end
 
