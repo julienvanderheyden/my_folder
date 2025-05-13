@@ -67,6 +67,7 @@ D = 0.001
 
 #Lightly constraint some joints to avoid unwanted motions
 add_component!(vms, LinearSpring(0.001, ".virtual_mechanism.rh_LFJ5_coord"); id = "lf j5 angular spring")
+add_component!(vms, LinearSpring(0.001, ".robot.rh_WRJ1_coord"); id = "wr j1 angular spring")
 
 # PHASE 1 : FINGERS SPACING
 
