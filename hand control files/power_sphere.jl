@@ -59,7 +59,7 @@ println("Robot built !")
 
 print("Building the virtual mechanisms...")
 
-vms = VirtualMechanismSystem("myShadowVMS", robot)
+vms = VirtualMechanismSystem("myShadowVMS", shadow_robot, vm_robot)
 root = root_frame(vms.robot)
 
 #Lightly constraint some joints to avoid unwanted motions
