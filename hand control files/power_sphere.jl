@@ -274,8 +274,8 @@ end
 
 function f_control(cache, t, args, extra)
 
-    t_start = 5.
-    t_end = 15. #we want to reach the end position at t = t_end 
+    t_start = 20.
+    t_end = 30. #we want to reach the end position at t = t_end 
     
     if t >= t_start && t <= t_end 
         coord_value = (t - t_start) /(t_end -t_start)
