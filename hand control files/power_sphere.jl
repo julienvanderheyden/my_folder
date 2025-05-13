@@ -63,7 +63,7 @@ vms = VirtualMechanismSystem("myShadowVMS", shadow_robot, vm_robot)
 root = root_frame(vms.robot)
 
 #Lightly constraint some joints to avoid unwanted motions
-add_component!(vms, LinearSpring(1.0, ".virtual_mechanism.rh_LFJ5_coord"); id = "lf j5 angular spring")
+add_component!(vms, LinearSpring(0.01), ".virtual_mechanism.rh_LFJ5_coord"); id = "lf j5 angular spring")
 
 # PHASE 1 : FINGERS SPACING
 
@@ -72,25 +72,25 @@ add_coordinate!(vms, ConstCoord(0.0); id = "angular spring length")
 #ff mf spacing
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_MFJ4_coord", ".virtual_mechanism.rh_FFJ4_coord"); id="ff mf j4 angular diff")
 add_coordinate!(vms, CoordDifference("ff mf j4 angular diff", "angular spring length") ; id="ff mf j4 angular error")
-add_component!(vms, LinearSpring(10.0, "ff mf j4 angular error"); id="ff mf angular spring")
-add_component!(vms, LinearDamper(10.0, "ff mf j4 angular error"); id="ff mf angular damper")
+add_component!(vms, LinearSpring(0.1, "ff mf j4 angular error"); id="ff mf angular spring")
+add_component!(vms, LinearDamper(0.01, "ff mf j4 angular error"); id="ff mf angular damper")
 
 #mf rf spacing
 add_coordinate!(vms, CoordSum(".virtual_mechanism.rh_RFJ4_coord", ".virtual_mechanism.rh_MFJ4_coord"); id="mf rf j4 angular diff")
 add_coordinate!(vms, CoordSum("mf rf j4 angular diff", "angular spring length") ; id="mf rf j4 angular error")
-add_component!(vms, LinearSpring(10.0, "mf rf j4 angular error"); id="mf rf angular spring")
-add_component!(vms, LinearDamper(10.0, "mf rf j4 angular error"); id="mf rf angular damper")
+add_component!(vms, LinearSpring(0.1, "mf rf j4 angular error"); id="mf rf angular spring")
+add_component!(vms, LinearDamper(0.01, "mf rf j4 angular error"); id="mf rf angular damper")
 
 #rf lf spacing
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_RFJ4_coord", ".virtual_mechanism.rh_LFJ4_coord"); id="rf lf j4 angular diff")
 add_coordinate!(vms, CoordDifference("rf lf j4 angular diff", "angular spring length") ; id="rf lf j4 angular error")
-add_component!(vms, LinearSpring(10.0, "rf lf j4 angular error"); id="rf lf angular spring")
-add_component!(vms, LinearDamper(10.0, "rf lf j4 angular error"); id="rf lf angular damper")
+add_component!(vms, LinearSpring(0.1, "rf lf j4 angular error"); id="rf lf angular spring")
+add_component!(vms, LinearDamper(0.01, "rf lf j4 angular error"); id="rf lf angular damper")
 
 #th spacing
 add_coordinate!(vms, ConstCoord(0.0); id="th spring length")
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_THJ4_coord", "th spring length"); id="th j4 error")
-add_component!(vms, LinearSpring(1.0, "th j4 error"); id="th j4 spring")
+add_component!(vms, LinearSpring(0.1, "th j4 error"); id="th j4 spring")
 
 # PHASE 2 : GRASPING : EACH JOINTS SHOULD GO TO ITS FINAL POSITION, BUT AT DIFFERENT TIMESCALES
 
@@ -100,47 +100,47 @@ add_coordinate!(vms, ConstCoord(0.0); id="J1 target angle") # Last
 
 # First finger
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_FFJ3_coord", "J3 target angle"); id="ff j3 angle error")
-add_component!(vms, LinearSpring(1.0, "ff j3 angle error"); id="ff j3 spring")
-add_component!(vms, LinearDamper(1.0, "ff j3 angle error"); id="ff j3 damper")
+add_component!(vms, LinearSpring(0.1, "ff j3 angle error"); id="ff j3 spring")
+add_component!(vms, LinearDamper(0.01, "ff j3 angle error"); id="ff j3 damper")
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_FFJ2_coord", "J2 target angle"); id="ff j2 angle error")
-add_component!(vms, LinearSpring(1.0, "ff j2 angle error"); id="ff j2 spring")
-add_component!(vms, LinearDamper(1.0, "ff j2 angle error"); id="ff j2 damper")
+add_component!(vms, LinearSpring(0.1, "ff j2 angle error"); id="ff j2 spring")
+add_component!(vms, LinearDamper(0.01, "ff j2 angle error"); id="ff j2 damper")
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_FFJ1_coord", "J1 target angle"); id="ff j1 angle error")
-add_component!(vms, LinearSpring(1.0, "ff j1 angle error"); id="ff j1 spring")
-add_component!(vms, LinearDamper(1.0, "ff j1 angle error"); id="ff j1 damper")
+add_component!(vms, LinearSpring(0.1, "ff j1 angle error"); id="ff j1 spring")
+add_component!(vms, LinearDamper(0.01, "ff j1 angle error"); id="ff j1 damper")
 
 # Middle Finger
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_MFJ3_coord", "J3 target angle"); id="mf j3 angle error")
-add_component!(vms, LinearSpring(1.0, "mf j3 angle error"); id="mf j3 spring")
-add_component!(vms, LinearDamper(1.0, "mf j3 angle error"); id="mf j3 damper")
+add_component!(vms, LinearSpring(0.1, "mf j3 angle error"); id="mf j3 spring")
+add_component!(vms, LinearDamper(0.01, "mf j3 angle error"); id="mf j3 damper")
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_MFJ2_coord", "J2 target angle"); id="mf j2 angle error")
-add_component!(vms, LinearSpring(1.0, "mf j2 angle error"); id="mf j2 spring")
-add_component!(vms, LinearDamper(1.0, "mf j2 angle error"); id="mf j2 damper")
+add_component!(vms, LinearSpring(0.1, "mf j2 angle error"); id="mf j2 spring")
+add_component!(vms, LinearDamper(0.01, "mf j2 angle error"); id="mf j2 damper")
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_MFJ1_coord", "J1 target angle"); id="mf j1 angle error")
-add_component!(vms, LinearSpring(1.0, "mf j1 angle error"); id="mf j1 spring")
-add_component!(vms, LinearDamper(1.0, "mf j1 angle error"); id="mf j1 damper")
+add_component!(vms, LinearSpring(0.1, "mf j1 angle error"); id="mf j1 spring")
+add_component!(vms, LinearDamper(0.01, "mf j1 angle error"); id="mf j1 damper")
 
 # Ring Finger
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_RFJ3_coord", "J3 target angle"); id="rf j3 angle error")
-add_component!(vms, LinearSpring(1.0, "rf j3 angle error"); id="rf j3 spring")
-add_component!(vms, LinearDamper(1.0, "rf j3 angle error"); id="rf j3 damper")
+add_component!(vms, LinearSpring(0.1, "rf j3 angle error"); id="rf j3 spring")
+add_component!(vms, LinearDamper(0.01, "rf j3 angle error"); id="rf j3 damper")
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_RFJ2_coord", "J2 target angle"); id="rf j2 angle error")
-add_component!(vms, LinearSpring(1.0, "rf j2 angle error"); id="rf j2 spring")
-add_component!(vms, LinearDamper(1.0, "rf j2 angle error"); id="rf j2 damper")
+add_component!(vms, LinearSpring(0.1, "rf j2 angle error"); id="rf j2 spring")
+add_component!(vms, LinearDamper(0.01, "rf j2 angle error"); id="rf j2 damper")
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_RFJ1_coord", "J1 target angle"); id="rf j1 angle error")
-add_component!(vms, LinearSpring(1.0, "rf j1 angle error"); id="rf j1 spring")
-add_component!(vms, LinearDamper(1.0, "rf j1 angle error"); id="rf j1 damper")
+add_component!(vms, LinearSpring(0.1, "rf j1 angle error"); id="rf j1 spring")
+add_component!(vms, LinearDamper(0.01, "rf j1 angle error"); id="rf j1 damper")
 
 # Little Finger
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_LFJ3_coord", "J3 target angle"); id="lf j3 angle error")
-add_component!(vms, LinearSpring(1.0, "lf j3 angle error"); id="lf j3 spring")
-add_component!(vms, LinearDamper(1.0, "lf j3 angle error"); id="lf j3 damper")
+add_component!(vms, LinearSpring(0.1, "lf j3 angle error"); id="lf j3 spring")
+add_component!(vms, LinearDamper(0.01, "lf j3 angle error"); id="lf j3 damper")
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_LFJ2_coord", "J2 target angle"); id="lf j2 angle error")
-add_component!(vms, LinearSpring(1.0, "lf j2 angle error"); id="lf j2 spring")
-add_component!(vms, LinearDamper(1.0, "lf j2 angle error"); id="lf j2 damper")
+add_component!(vms, LinearSpring(0.01, "lf j2 angle error"); id="lf j2 spring")
+add_component!(vms, LinearDamper(0.01, "lf j2 angle error"); id="lf j2 damper")
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_LFJ1_coord", "J1 target angle"); id="lf j1 angle error")
-add_component!(vms, LinearSpring(1.0, "lf j1 angle error"); id="lf j1 spring")
-add_component!(vms, LinearDamper(1.0, "lf j1 angle error"); id="lf j1 damper")
+add_component!(vms, LinearSpring(0.1, "lf j1 angle error"); id="lf j1 spring")
+add_component!(vms, LinearDamper(0.01, "lf j1 angle error"); id="lf j1 damper")
 
 # Thumb 
 add_coordinate!(vms, ConstCoord(0.0); id="th J5 target angle") # First that should be activated
@@ -148,14 +148,14 @@ add_coordinate!(vms, ConstCoord(0.0); id="th J2 target angle") # Second
 add_coordinate!(vms, ConstCoord(0.0); id="th J1 target angle") # Last
 
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_THJ5_coord", "th J5 target angle"); id="th j5 angle error")
-add_component!(vms, LinearSpring(1.0, "th j5 angle error"); id="th j5 spring")
-add_component!(vms, LinearDamper(1.0, "th j5 angle error"); id="th j5 damper")
+add_component!(vms, LinearSpring(0.1, "th j5 angle error"); id="th j5 spring")
+add_component!(vms, LinearDamper(0.01, "th j5 angle error"); id="th j5 damper")
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_THJ2_coord", "th J2 target angle"); id="th j2 angle error")
-add_component!(vms, LinearSpring(1.0, "th j2 angle error"); id="th j2 spring")
-add_component!(vms, LinearDamper(1.0, "th j2 angle error"); id="th j2 damper")
+add_component!(vms, LinearSpring(0.1, "th j2 angle error"); id="th j2 spring")
+add_component!(vms, LinearDamper(0.01, "th j2 angle error"); id="th j2 damper")
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_THJ1_coord", "th J1 target angle"); id="th j1 angle error")
-add_component!(vms, LinearSpring(1.0, "th j1 angle error"); id="th j1 spring")
-add_component!(vms, LinearDamper(1.0, "th j1 angle error"); id="th j1 damper")
+add_component!(vms, LinearSpring(0.1, "th j1 angle error"); id="th j1 spring")
+add_component!(vms, LinearDamper(0.01, "th j1 angle error"); id="th j1 damper")
 
 
 println("Virtual Mechanism Built !")
