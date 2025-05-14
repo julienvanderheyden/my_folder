@@ -6,6 +6,7 @@ using VMRobotControl
 using VMRobotControl.Splines: CubicSpline
 using DifferentialEquations
 #using MeshIO
+include("functions.jl")
 
 module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
 include(joinpath(module_path, "ros/ROS.jl"))
@@ -183,7 +184,7 @@ println("Defined")
 # Make sure rospy_client.py is running first.
 println("Connecting to ROS client...")
 cvms = compile(vms)
-qᵛ = zero_q(cvms.virtual_mechanism)
+qᵛ = generate_q_init(cvms; mf=true, rf=true, lf=true)
 
 joint_names = ["rh_WRJ1", "rh_WRJ2", "rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4", "rh_MFJ1",
                 "rh_MFJ2", "rh_MFJ3", "rh_MFJ4", "rh_RFJ1", "rh_RFJ2", "rh_RFJ3", "rh_RFJ4", 
