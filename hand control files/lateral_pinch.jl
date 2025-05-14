@@ -136,7 +136,8 @@ function update_lateral_pinch_coord(args, cache, coord)
     if coord < 0.6
         length_max = 0.1
         length_min = 0.0
-        length_value = length_max - (length_max - length_min)*(coord/0.6) 
+        #length_value = length_max - (length_max - length_min)*(coord/0.6) 
+        length_value = 0.0
         cache[th_spring_length_id] = remake(cache[th_spring_length_id] ; coord_data = ConstCoord(length_value))
 
     # phase 2 : a force is applied to go "into" the phalanx
