@@ -80,7 +80,7 @@ add_component!(vms, LinearSpring(0.001, ".virtual_mechanism.rh_MFJ4_coord"); id 
 add_component!(vms, LinearSpring(0.001, ".virtual_mechanism.rh_RFJ4_coord"); id = "rf j4 angular spring")
 add_component!(vms, LinearSpring(0.001, ".virtual_mechanism.rh_LFJ4_coord"); id = "lf j4 angular spring")
 add_component!(vms, LinearSpring(0.001, ".virtual_mechanism.rh_WRJ1_coord"); id = "wr j1 angular spring")
-add_component!(vms, LinearSpring(0.0001, ".virtual_mechanism.rh_FFJ3_coord"); id = "ff j3 angular spring")
+add_component!(vms, LinearSpring(0.0005, ".virtual_mechanism.rh_FFJ3_coord"); id = "ff j3 angular spring")
 
 
 # THUMB HANDLING 
