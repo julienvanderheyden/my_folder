@@ -59,42 +59,42 @@ println("Robot built !")
 
 print("Building the virtual mechanisms...")
 
-vms = VirtualMechanismSystem("myShadowVMS", robot)
+vms = VirtualMechanismSystem("myShadowVMS", shadow_robot, vm_robot)
 root = root_frame(vms.robot)
 
-m = compile(robot)
-kcache = new_kinematics_cache(m)  
+# m = compile(robot)
+# kcache = new_kinematics_cache(m)  
 
-cart_init_pos = SVector(0.011, -0.01, 0.442)
+# cart_init_pos = SVector(0.011, -0.01, 0.442)
 
-#Linking the four fingers to the same point, with non-zero equilibrium springs
+# #Linking the four fingers to the same point, with non-zero equilibrium springs
 
-K = SMatrix{3, 3}(100., 0., 0., 0., 100., 0., 0., 0., 100.)
-D = SMatrix{3, 3}(10., 0., 0., 0., 10.0, 0., 0., 0., 10.)
+K = 0.01
+D = 0.001
 
 #lightly constraining some joints to avoid unwanted motions
-add_component!(vms, LinearSpring(10.0, ".robot.rh_LFJ5_coord"); id = "lf j5 angular spring")
-add_component!(vms, LinearSpring(10.0, ".robot.rh_FFJ4_coord"); id = "ff j4 angular spring")
-add_component!(vms, LinearSpring(10.0, ".robot.rh_MFJ4_coord"); id = "mf j4 angular spring")
-add_component!(vms, LinearSpring(10.0, ".robot.rh_RFJ4_coord"); id = "rf j4 angular spring")
-add_component!(vms, LinearSpring(10.0, ".robot.rh_LFJ4_coord"); id = "lf j4 angular spring")
-add_component!(vms, LinearSpring(10.0, ".robot.rh_WRJ1_coord"); id = "wr j1 angular spring")
-add_component!(vms, LinearSpring(0.001, ".robot.rh_FFJ3_coord"); id = "ff j3 angular spring")
+add_component!(vms, LinearSpring(0.001, ".virtual_mechanism.rh_LFJ5_coord"); id = "lf j5 angular spring")
+add_component!(vms, LinearSpring(0.001, ".virtual_mechanism.rh_FFJ4_coord"); id = "ff j4 angular spring")
+add_component!(vms, LinearSpring(0.001, ".virtual_mechanism.rh_MFJ4_coord"); id = "mf j4 angular spring")
+add_component!(vms, LinearSpring(0.001, ".virtual_mechanism.rh_RFJ4_coord"); id = "rf j4 angular spring")
+add_component!(vms, LinearSpring(0.001, ".virtual_mechanism.rh_LFJ4_coord"); id = "lf j4 angular spring")
+add_component!(vms, LinearSpring(0.001, ".virtual_mechanism.rh_WRJ1_coord"); id = "wr j1 angular spring")
+add_component!(vms, LinearSpring(0.001, ".virtual_mechanism.rh_FFJ3_coord"); id = "ff j3 angular spring")
 
 
 # THUMB HANDLING 
-add_coordinate!(vms, FrameOrigin(".robot.rh_thtip"); id ="th position")
-add_coordinate!(vms, FramePoint(".robot.rh_ffmiddle", SVector(0.012,0.0,0.0)); id= "th target position")
+add_coordinate!(vms, FrameOrigin(".virtual_mechanism.rh_thtip"); id ="th position")
+add_coordinate!(vms, FramePoint(".virtual_mechanism.rh_ffmiddle", SVector(0.012,0.0,0.0)); id= "th target position")
 add_coordinate!(vms, CoordDifference("th position", "th target position"); id = "th target dist")
 add_coordinate!(vms, CoordNorm("th target dist"); id="th target norm")
 add_coordinate!(vms, ConstCoord(0.07); id="th spring length")
 add_coordinate!(vms, CoordDifference("th target norm", "th spring length"); id = "th position error")
 
-add_component!(vms, LinearSpring(100.0, "th position error"); id="th position spring")
-add_component!(vms, LinearDamper(100.0, "th position error"); id="th position damper")
+add_component!(vms, LinearSpring(1.0, "th position error"); id="th position spring")
+add_component!(vms, LinearDamper(0.1, "th position error"); id="th position damper")
 
 add_coordinate!(vms, ConstCoord(1.57); id = "ff j2 angle target")
-add_coordinate!(vms, CoordDifference(".robot.rh_FFJ2_coord", "ff j2 angle target") ; id ="ff j2 angle error")
+add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_FFJ2_coord", "ff j2 angle target") ; id ="ff j2 angle error")
 add_component!(vms, LinearSpring(0.0, "ff j2 angle error"); id = "ff j2 spring")
 
 # add_coordinate!(vms, ConstCoord(1.00); id="th j5 target angle")
@@ -146,7 +146,7 @@ function update_lateral_pinch_coord(args, cache, coord)
     #update the spring of the second phalanx
     j2_activation_coord = 0.3
     if coord > j2_activation_coord
-        stiff_max = 0.1
+        stiff_max = 0.01
         stiff_min = 0.0
         stiff_value = stiff_min + (stiff_max - stiff_min)*((coord - j2_activation_coord)/(1.0 - j2_activation_coord))
         cache[ff_j2_spring_id] = remake(cache[ff_j2_spring_id] ; stiffness = stiff_value)
@@ -163,7 +163,7 @@ end
 
 function f_setup(cache) 
     return  (get_compiled_coordID(cache, "th spring length"), get_compiled_coordID(cache, "th target position"), 
-            get_compiled_frameID(cache, ".robot.rh_ffmiddle"), get_compiled_componentID(cache, "ff j2 spring"))#, get_compiled_coordID(cache, "th j5 target angle"))
+            get_compiled_frameID(cache, ".virtual_mechanism.rh_ffmiddle"), get_compiled_componentID(cache, "ff j2 spring"))#, get_compiled_coordID(cache, "th j5 target angle"))
 end
 
 function f_control(cache, t, args, extra)
