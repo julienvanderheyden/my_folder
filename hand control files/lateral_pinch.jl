@@ -90,7 +90,7 @@ add_coordinate!(vms, CoordNorm("th target dist"); id="th target norm")
 add_coordinate!(vms, ConstCoord(0.07); id="th spring length")
 add_coordinate!(vms, CoordDifference("th target norm", "th spring length"); id = "th position error")
 
-add_component!(vms, LinearSpring(10.0, "th position error"); id="th position spring")
+add_component!(vms, LinearSpring(1.0, "th position error"); id="th position spring")
 add_component!(vms, LinearDamper(0.1, "th position error"); id="th position damper")
 
 add_coordinate!(vms, ConstCoord(1.57); id = "ff j2 angle target")
