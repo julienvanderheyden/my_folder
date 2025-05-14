@@ -88,10 +88,10 @@ add_coordinate!(vms, FrameOrigin(".virtual_mechanism.rh_thtip"); id ="th positio
 add_coordinate!(vms, FramePoint(".virtual_mechanism.rh_ffmiddle", SVector(0.012,0.0,0.0)); id= "th target position")
 add_coordinate!(vms, CoordDifference("th position", "th target position"); id = "th target dist")
 add_coordinate!(vms, CoordNorm("th target dist"); id="th target norm")
-add_coordinate!(vms, ConstCoord(0.1); id="th spring length")
+add_coordinate!(vms, ConstCoord(0.0); id="th spring length")
 add_coordinate!(vms, CoordDifference("th target norm", "th spring length"); id = "th position error")
 
-add_component!(vms, LinearSpring(1.0, "th position error"); id="th position spring")
+add_component!(vms, LinearSpring(0.0, "th position error"); id="th position spring")
 add_component!(vms, LinearDamper(0.1, "th position error"); id="th position damper")
 
 add_coordinate!(vms, ConstCoord(1.57); id = "ff j2 angle target")
@@ -128,17 +128,16 @@ print("Definition of the control and setup functions....")
 
 function update_lateral_pinch_coord(args, cache, coord)
     #target_rail_id, th_spring_length_id, th_j5_target_angle_id = args
-    th_spring_length_id, th_target_pos_id, ffmiddle_frame_id, ff_j2_spring_id = args
+    th_position_spring_id, th_target_pos_id, ffmiddle_frame_id, ff_j2_spring_id = args
 
     #update the length of the spring between the thumb and the ff finger
 
     # First phase : the thumb converges to the top of the phalanx
     if coord < 0.6
-        length_max = 0.1
-        length_min = 0.0
-        #length_value = length_max - (length_max - length_min)*(coord/0.6) 
-        length_value = 0.0
-        cache[th_spring_length_id] = remake(cache[th_spring_length_id] ; coord_data = ConstCoord(length_value))
+        th_stiff_max = 0.5
+        th_stiff_min = 0.0
+        th_stiff_value = th_stiff_min + (th_stiff_max - th_stiff_min)*(coord/0.6) 
+        cache[th_position_spring_id] = remake(cache[th_position_spring_id] ; stifness = )
 
     # phase 2 : a force is applied to go "into" the phalanx
     elseif coord > 0.8
@@ -164,7 +163,7 @@ function update_lateral_pinch_coord(args, cache, coord)
 end
 
 function f_setup(cache) 
-    return  (get_compiled_coordID(cache, "th spring length"), get_compiled_coordID(cache, "th target position"), 
+    return  (get_compiled_coordID(cache, "th position spring"), get_compiled_coordID(cache, "th target position"), 
             get_compiled_frameID(cache, ".virtual_mechanism.rh_ffmiddle"), get_compiled_componentID(cache, "ff j2 spring"))#, get_compiled_coordID(cache, "th j5 target angle"))
 end
 
