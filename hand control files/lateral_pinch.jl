@@ -85,7 +85,7 @@ add_component!(vms, LinearSpring(0.001, ".virtual_mechanism.rh_LFJ4_coord"); id 
 
 # THUMB HANDLING 
 add_coordinate!(vms, FrameOrigin(".virtual_mechanism.rh_thtip"); id ="th position")
-add_coordinate!(vms, FramePoint(".virtual_mechanism.rh_ffmiddle", SVector(0.012,0.0,0.0)); id= "th target position")
+add_coordinate!(vms, FramePoint(".virtual_mechanism.rh_ffmiddle", SVector(0.008,0.0,0.0)); id= "th target position")
 add_coordinate!(vms, CoordDifference("th position", "th target position"); id = "th target dist")
 add_coordinate!(vms, CoordNorm("th target dist"); id="th target norm")
 add_coordinate!(vms, ConstCoord(0.0); id="th spring length")
