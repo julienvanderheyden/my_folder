@@ -88,7 +88,7 @@ add_coordinate!(vms, FrameOrigin(".virtual_mechanism.rh_thtip"); id ="th positio
 add_coordinate!(vms, FramePoint(".virtual_mechanism.rh_ffmiddle", SVector(0.012,0.0,0.0)); id= "th target position")
 add_coordinate!(vms, CoordDifference("th position", "th target position"); id = "th target dist")
 add_coordinate!(vms, CoordNorm("th target dist"); id="th target norm")
-add_coordinate!(vms, ConstCoord(0.09); id="th spring length")
+add_coordinate!(vms, ConstCoord(0.1); id="th spring length")
 add_coordinate!(vms, CoordDifference("th target norm", "th spring length"); id = "th position error")
 
 add_component!(vms, LinearSpring(1.0, "th position error"); id="th position spring")
@@ -134,7 +134,7 @@ function update_lateral_pinch_coord(args, cache, coord)
 
     # First phase : the thumb converges to the top of the phalanx
     if coord < 0.6
-        length_max = 0.09
+        length_max = 0.1
         length_min = 0.0
         length_value = length_max - (length_max - length_min)*(coord/0.6) 
         cache[th_spring_length_id] = remake(cache[th_spring_length_id] ; coord_data = ConstCoord(length_value))
