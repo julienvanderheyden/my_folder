@@ -74,7 +74,7 @@ D = 0.001
 
 #lightly constraining some joints to avoid unwanted motions
 add_component!(vms, LinearSpring(0.001, ".virtual_mechanism.rh_LFJ5_coord"); id = "lf j5 angular spring")
-add_component!(vms, LinearSpring(0.001, ".virtual_mechanism.rh_FFJ4_coord"); id = "ff j4 angular spring")
+add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_FFJ4_coord"); id = "ff j4 angular spring")
 add_component!(vms, LinearSpring(0.001, ".virtual_mechanism.rh_MFJ4_coord"); id = "mf j4 angular spring")
 add_component!(vms, LinearSpring(0.001, ".virtual_mechanism.rh_RFJ4_coord"); id = "rf j4 angular spring")
 add_component!(vms, LinearSpring(0.001, ".virtual_mechanism.rh_LFJ4_coord"); id = "lf j4 angular spring")
@@ -90,7 +90,7 @@ add_coordinate!(vms, CoordNorm("th target dist"); id="th target norm")
 add_coordinate!(vms, ConstCoord(0.07); id="th spring length")
 add_coordinate!(vms, CoordDifference("th target norm", "th spring length"); id = "th position error")
 
-add_component!(vms, LinearSpring(1.0, "th position error"); id="th position spring")
+add_component!(vms, LinearSpring(0.5, "th position error"); id="th position spring")
 add_component!(vms, LinearDamper(0.1, "th position error"); id="th position damper")
 
 add_coordinate!(vms, ConstCoord(1.57); id = "ff j2 angle target")
