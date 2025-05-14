@@ -14,55 +14,6 @@ function struct_fields_and_types(T::Type)
     end
 end
 
-function display_frame(m::CompiledMechanism, ls::LScene, frame_name::String)
-    # Get the compiled frame ID
-    frame_id = get_compiled_frameID(m, frame_name)
-    kcache = new_kinematics_cache(m)
-    # Get the transformation of the frame
-    transform = get_transform(kcache, frame_id)
-
-    # Convert rotor to rotation matrix
-    R_matrix = rotor_to_matrix(transform.rotor)
-
-    # Extract position as a Point{3, Float32}
-    p = Point{3, Float32}(transform.origin[1], transform.origin[2], transform.origin[3])
-
-    # Define axis colors
-    axis_colors = (:red, :green, :blue)
-
-    # Extract frame axes and scale them
-    scale = 0.1
-    axis_vectors = scale .* [R_matrix[:, i] for i in 1:3]
-
-    # Plot the frame axes
-    for (i, color) in enumerate(axis_colors)
-        a = Vec{3, Float64}(axis_vectors[i])
-        arrows!(ls, [p], [a]; arrowsize=0.01, color=color)
-    end
-end
-
-function display_transform(ls::LScene, transform::Matrix{Float64})
-    @assert size(transform) == (4, 4) "Transform matrix must be 4×4"
-
-    # Extract rotation matrix (top-left 3×3 submatrix)
-    R_matrix = transform[1:3, 1:3]
-
-    # Extract translation vector (last column, first 3 elements)
-    p = Point{3, Float32}(transform[1, 4], transform[2, 4], transform[3, 4])
-
-    # Define axis colors
-    axis_colors = (:red, :green, :blue)
-
-    # Scale axes for visualization
-    scale = 0.1
-    axis_vectors = scale .* [R_matrix[:, i] for i in 1:3]
-
-    # Plot the frame axes
-    for (i, color) in enumerate(axis_colors)
-        a = Vec{3, Float64}(axis_vectors[i])
-        arrows!(ls, [p], [a]; arrowsize=0.01, color=color)
-    end
-end
 
 
 function generate_q_init(vms_compiled; ff=false, mf=false, rf=false, lf=false)
