@@ -163,7 +163,7 @@ function update_lateral_pinch_coord(args, cache, coord)
 end
 
 function f_setup(cache) 
-    return  (get_compiled_coordID(cache, "th position spring"), get_compiled_coordID(cache, "th target position"), 
+    return  (get_compiled_componentID(cache, "th position spring"), get_compiled_coordID(cache, "th target position"), 
             get_compiled_frameID(cache, ".virtual_mechanism.rh_ffmiddle"), get_compiled_componentID(cache, "ff j2 spring"))#, get_compiled_coordID(cache, "th j5 target angle"))
 end
 
