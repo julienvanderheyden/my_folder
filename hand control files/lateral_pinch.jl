@@ -94,6 +94,10 @@ add_coordinate!(vms, CoordDifference("th target norm", "th spring length"); id =
 add_component!(vms, LinearSpring(0.0, "th position error"); id="th position spring")
 add_component!(vms, LinearDamper(0.1, "th position error"); id="th position damper")
 
+add_coordinate!(vms, ConstCoord(1.57); id="th j1 target angle")
+add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_THJ1_coord", "th j1 target angle"); id="th j1 angle error")
+add_component!(vms, LinearSpring(0.0, "th j1 angle error"); id="th j1 angular spring")
+
 add_coordinate!(vms, ConstCoord(1.57); id = "ff j2 angle target")
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_FFJ2_coord", "ff j2 angle target") ; id ="ff j2 angle error")
 add_component!(vms, LinearSpring(0.0, "ff j2 angle error"); id = "ff j2 spring")
@@ -128,7 +132,7 @@ print("Definition of the control and setup functions....")
 
 function update_lateral_pinch_coord(args, cache, coord)
     #target_rail_id, th_spring_length_id, th_j5_target_angle_id = args
-    th_position_spring_id, th_target_pos_id, ffmiddle_frame_id, ff_j2_spring_id = args
+    th_position_spring_id, th_target_pos_id, ffmiddle_frame_id, ff_j2_spring_id, th_j1_angular_spring = args
 
     #update the length of the spring between the thumb and the ff finger
 
@@ -142,6 +146,10 @@ function update_lateral_pinch_coord(args, cache, coord)
     # phase 2 : a force is applied to go "into" the phalanx
     elseif coord > 0.8
         cache[th_target_pos_id] = remake(cache[th_target_pos_id]; coord_data = FramePoint(ffmiddle_frame_id, SVector(0.0,0.,0.)))
+        th_j1_stiff_max = 0.5
+        th_j1_stiff_min = 0.0
+        th_j1_stiff_value = th_j1_stiff_min + (th_j1_stiff_max - th_j1_stiff_min)*((coord - 0.8)/(1.0 - 0.8))
+        cache[th_j1_angular_spring] = remake(cache[th_j1_angular_spring] ; stiffness = th_j1_stiff_value)
     end
 
     #update the spring of the second phalanx
@@ -164,7 +172,8 @@ end
 
 function f_setup(cache) 
     return  (get_compiled_componentID(cache, "th position spring"), get_compiled_coordID(cache, "th target position"), 
-            get_compiled_frameID(cache, ".virtual_mechanism.rh_ffmiddle"), get_compiled_componentID(cache, "ff j2 spring"))#, get_compiled_coordID(cache, "th j5 target angle"))
+            get_compiled_frameID(cache, ".virtual_mechanism.rh_ffmiddle"), get_compiled_componentID(cache, "ff j2 spring"),
+            get_compiled_componentID(cache, "th j1 angular spring"))#, get_compiled_coordID(cache, "th j5 target angle"))
 end
 
 function f_control(cache, t, args, extra)
