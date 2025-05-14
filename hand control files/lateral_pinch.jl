@@ -137,7 +137,7 @@ function update_lateral_pinch_coord(args, cache, coord)
         th_stiff_max = 0.5
         th_stiff_min = 0.0
         th_stiff_value = th_stiff_min + (th_stiff_max - th_stiff_min)*(coord/0.6) 
-        cache[th_position_spring_id] = remake(cache[th_position_spring_id] ; stifness = th_stiff_value)
+        cache[th_position_spring_id] = remake(cache[th_position_spring_id] ; stiffness = th_stiff_value)
 
     # phase 2 : a force is applied to go "into" the phalanx
     elseif coord > 0.8
