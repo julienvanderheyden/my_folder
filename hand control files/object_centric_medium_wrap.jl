@@ -59,7 +59,7 @@ for joint_id in keys(joints(vm_robot))
     # println("\n")
     add_coordinate!(vm_robot, JointSubspace(joint_id);  id="$(joint_id)_coord")
     @assert ~isnothing(limits.lower) && ~isnothing(limits.upper)
-    add_deadzone_springs!(vm_robot, 0.001, (limits.lower+0.0, limits.upper-0.0), "$(joint_id)_coord")
+    add_deadzone_springs!(vm_robot, 0.01, (limits.lower+0.0, limits.upper-0.0), "$(joint_id)_coord")
     add_component!(vm_robot, LinearDamper(0.0001, "$(joint_id)_coord"); id="$(joint_id)_damper")
 end
 
@@ -103,9 +103,9 @@ function object_centric_medium_wrap(cylinder_radius)
         add_component!(vm_robot, PointMass(0.01, "$(attracted_frames_names[i]) ee position"); id="$(attracted_frames_names[i]) ee mass")
     
         add_coordinate!(vm_robot, JointSubspace("prism_joint_$(attracted_frames_names[i])"); id="prism_joint_$(attracted_frames_names[i])")
-        add_component!(vm_robot, LinearDamper(10.0, "prism_joint_$(attracted_frames_names[i])"); id="prism_joint_$(attracted_frames_names[i])_damper")
+        add_component!(vm_robot, LinearDamper(0.1, "prism_joint_$(attracted_frames_names[i])"); id="prism_joint_$(attracted_frames_names[i])_damper")
         add_coordinate!(vm_robot, JointSubspace("revo_joint_$(attracted_frames_names[i])"); id="revo_joint_$(attracted_frames_names[i])")
-        add_component!(vm_robot, LinearDamper(0.5, "revo_joint_$(attracted_frames_names[i])"); id="revo_joint_$(attracted_frames_names[i])_damper")    
+        add_component!(vm_robot, LinearDamper(0.005, "revo_joint_$(attracted_frames_names[i])"); id="revo_joint_$(attracted_frames_names[i])_damper")    
     
         add_coordinate!(vm_robot, FrameOrigin("center_frame_$(attracted_frames_names[i])"); id="center_frame_$(attracted_frames_names[i])")
         add_coordinate!(vm_robot, FrameOrigin("prism_frame_$(attracted_frames_names[i])"); id="prism_frame_$(attracted_frames_names[i])")
