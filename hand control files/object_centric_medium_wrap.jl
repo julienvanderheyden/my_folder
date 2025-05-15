@@ -152,8 +152,8 @@ function object_centric_medium_wrap(cylinder_radius)
         add_coordinate!(vms, CoordNorm("$(repulsed_frames_names[i]) planar error") ; id = "$(repulsed_frames_names[i]) planar error norm")
         add_coordinate!(vms, CoordDifference("$(repulsed_frames_names[i]) planar error norm", "cylinder radius"); id = "shifted $(repulsed_frames_names[i]) cylinder error" )
 
-        add_component!(vms, ReLUSpring(10.0, "shifted $(repulsed_frames_names[i]) cylinder error", true); id="$(repulsed_frames_names[i]) cylinder repulsive spring")
-        add_component!(vms, RectifiedDamper(1.0, "$(repulsed_frames_names[i]) planar error norm", (0.0, 1.1*cylinder_radius), true, false); id="$(repulsed_frames_names[i]) cylinder damper")
+        add_component!(vms, ReLUSpring(1.0, "shifted $(repulsed_frames_names[i]) cylinder error", true); id="$(repulsed_frames_names[i]) cylinder repulsive spring")
+        add_component!(vms, RectifiedDamper(0.1, "$(repulsed_frames_names[i]) planar error norm", (0.0, 1.1*cylinder_radius), true, false); id="$(repulsed_frames_names[i]) cylinder damper")
     end
 
     println("Virtual Mechanism Built !")
