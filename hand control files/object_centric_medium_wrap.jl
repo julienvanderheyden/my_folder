@@ -122,7 +122,7 @@ function object_centric_medium_wrap(cylinder_radius)
 
     D = SMatrix{3, 3}(0.05, 0., 0., 0., 0.05, 0., 0., 0., 0.05)
 
-    stiffnesses = [0.03, 0.03, 0.03, 0.03, 0.03, 0.05, 0.05, 0.05, 0.05, 0.05, 0.12, 0.12, 0.12, 0.12, 0.12, 0.05]
+    stiffnesses = [0.03, 0.03, 0.03, 0.03, 0.02, 0.05, 0.05, 0.05, 0.05, 0.04, 0.12, 0.12, 0.12, 0.12, 0.8, 0.05]
 
     for i in 1:length(attracted_frames)
         K = SMatrix{3, 3}(stiffnesses[i], 0., 0., 0., stiffnesses[i], 0., 0., 0., stiffnesses[i])
