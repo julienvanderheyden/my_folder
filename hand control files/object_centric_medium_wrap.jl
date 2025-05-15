@@ -84,9 +84,9 @@ function object_centric_medium_wrap(cylinder_radius)
     attracted_frames = ("rh_ffdistal_mass_coord", "rh_mfdistal_mass_coord", "rh_rfdistal_mass_coord","rh_lfdistal_mass_coord" , 
                         "rh_thdistal_mass_coord", "rh_ffmiddle_mass_coord","rh_mfmiddle_mass_coord", "rh_rfmiddle_mass_coord",
                         "rh_lfmiddle_mass_coord",  "rh_thmiddle_mass_coord", "rh_ffproximal_mass_coord", "rh_mfproximal_mass_coord",
-                        "rh_rfproximal_mass_coord", "rh_lfproximal_mass_coord", "rh_thproximal_mass_coord", "rh_palm_mass_coord")
+                        "rh_rfproximal_mass_coord", "rh_lfproximal_mass_coord") #, "rh_thproximal_mass_coord", "rh_palm_mass_coord")
     attracted_frames_names = ("ffdistal", "mfdistal", "rfdistal", "lfdistal", "thdistal", "ffmiddle", "mfmiddle", "rfmiddle", "lfmiddle", "thmiddle", "ffprox", 
-                    "mfprox", "rfprox", "lfprox", "thprox", "palm")
+                    "mfprox", "rfprox", "lfprox")#, "thprox", "palm")
     
     # CYLINDER PRISMATIC JOINTS
     
