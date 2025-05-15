@@ -80,7 +80,7 @@ function object_centric_power_sphere(ball_radius)
 
     for i in 1:length(attracted_frames)
         add_frame!(vm_robot; id = "revo_frame_1_$(attracted_frames_names[i])")
-        add_joint!(vm_robot, Revolute(SVector(0.0,0.0,1.0),Transform(SVector(ball_position[1], ball_position[2], ball_position[3]))); parent=root_frame(vm), child="revo_frame_1_$(attracted_frames_names[i])", id="revo_joint_1_$(attracted_frames_names[i])")
+        add_joint!(vm_robot, Revolute(SVector(0.0,0.0,1.0),Transform(SVector(ball_position[1], ball_position[2], ball_position[3]))); parent=root_frame(vm_robot), child="revo_frame_1_$(attracted_frames_names[i])", id="revo_joint_1_$(attracted_frames_names[i])")
         add_frame!(vm_robot; id="revo_frame_2_$(attracted_frames_names[i])")
         add_joint!(vm_robot, Revolute(SVector(1.0,0.0,0.0)); parent="revo_frame_1_$(attracted_frames_names[i])", child="revo_frame_2_$(attracted_frames_names[i])", id="revo_joint_2_$(attracted_frames_names[i])")
         add_frame!(vm_robot; id="ee_frame_$(attracted_frames_names[i])")
