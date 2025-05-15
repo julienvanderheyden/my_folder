@@ -18,54 +18,55 @@ try
 catch
 end
 
-print("parsing robot URDF... ")
-
-module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
-
-shadow_cfg = URDFParserConfig(;suppress_warnings=true) # This is just to hide warnings about unsupported URDF features
-shadow_robot = parseURDF(joinpath(module_path, "URDFs/sr_description/sr_hand_vm_compatible.urdf"), shadow_cfg)
-
-println("URDF parsed !")
-
-print("parsing virtual mechanism URDF ...")
-
-vm_cfg = URDFParserConfig(;suppress_warnings=true) 
-# For the moment the urdfs are the same but we might want to change the properties of the virtual robot
-vm_robot = parseURDF(joinpath(module_path, "URDFs/sr_description/sr_hand_vm_compatible.urdf"), vm_cfg) 
-
-add_coordinate!(vm_robot, FrameOrigin("rh_ffdistal"); id="rh_ffdistal")
-add_coordinate!(vm_robot, FrameOrigin("rh_mfdistal"); id="rh_mfdistal")
-add_coordinate!(vm_robot, FrameOrigin("rh_rfdistal"); id="rh_rfdistal")
-add_coordinate!(vm_robot, FrameOrigin("rh_lfdistal"); id="rh_lfdistal")
-add_coordinate!(vm_robot, FrameOrigin("rh_thdistal"); id="rh_thdistal")
-
-println("URDF parsed !")
-
-##### COMPLEMENTING THE VIRTUAL ROBOT #####
-
-print("Building the virtual robot...")
-
-# Gravity Compensation and joint limits/damping
-add_gravity_compensation!(vm_robot, VMRobotControl.DEFAULT_GRAVITY)
-
-joint_limits = vm_cfg.joint_limits
-
-for joint_id in keys(joints(vm_robot))
-    # println(joint_id)
-    limits = joint_limits[joint_id]
-    isnothing(limits) && continue
-    # println(limits.upper)
-    # println(limits.lower)
-    # println("\n")
-    add_coordinate!(vm_robot, JointSubspace(joint_id);  id="$(joint_id)_coord")
-    @assert ~isnothing(limits.lower) && ~isnothing(limits.upper)
-    add_deadzone_springs!(vm_robot, 0.01, (limits.lower+0.0, limits.upper-0.0), "$(joint_id)_coord")
-    add_component!(vm_robot, LinearDamper(0.0001, "$(joint_id)_coord"); id="$(joint_id)_damper")
-end
-
-println("Robot built !")
 
 function object_centric_medium_wrap(cylinder_radius)
+
+    print("parsing robot URDF... ")
+
+    module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
+
+    shadow_cfg = URDFParserConfig(;suppress_warnings=true) # This is just to hide warnings about unsupported URDF features
+    shadow_robot = parseURDF(joinpath(module_path, "URDFs/sr_description/sr_hand_vm_compatible.urdf"), shadow_cfg)
+
+    println("URDF parsed !")
+
+    print("parsing virtual mechanism URDF ...")
+
+    vm_cfg = URDFParserConfig(;suppress_warnings=true) 
+    # For the moment the urdfs are the same but we might want to change the properties of the virtual robot
+    vm_robot = parseURDF(joinpath(module_path, "URDFs/sr_description/sr_hand_vm_compatible.urdf"), vm_cfg) 
+
+    add_coordinate!(vm_robot, FrameOrigin("rh_ffdistal"); id="rh_ffdistal")
+    add_coordinate!(vm_robot, FrameOrigin("rh_mfdistal"); id="rh_mfdistal")
+    add_coordinate!(vm_robot, FrameOrigin("rh_rfdistal"); id="rh_rfdistal")
+    add_coordinate!(vm_robot, FrameOrigin("rh_lfdistal"); id="rh_lfdistal")
+    add_coordinate!(vm_robot, FrameOrigin("rh_thdistal"); id="rh_thdistal")
+
+    println("URDF parsed !")
+
+    ##### COMPLEMENTING THE VIRTUAL ROBOT #####
+
+    print("Building the virtual robot...")
+
+    # Gravity Compensation and joint limits/damping
+    add_gravity_compensation!(vm_robot, VMRobotControl.DEFAULT_GRAVITY)
+
+    joint_limits = vm_cfg.joint_limits
+
+    for joint_id in keys(joints(vm_robot))
+        # println(joint_id)
+        limits = joint_limits[joint_id]
+        isnothing(limits) && continue
+        # println(limits.upper)
+        # println(limits.lower)
+        # println("\n")
+        add_coordinate!(vm_robot, JointSubspace(joint_id);  id="$(joint_id)_coord")
+        @assert ~isnothing(limits.lower) && ~isnothing(limits.upper)
+        add_deadzone_springs!(vm_robot, 0.01, (limits.lower+0.0, limits.upper-0.0), "$(joint_id)_coord")
+        add_component!(vm_robot, LinearDamper(0.0001, "$(joint_id)_coord"); id="$(joint_id)_damper")
+    end
+
+    println("Robot built !")
 
     print("Building the virtual mechanisms...")
     vm = Mechanism{Float64}("VirtualTracks")
@@ -180,6 +181,7 @@ function object_centric_medium_wrap(cylinder_radius)
     println("Connecting to ROS client...")
     cvms = compile(vms)
     qᵛ = zero_q(cvms.virtual_mechanism)
+    qᵛ[21] = 1.2
 
     joint_names = ["rh_WRJ1", "rh_WRJ2", "rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4", "rh_MFJ1",
                     "rh_MFJ2", "rh_MFJ3", "rh_MFJ4", "rh_RFJ1", "rh_RFJ2", "rh_RFJ3", "rh_RFJ4", 
