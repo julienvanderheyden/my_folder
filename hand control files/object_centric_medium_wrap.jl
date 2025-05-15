@@ -33,6 +33,12 @@ vm_cfg = URDFParserConfig(;suppress_warnings=true)
 # For the moment the urdfs are the same but we might want to change the properties of the virtual robot
 vm_robot = parseURDF(joinpath(module_path, "URDFs/sr_description/sr_hand_vm_compatible.urdf"), vm_cfg) 
 
+add_coordinate!(vm_robot, FrameOrigin("rh_ffdistal"); id="rh_ffdistal")
+add_coordinate!(vm_robot, FrameOrigin("rh_mfdistal"); id="rh_mfdistal")
+add_coordinate!(vm_robot, FrameOrigin("rh_rfdistal"); id="rh_rfdistal")
+add_coordinate!(vm_robot, FrameOrigin("rh_lfdistal"); id="rh_lfdistal")
+add_coordinate!(vm_robot, FrameOrigin("rh_thdistal"); id="rh_thdistal")
+
 println("URDF parsed !")
 
 ##### COMPLEMENTING THE VIRTUAL ROBOT #####
