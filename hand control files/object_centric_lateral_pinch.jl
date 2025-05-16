@@ -99,12 +99,12 @@ function object_centric_lateral_pinch(box_width, box_thickness)
         # add_coordinate!(vm_robot, FrameOrigin("prism_frame_2_$(attracted_frames_names[i])"); id="$(attracted_frames_names[i]) prism 2 position")
         # add_component!(vm_robot, PointMass(0.01, "$(attracted_frames_names[i]) prism 2 position"); id="$(attracted_frames_names[i]) prism 2 mass")
     
-        I_mat = @SMatrix [0.1  0.    0.  ;0.    0.1  0.  ;0.    0.    0.1]
+        I_mat = @SMatrix [0.01  0.    0.  ;0.    0.01  0.  ;0.    0.    0.01]
         add_inertia!(vm_robot, "ee_frame_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) ee inertia")
         # add_inertia!(vm_robot, "prism_frame_1_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) prism 1 inertia")
         # add_inertia!(vm_robot, "prism_frame_2_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) prism 2 inertia")
     
-        joint_damping = 0.5
+        joint_damping = 1.0
         add_coordinate!(vm_robot, JointSubspace("prism_joint_1_$(attracted_frames_names[i])"); id="prism_joint_1_$(attracted_frames_names[i])")
         add_component!(vm_robot, LinearDamper(joint_damping, "prism_joint_1_$(attracted_frames_names[i])"); id="prism_joint_1_$(attracted_frames_names[i])_damper")
         add_coordinate!(vm_robot, JointSubspace("prism_joint_2_$(attracted_frames_names[i])"); id="prism_joint_2_$(attracted_frames_names[i])")
@@ -268,7 +268,7 @@ function object_centric_lateral_pinch(box_width, box_thickness)
 
 
     with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=50.0)
+        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=10.0)
     end
 
 end
