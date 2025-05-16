@@ -228,10 +228,10 @@ function object_centric_lateral_pinch(box_width, box_thickness)
                 others = filter(x -> x ≠ j, 1:3) 
                 #Check if the position of the frame is inside "the field of action" of the spring
                 if abs(frame_pos[others[1]] - box_position[others[1]]) < (box_dimensions[others[1]]-margin) && abs(frame_pos[others[2]] - box_position[others[2]]) < (box_dimensions[others[2]]-margin)
-                    cache[repulsive_springs_damper_ID[i][2*j-1]] = remake(cache[repulsive_springs_damper_ID[i][2*j-1]] ; stiffness = 1.0)
+                    cache[repulsive_springs_damper_ID[i][2*j-1]] = remake(cache[repulsive_springs_damper_ID[i][2*j-1]] ; stiffness = 0.1)
                     cache[repulsive_springs_damper_ID[i][2*j]] = remake(cache[repulsive_springs_damper_ID[i][2*j]] ; damping = 0.1)          
                 else
-                    cache[repulsive_springs_damper_ID[i][2*j-1]] = remake(cache[repulsive_springs_damper_ID[i][2*j-1]] ; stiffness = 1.0)
+                    cache[repulsive_springs_damper_ID[i][2*j-1]] = remake(cache[repulsive_springs_damper_ID[i][2*j-1]] ; stiffness = 0.1)
                     cache[repulsive_springs_damper_ID[i][2*j]] = remake(cache[repulsive_springs_damper_ID[i][2*j]] ; damping = 0.1)
                 end
             end
