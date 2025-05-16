@@ -196,7 +196,7 @@ function update_medium_wrap_coord(args, cache, coord)
     th_angle_end_coord = 0.4
     if coord <= th_angle_end_coord 
         angle_max = 1.22
-        angle_min = 0.6
+        angle_min = 0.8
         angle_value = angle_max - (angle_max - angle_min)*(coord/th_angle_end_coord)
         cache[th_j4_target_angle_id] = remake(cache[th_j4_target_angle_id] ; coord_data = ConstCoord(angle_value))
     end
