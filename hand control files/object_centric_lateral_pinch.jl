@@ -114,7 +114,7 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     
         # DEADZONE SPRINGS : CONSTRAINT THE MOTION INSIDE THE BOX
         margin_factor = 0.8
-        deadzone_stiffness = 1.0
+        deadzone_stiffness = 0.1
         add_deadzone_springs!(vm_robot, deadzone_stiffness, (-box_dimensions[1]*margin_factor, box_dimensions[1]*margin_factor), "prism_joint_1_$(attracted_frames_names[i])")
         add_deadzone_springs!(vm_robot, deadzone_stiffness, (-box_dimensions[2]*margin_factor, box_dimensions[2]*margin_factor), "prism_joint_2_$(attracted_frames_names[i])")
         add_deadzone_springs!(vm_robot, deadzone_stiffness, (-box_dimensions[3]*margin_factor, box_dimensions[3]*margin_factor), "prism_joint_3_$(attracted_frames_names[i])")
