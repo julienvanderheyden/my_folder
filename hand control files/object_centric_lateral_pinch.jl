@@ -52,7 +52,7 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     print("Building the virtual robot...")
 
     # Gravity Compensation and joint limits/damping
-    add_gravity_compensation!(vm_robot, VMRobotControl.DEFAULT_GRAVITY)
+    
 
     joint_limits = vm_cfg.joint_limits
 
@@ -119,6 +119,8 @@ function object_centric_lateral_pinch(box_width, box_thickness)
         add_deadzone_springs!(vm_robot, deadzone_stiffness, (-box_dimensions[2]*margin_factor, box_dimensions[2]*margin_factor), "prism_joint_2_$(attracted_frames_names[i])")
         add_deadzone_springs!(vm_robot, deadzone_stiffness, (-box_dimensions[3]*margin_factor, box_dimensions[3]*margin_factor), "prism_joint_3_$(attracted_frames_names[i])")
     end
+
+    add_gravity_compensation!(vm_robot, VMRobotControl.DEFAULT_GRAVITY)
 
 
     vms = VirtualMechanismSystem("myShadowVMS", shadow_robot, vm_robot)
