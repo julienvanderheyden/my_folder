@@ -38,12 +38,12 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     # For the moment the urdfs are the same but we might want to change the properties of the virtual robot
     vm_robot = parseURDF(joinpath(module_path, "URDFs/sr_description/sr_hand_vm_compatible.urdf"), vm_cfg) 
 
-    add_coordinate!(robot, FrameOrigin("rh_fftip"); id = "rh_fftip")
-    add_coordinate!(robot, FrameOrigin("rh_ffdistal"); id="rh_ffdistal")
-    add_coordinate!(robot, FrameOrigin("rh_ffmiddle"); id="rh_ffmiddle")
-    add_coordinate!(robot, FrameOrigin("rh_ffproximal"); id="rh_ffproximal")
-    add_coordinate!(robot, FrameOrigin("rh_thtip"); id = "rh_thtip")
-    add_coordinate!(robot, FrameOrigin("rh_thdistal"); id="rh_thdistal")
+    add_coordinate!(vm_robot, FrameOrigin("rh_fftip"); id = "rh_fftip")
+    add_coordinate!(vm_robot, FrameOrigin("rh_ffdistal"); id="rh_ffdistal")
+    add_coordinate!(vm_robot, FrameOrigin("rh_ffmiddle"); id="rh_ffmiddle")
+    add_coordinate!(vm_robot, FrameOrigin("rh_ffproximal"); id="rh_ffproximal")
+    add_coordinate!(vm_robot, FrameOrigin("rh_thtip"); id = "rh_thtip")
+    add_coordinate!(vm_robot, FrameOrigin("rh_thdistal"); id="rh_thdistal")
 
     println("URDF parsed !")
 
