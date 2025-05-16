@@ -257,9 +257,9 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     println("Connecting to ROS client...")
     cvms = compile(vms)
     qᵛ = generate_q_init(cvms; mf=true, rf=true, lf=true)
-    qᵛ[5] = 1.57
-    qᵛ[4] = 1.0
-    qᵛ[23] = -0.7
+    # qᵛ[5] = 1.57
+    # qᵛ[4] = 1.0
+    # qᵛ[23] = -0.7
 
     joint_names = ["rh_WRJ1", "rh_WRJ2", "rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4", "rh_MFJ1",
                     "rh_MFJ2", "rh_MFJ3", "rh_MFJ4", "rh_RFJ1", "rh_RFJ2", "rh_RFJ3", "rh_RFJ4", 
@@ -268,7 +268,7 @@ function object_centric_lateral_pinch(box_width, box_thickness)
 
 
     with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=100.0)
+        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=10.0)
     end
 
 end
