@@ -93,7 +93,7 @@ function object_centric_lateral_pinch(box_width, box_thickness)
         add_joint!(vm_robot, Prismatic(SVector(0.0,0.0,1.0)); parent ="prism_frame_2_$(attracted_frames_names[i])", child ="ee_frame_$(attracted_frames_names[i])", id = "prism_joint_3_$(attracted_frames_names[i])")
     
         add_coordinate!(vm_robot, FrameOrigin("ee_frame_$(attracted_frames_names[i])"); id="$(attracted_frames_names[i]) ee position")
-        add_component!(vm_robot, PointMass(0.01, "$(attracted_frames_names[i]) ee position"); id="$(attracted_frames_names[i]) ee mass")
+        add_component!(vm_robot, PointMass(0.1, "$(attracted_frames_names[i]) ee position"); id="$(attracted_frames_names[i]) ee mass")
         # add_coordinate!(vm_robot, FrameOrigin("prism_frame_1_$(attracted_frames_names[i])"); id="$(attracted_frames_names[i]) prism 1 position")
         # add_component!(vm_robot, PointMass(0.01, "$(attracted_frames_names[i]) prism 1 position"); id="$(attracted_frames_names[i]) prism 1 mass")
         # add_coordinate!(vm_robot, FrameOrigin("prism_frame_2_$(attracted_frames_names[i])"); id="$(attracted_frames_names[i]) prism 2 position")
@@ -104,7 +104,7 @@ function object_centric_lateral_pinch(box_width, box_thickness)
         # add_inertia!(vm_robot, "prism_frame_1_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) prism 1 inertia")
         # add_inertia!(vm_robot, "prism_frame_2_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) prism 2 inertia")
     
-        joint_damping = 0.01
+        joint_damping = 0.5
         add_coordinate!(vm_robot, JointSubspace("prism_joint_1_$(attracted_frames_names[i])"); id="prism_joint_1_$(attracted_frames_names[i])")
         add_component!(vm_robot, LinearDamper(joint_damping, "prism_joint_1_$(attracted_frames_names[i])"); id="prism_joint_1_$(attracted_frames_names[i])_damper")
         add_coordinate!(vm_robot, JointSubspace("prism_joint_2_$(attracted_frames_names[i])"); id="prism_joint_2_$(attracted_frames_names[i])")
@@ -133,8 +133,8 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     for i in 1:length(attracted_frames)
         K = SMatrix{3, 3}(stiffnesses[i], 0., 0., 0., stiffnesses[i], 0., 0., 0., stiffnesses[i])
         add_coordinate!(vms, CoordDifference(".virtual_mechanism.$(attracted_frames_names[i]) ee position", ".virtual_mechanism.$(attracted_frames[i])"); id = "ee $(attracted_frames_names[i]) diff")
-        # add_component!(vms, LinearSpring(K, "ee $(attracted_frames_names[i]) diff"); id = "ee $(attracted_frames_names[i]) spring")
-        # add_component!(vms, LinearDamper(D, "ee $(attracted_frames_names[i]) diff"); id = "ee $(attracted_frames_names[i]) damper")
+        add_component!(vms, LinearSpring(K, "ee $(attracted_frames_names[i]) diff"); id = "ee $(attracted_frames_names[i]) spring")
+        add_component!(vms, LinearDamper(D, "ee $(attracted_frames_names[i]) diff"); id = "ee $(attracted_frames_names[i]) damper")
     end
 
     K = SMatrix{3, 3}(0.05, 0., 0., 0., 0.05, 0., 0., 0., 0.05)
