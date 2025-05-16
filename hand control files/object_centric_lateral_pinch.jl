@@ -139,7 +139,7 @@ function object_centric_lateral_pinch(box_width, box_thickness)
         add_component!(vms, LinearDamper(D, "ee $(attracted_frames_names[i]) diff"); id = "ee $(attracted_frames_names[i]) damper")
     end
 
-    K = SMatrix{3, 3}(0.05, 0., 0., 0., 0.05, 0., 0., 0., 0.05)
+    K = SMatrix{3, 3}(0.1, 0., 0., 0., 0.1, 0., 0., 0., 0.1)
 
     # "Closing" the finger ---> connectin the two extremes to the corners of the box
     ext_corner = SVector(box_position[1] - box_dimensions[1], box_position[2] + box_dimensions[2], box_position[3] - box_dimensions[3])
