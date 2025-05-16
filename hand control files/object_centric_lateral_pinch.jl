@@ -99,12 +99,12 @@ function object_centric_lateral_pinch(box_width, box_thickness)
         # add_coordinate!(vm_robot, FrameOrigin("prism_frame_2_$(attracted_frames_names[i])"); id="$(attracted_frames_names[i]) prism 2 position")
         # add_component!(vm_robot, PointMass(0.01, "$(attracted_frames_names[i]) prism 2 position"); id="$(attracted_frames_names[i]) prism 2 mass")
     
-        I_mat = @SMatrix [1.0  0.    0.  ;0.    1.0  0.  ;0.    0.    1.0]
+        I_mat = @SMatrix [0.1  0.    0.  ;0.    0.1  0.  ;0.    0.    0.1]
         add_inertia!(vm_robot, "ee_frame_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) ee inertia")
         # add_inertia!(vm_robot, "prism_frame_1_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) prism 1 inertia")
         # add_inertia!(vm_robot, "prism_frame_2_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) prism 2 inertia")
     
-        joint_damping = 0.5
+        joint_damping = 1.0
         add_coordinate!(vm_robot, JointSubspace("prism_joint_1_$(attracted_frames_names[i])"); id="prism_joint_1_$(attracted_frames_names[i])")
         add_component!(vm_robot, LinearDamper(joint_damping, "prism_joint_1_$(attracted_frames_names[i])"); id="prism_joint_1_$(attracted_frames_names[i])_damper")
         add_coordinate!(vm_robot, JointSubspace("prism_joint_2_$(attracted_frames_names[i])"); id="prism_joint_2_$(attracted_frames_names[i])")
@@ -128,7 +128,7 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     # HAND MOTION
 
     D = SMatrix{3, 3}(0.05 , 0., 0., 0., 0.05, 0., 0., 0., 0.05)
-    stiffnesses = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
+    stiffnesses = [0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
 
     # Establishing contact with the box 
 
@@ -230,7 +230,7 @@ function object_centric_lateral_pinch(box_width, box_thickness)
                 others = filter(x -> x ≠ j, 1:3) 
                 #Check if the position of the frame is inside "the field of action" of the spring
                 if abs(frame_pos[others[1]] - box_position[others[1]]) < (box_dimensions[others[1]]-margin) && abs(frame_pos[others[2]] - box_position[others[2]]) < (box_dimensions[others[2]]-margin)
-                    cache[repulsive_springs_damper_ID[i][2*j-1]] = remake(cache[repulsive_springs_damper_ID[i][2*j-1]] ; stiffness = 0.1)
+                    cache[repulsive_springs_damper_ID[i][2*j-1]] = remake(cache[repulsive_springs_damper_ID[i][2*j-1]] ; stiffness = 1.0)
                     cache[repulsive_springs_damper_ID[i][2*j]] = remake(cache[repulsive_springs_damper_ID[i][2*j]] ; damping = 0.1)          
                 else
                     cache[repulsive_springs_damper_ID[i][2*j-1]] = remake(cache[repulsive_springs_damper_ID[i][2*j-1]] ; stiffness = 0.0)
