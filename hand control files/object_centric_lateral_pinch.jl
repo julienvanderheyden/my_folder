@@ -93,13 +93,13 @@ function object_centric_lateral_pinch(box_width, box_thickness)
         add_joint!(vm_robot, Prismatic(SVector(0.0,0.0,1.0)); parent ="prism_frame_2_$(attracted_frames_names[i])", child ="ee_frame_$(attracted_frames_names[i])", id = "prism_joint_3_$(attracted_frames_names[i])")
     
         add_coordinate!(vm_robot, FrameOrigin("ee_frame_$(attracted_frames_names[i])"); id="$(attracted_frames_names[i]) ee position")
-        add_component!(vm_robot, PointMass(1., "$(attracted_frames_names[i]) ee position"); id="$(attracted_frames_names[i]) ee mass")
+        add_component!(vm_robot, PointMass(0.01, "$(attracted_frames_names[i]) ee position"); id="$(attracted_frames_names[i]) ee mass")
         add_coordinate!(vm_robot, FrameOrigin("prism_frame_1_$(attracted_frames_names[i])"); id="$(attracted_frames_names[i]) prism 1 position")
-        add_component!(vm_robot, PointMass(1., "$(attracted_frames_names[i]) prism 1 position"); id="$(attracted_frames_names[i]) prism 1 mass")
+        add_component!(vm_robot, PointMass(0.01, "$(attracted_frames_names[i]) prism 1 position"); id="$(attracted_frames_names[i]) prism 1 mass")
         add_coordinate!(vm_robot, FrameOrigin("prism_frame_2_$(attracted_frames_names[i])"); id="$(attracted_frames_names[i]) prism 2 position")
-        add_component!(vm_robot, PointMass(1., "$(attracted_frames_names[i]) prism 2 position"); id="$(attracted_frames_names[i]) prism 2 mass")
+        add_component!(vm_robot, PointMass(0.01, "$(attracted_frames_names[i]) prism 2 position"); id="$(attracted_frames_names[i]) prism 2 mass")
     
-        I_mat = @SMatrix [1.0  0.    0.  ;0.    1.0  0.  ;0.    0.    1.0]
+        I_mat = @SMatrix [0.01  0.    0.  ;0.    0.01  0.  ;0.    0.    0.01]
         add_inertia!(vm_robot, "ee_frame_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) ee inertia")
         add_inertia!(vm_robot, "prism_frame_1_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) prism 1 inertia")
         add_inertia!(vm_robot, "prism_frame_2_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) prism 2 inertia")
