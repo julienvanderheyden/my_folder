@@ -5,6 +5,7 @@ using StaticArrays
 using VMRobotControl
 using VMRobotControl.Splines: CubicSpline
 using DifferentialEquations
+include("functions.jl")
 #using MeshIO
 
 module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
@@ -37,11 +38,12 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     # For the moment the urdfs are the same but we might want to change the properties of the virtual robot
     vm_robot = parseURDF(joinpath(module_path, "URDFs/sr_description/sr_hand_vm_compatible.urdf"), vm_cfg) 
 
-    add_coordinate!(vm_robot, FrameOrigin("rh_ffdistal"); id="rh_ffdistal")
-    add_coordinate!(vm_robot, FrameOrigin("rh_mfdistal"); id="rh_mfdistal")
-    add_coordinate!(vm_robot, FrameOrigin("rh_rfdistal"); id="rh_rfdistal")
-    add_coordinate!(vm_robot, FrameOrigin("rh_lfdistal"); id="rh_lfdistal")
-    add_coordinate!(vm_robot, FrameOrigin("rh_thdistal"); id="rh_thdistal")
+    add_coordinate!(robot, FrameOrigin("rh_fftip"); id = "rh_fftip")
+    add_coordinate!(robot, FrameOrigin("rh_ffdistal"); id="rh_ffdistal")
+    add_coordinate!(robot, FrameOrigin("rh_ffmiddle"); id="rh_ffmiddle")
+    add_coordinate!(robot, FrameOrigin("rh_ffproximal"); id="rh_ffproximal")
+    add_coordinate!(robot, FrameOrigin("rh_thtip"); id = "rh_thtip")
+    add_coordinate!(robot, FrameOrigin("rh_thdistal"); id="rh_thdistal")
 
     println("URDF parsed !")
 
@@ -254,8 +256,10 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     # Make sure rospy_client.py is running first.
     println("Connecting to ROS client...")
     cvms = compile(vms)
-    qᵛ = zero_q(cvms.virtual_mechanism)
-    qᵛ[21] = 1.2
+    qᵛ = generate_q_init(cvms; mf=true, rf=true, lf=true)
+    qᵛ[5] = 1.57
+    qᵛ[4] = 1.0
+    qᵛ[23] = -0.7
 
     joint_names = ["rh_WRJ1", "rh_WRJ2", "rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4", "rh_MFJ1",
                     "rh_MFJ2", "rh_MFJ3", "rh_MFJ4", "rh_RFJ1", "rh_RFJ2", "rh_RFJ3", "rh_RFJ4", 
