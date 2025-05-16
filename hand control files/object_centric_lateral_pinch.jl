@@ -101,8 +101,8 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     
         I_mat = @SMatrix [0.01  0.    0.  ;0.    0.01  0.  ;0.    0.    0.01]
         add_inertia!(vm_robot, "ee_frame_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) ee inertia")
-        add_inertia!(vm_robot, "prism_frame_1_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) prism 1 inertia")
-        add_inertia!(vm_robot, "prism_frame_2_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) prism 2 inertia")
+        # add_inertia!(vm_robot, "prism_frame_1_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) prism 1 inertia")
+        # add_inertia!(vm_robot, "prism_frame_2_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) prism 2 inertia")
     
         joint_damping = 0.001
         add_coordinate!(vm_robot, JointSubspace("prism_joint_1_$(attracted_frames_names[i])"); id="prism_joint_1_$(attracted_frames_names[i])")
