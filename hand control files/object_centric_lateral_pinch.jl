@@ -126,7 +126,7 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     # HAND MOTION
 
     D = SMatrix{3, 3}(0.05 , 0., 0., 0., 0.05, 0., 0., 0., 0.05)
-    stiffnesses = [0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
+    stiffnesses = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
 
     # Establishing contact with the box 
 
