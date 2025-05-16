@@ -138,7 +138,7 @@ add_coordinate!(vms, FrameOrigin(".virtual_mechanism.rh_thtip"); id ="th positio
 add_coordinate!(vms, FrameOrigin(".virtual_mechanism.rh_ffmiddle"); id= "ff middle position")
 add_coordinate!(vms, CoordDifference("th position", "ff middle position"); id = "th ff dist")
 add_coordinate!(vms, CoordNorm("th ff dist"); id="th ff norm")
-add_coordinate!(vms, ConstCoord(0.1); id="th spring length")
+add_coordinate!(vms, ConstCoord(0.12); id="th spring length")
 add_coordinate!(vms, CoordDifference("th ff norm", "th spring length"); id = "th position error")
 
 add_component!(vms, LinearSpring(0.1, "th position error"); id="th position spring")
