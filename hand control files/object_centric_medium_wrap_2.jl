@@ -132,8 +132,6 @@ function object_centric_medium_wrap(cylinder_radius)
     
         add_coordinate!(vm_robot, FrameOrigin("ee_frame_$(attracted_frames_names[i])"); id="$(attracted_frames_names[i]) ee position")
         add_component!(vm_robot, PointMass(0.001, "$(attracted_frames_names[i]) ee position"); id="$(attracted_frames_names[i]) ee mass")
-        I_mat = @SMatrix [0.1  0.    0.  ;0.    0.1  0.  ;0.    0.    0.1]
-        add_inertia!(vm_robot, "ee_frame_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) ee inertia")
     
         add_coordinate!(vm_robot, JointSubspace("prism_joint_$(attracted_frames_names[i])"); id="prism_joint_$(attracted_frames_names[i])")
         add_component!(vm_robot, LinearDamper(0.1, "prism_joint_$(attracted_frames_names[i])"); id="prism_joint_$(attracted_frames_names[i])_damper")
