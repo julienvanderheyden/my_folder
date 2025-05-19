@@ -169,7 +169,7 @@ function object_centric_medium_wrap(cylinder_radius)
     # for geometric scaling :
     # > 1 means that the proximal stiffness is higher than the distal stiffness
     # < 1 means that the distal stiffness is higher than the proximal stiffness
-    phalanx_scaling_factor = 0.5
+    phalanx_scaling_factor = 0.001
     finger_scaling_factor = 1.5
     
     
