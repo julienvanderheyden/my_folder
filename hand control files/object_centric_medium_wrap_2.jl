@@ -194,8 +194,8 @@ function object_centric_medium_wrap(cylinder_radius)
     # add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_MFJ4_coord"); id = "mf j4 angular spring")
     # add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_RFJ4_coord"); id = "rf j4 angular spring")
     # add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_LFJ4_coord"); id = "lf j4 angular spring")
-    # add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_WRJ1_coord"); id = "wr j1 angular spring")
-    # add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_WRJ2_coord"); id = "wr j2 angular spring")
+    add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_WRJ1_coord"); id = "wr j1 angular spring")
+    add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_WRJ2_coord"); id = "wr j2 angular spring")
 
     # CYLINDER COLLISION MODEL  
 
