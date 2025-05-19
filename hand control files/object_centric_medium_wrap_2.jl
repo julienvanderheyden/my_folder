@@ -175,7 +175,7 @@ function object_centric_medium_wrap(cylinder_radius)
         add_component!(vms, ExponentialDamper(exponential_damping_matrix, "ee $(attracted_frames_names[i]) diff", damping_decay_rate); id = "ee $(attracted_frames_names[i]) exp damper")
     end
 
-    add_component!(vms, LinearDamper(SMatrix{3, 3}(0.5, 0., 0., 0., 0.5, 0., 0., 0., 0.5), "ee thmiddle diff"); id = "thmiddle massive damper")
+    add_component!(vms, LinearDamper(SMatrix{3, 3}(0.75, 0., 0., 0., 0.75, 0., 0., 0., 0.75), "ee thmiddle diff"); id = "thmiddle massive damper")
     
     #lightly constraint some joints to avoid unwanted motions 
     add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_FFJ4_coord"); id = "ff j4 angular spring")
