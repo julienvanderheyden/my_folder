@@ -93,6 +93,7 @@ export # Components
     LinearDamper,
     TanhSpring,
     TanhDamper,
+    ExponentialDamper,
     GaussianSpring,
     ReLUSpring,
     RectifiedSpring,

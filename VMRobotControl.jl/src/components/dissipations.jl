@@ -163,3 +163,30 @@ function _opspace_force(cache::CacheBundle, d::TanhDamper{T}) where T
     F = (v == zero(v) ? zero(dir) : F*tanh(v/β) * dir)
     F
 end
+
+"""
+    ExponentialDamper(damping, alpha, coord::OperationSpace)
+
+A damper where the effective damping coefficient decays exponentially with the
+position coordinate `z`: `effective_damping = damping * exp(-alpha * |z|)`.
+Norm of z is used to ensure boundedness of the damping force.
+"""
+@kwdef struct ExponentialDamper{T, K, C, A} <: Dissipation{T}
+    damping::K
+    coord::C
+    alpha::A
+    function ExponentialDamper(damping::K, coord::C ,alpha::A) where {K, C<:CoordID, A}
+        isposdef(damping) || @warn "Expected damper damping to be positive definite: '$(damping)'"
+        alpha   >= zero(alpha)   || error("Alpha decay rate must be ≥ 0")
+        new{eltype(K), K, C, A}(damping, coord, alpha)
+    end
+end
+
+function _opspace_force(cache::CacheBundle, d::ExponentialDamper{T}) where T
+    c, α, coord = d.damping, d.alpha, d.coord
+    z = _configuration(cache, coord)
+    ż = _velocity(cache, coord)
+    effective_damping = c .* exp(-α * norm(z))
+    F = effective_damping * ż
+    return F
+end

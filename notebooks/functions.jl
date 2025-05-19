@@ -94,3 +94,88 @@ function generate_q_init(vms_compiled; ff=false, mf=false, rf=false, lf=false)
 
     return q_init
 end
+
+function generate_stiffnesses_linear_scaling(base::Float64, alpha::Float64, beta::Float64)
+    num_fingers = 5  # little to thumb
+    num_phalanges = 3  # distal to proximal
+
+    stiffnesses = Float64[]
+
+    for finger in 0:num_fingers-1
+        for phalanx in 0:num_phalanges-1
+            # Scale factors normalized in [0, 1]
+            finger_scale = finger / (num_fingers - 1)   # from 0 (little) to 1 (thumb)
+            phalanx_scale = phalanx / (num_phalanges - 1)  # from 0 (distal) to 1 (proximal)
+
+            # Compute stiffness with uniform scaling
+            stiffness = base * (1 + alpha * phalanx_scale) * (1 + beta * finger_scale)
+            push!(stiffnesses, max(stiffness, 0.0))  # Ensure non-negative stiffness
+        end
+    end
+
+    return stiffnesses
+end
+
+function generate_stiffnesses_geometric_scaling(base::Float64, alpha::Float64, beta::Float64)
+    num_fingers = 5  # little to thumb
+    num_phalanges = 3  # distal to proximal
+
+    stiffnesses = Float64[]
+
+    for finger in 0:num_fingers-1
+        for phalanx in 0:num_phalanges-1
+            # Scale factors normalized in [0, 1]
+            finger_scale  = finger / (num_fingers - 1) # from 0 (little) to 1 (thumb)
+            phalanx_scale = phalanx / (num_phalanges - 1) # from 0 (distal) to 1 (proximal)
+
+            # Compute stiffness with geometric interpolation 
+            phalanx_factor = alpha^phalanx_scale     # from 1 to alpha
+            finger_factor  = beta^finger_scale      # from 1 to beta
+
+            stiffness = base * phalanx_factor * finger_factor
+            push!(stiffnesses, stiffness)
+        end
+    end
+
+    return stiffnesses
+end
+
+function circle_center_tangent_to_lines(p11, p12, p21, p22, r)
+    # Convert to Float64 vectors
+    p11 = Vector{Float64}(p11)
+    p12 = Vector{Float64}(p12)
+    p21 = Vector{Float64}(p21)
+    p22 = Vector{Float64}(p22)
+
+    # Direction vectors (initially arbitrary)
+    d1 = p12 - p11
+    d2 = p22 - p21
+
+    # Solve for intersection point of the lines: p11 + t1*d1 = p21 + t2*d2
+    A = hcat(d1, -d2)
+    b = p21 - p11
+    if rank(A) < 2
+        error("Lines are parallel or coincident")
+    end
+    ts = A \ b
+    P = p11 + ts[1] * d1  # Intersection point
+
+    # Redefine directions starting from P (to ensure correct orientation)
+    d1 = normalize(p12 - P)
+    d2 = normalize(p22 - P)
+
+    # Internal angle bisector direction
+    bisector = normalize(d1 + d2)
+
+    # Angle between the two direction vectors
+    cosθ = clamp(dot(d1, d2), -1.0, 1.0)
+    θ = acos(cosθ)
+
+    # Distance from intersection to circle center
+    d = r / sin(θ / 2)
+
+    # Circle center
+    C = P + d * bisector
+
+    return C
+end
