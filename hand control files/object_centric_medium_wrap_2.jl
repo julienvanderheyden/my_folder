@@ -159,12 +159,21 @@ function object_centric_medium_wrap(cylinder_radius)
 
     base_stiffness = 0.03
     #phalanx scaling : 
+    # for linear scaling : 
     # > 0 means that the proximal stiffness is higher than the distal stiffness
     # < 0 means that the distal stiffness is higher than the proximal stiffness
-    phalanx_scaling_factor = - 1.0 
-    finger_scaling_factor = 1.0
+    # phalanx_scaling_factor = - 0.5
+    # finger_scaling_factor = 1.0
+
+
+    # for geometric scaling :
+    # > 1 means that the proximal stiffness is higher than the distal stiffness
+    # < 1 means that the distal stiffness is higher than the proximal stiffness
+    phalanx_scaling_factor = 0.5
+    finger_scaling_factor = 2.0
     
-    stiffnesses = generate_stiffnesses_linear_scaling(base_stiffness, phalanx_scaling_factor, finger_scaling_factor)
+    
+    stiffnesses = generate_stiffnesses_geometric_scaling(base_stiffness, phalanx_scaling_factor, finger_scaling_factor)
     
     damping_decay_rate = 161 # 20% of damping at |z| = 0.01
     exponential_damping_coeff = 0.1
