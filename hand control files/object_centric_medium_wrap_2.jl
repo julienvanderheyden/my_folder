@@ -158,7 +158,10 @@ function object_centric_medium_wrap(cylinder_radius)
     D = SMatrix{3, 3}(0.05, 0., 0., 0., 0.05, 0., 0., 0., 0.05)
 
     base_stiffness = 0.05
-    phalanx_scaling_factor = 0.5 #phalanx scaling : proximal stiffness bigger than distal
+    #phalanx scaling : 
+    # > 0 means that the proximal stiffness is higher than the distal stiffness
+    # < 0 means that the distal stiffness is higher than the proximal stiffness
+    phalanx_scaling_factor = - 0.5 
     finger_scaling_factor = 1.0
     
     stiffnesses = generate_stiffnesses_linear_scaling(base_stiffness, phalanx_scaling_factor, finger_scaling_factor)
