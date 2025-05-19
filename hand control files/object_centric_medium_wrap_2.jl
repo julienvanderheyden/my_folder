@@ -159,7 +159,7 @@ function object_centric_medium_wrap(cylinder_radius)
 
     base_stiffness = 0.05
     phalanx_scaling_factor = 0.5 #phalanx scaling : proximal stiffness bigger than distal
-    finger_scaling_factor = 0.5
+    finger_scaling_factor = 1.0
     
     stiffnesses = generate_stiffnesses_linear_scaling(base_stiffness, phalanx_scaling_factor, finger_scaling_factor)
     
