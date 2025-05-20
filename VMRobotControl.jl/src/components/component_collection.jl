@@ -21,7 +21,6 @@ end
 function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, tsc::TypeStableCollection)
     @assert eltype(M) == eltype(cache)
     @assert size(M) == (ndof(cache), ndof(cache))
-    print(M)
     foreach(c->inertance_matrix!(M, cache, c), tsc)
     M
 end

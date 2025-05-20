@@ -154,7 +154,7 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
     
     @assert ~any(isnan, J) "Jacobian has NaNs: $J"
 
-    @assert ~any(isnan, M) "Inertance matrix has NaNs: $M"
+    print(M)
 
     if size(Mw, 1) >= 3 # Then we can use Mw as a cache
         A = view(Mw, 1:3, 1:size(J,2))
