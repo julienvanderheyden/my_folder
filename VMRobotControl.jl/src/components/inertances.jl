@@ -174,16 +174,15 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
             end
             # We know the result is symmetric, so we can add both at once
             # However, when i == j, we will double count
+            print("M[i,j] before addtiion = $(M[i,j])")
             M[i, j] += M_ij
+            print("M[i,j] after addtiion = $(M[i,j])")
 
             if M[i,j] >= 1
                 print(M_ij)
                 print(M[i,j])
             end
 
-            # if isnan(M[i,j])
-            #     error("M[$(i), $(j)] is NaN, first case. M_ij = $(M_ij)")
-            # end
         end
     else    
         # Do it all in one go, this gets slow for large N
