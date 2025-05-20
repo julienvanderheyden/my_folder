@@ -203,6 +203,8 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
             #     error("M[$(i), $(j)] is NaN, second case ")
             # end
         end
+    if any(isnan, M)
+        print("output matrix has NaN ")
     end
 
     # Check symmetry
