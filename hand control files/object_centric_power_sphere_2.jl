@@ -144,6 +144,8 @@ function object_centric_power_sphere(ball_radius)
 
     add_component!(vms, LinearDamper(SMatrix{3, 3}(10.0, 0., 0., 0., 10.0, 0., 0., 0., 10.0), "ee thmiddle diff"); id = "thmiddle massive damper")
 
+    add_component!(vms, LinearSpring(0.0001, ".virtual_mechanism.rh_WRJ1_coord"); id = "wrj1 spring")
+
     # fingers spacing : Joint level
 
     add_coordinate!(vms, ConstCoord(0.6); id = "angular spring length")
