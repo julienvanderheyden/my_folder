@@ -26,10 +26,10 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, tsc::TypeStab
     if any(isnan, M)
         error("M has NaN before processing component: $(c) TSC is $(tsc)")
     end
+    initial_M = copy(M)
     inertance_matrix!(M, cache, c)
     if any(isnan, M)
-        error("M has NaN after processing component: $(c)\nTSC contents:\n" *
-      join(["  $(k) => $(v)" for (k, v) in tsc], "\n"))
+        error("M has NaN after processing component: $(c) M before is $(initial_M)")
     end
 end, tsc)
     M
