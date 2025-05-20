@@ -151,9 +151,9 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
     J = _jacobian(cache, inr.coord)
     Iʷ = change_inertia_frame(r, inr.inertia) # Inertia in world frame
     Mw = get_inertance_matrix_workspace(cache)
-    initial_M = M
     
     @assert ~any(isnan, J) "Jacobian has NaNs: $J"
+    @assert ~any(isnan, M) "Input matrix has NaNs"
 
     if size(Mw, 1) >= 3 # Then we can use Mw as a cache
         A = view(Mw, 1:3, 1:size(J,2))
@@ -206,7 +206,7 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
         end
     end
 
-    @assert ~any(isnan, M) "Inertance has NaNs: $inr. Initial m : $(initial_M), final m: $M"
+    @assert ~any(isnan, M) "Output matrix has NaNs"
 
     # Check symmetry
     # TODO assess performance of this
