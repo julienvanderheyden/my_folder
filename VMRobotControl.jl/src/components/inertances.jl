@@ -182,7 +182,7 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
             end
 
             if isnan(M[i,j])
-                error("M[$(i), $(j)] is NaN, first case")
+                error("M[$(i), $(j)] is NaN, first case. M_ij = $(M_ij)")
             end
         end
     else    
