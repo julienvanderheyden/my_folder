@@ -21,6 +21,7 @@ end
 function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, tsc::TypeStableCollection)
     @assert eltype(M) == eltype(cache)
     @assert size(M) == (ndof(cache), ndof(cache))
+    @assert ~any(isnan, M) "Inertance matrix has NaNs: $M"
     foreach(c->inertance_matrix!(M, cache, c), tsc)
     M
 end
