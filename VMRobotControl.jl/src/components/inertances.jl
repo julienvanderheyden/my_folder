@@ -222,6 +222,11 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
             end
         end
     end
+
+    if any(isnan, M)
+        print("output matrix 2 has NaN ")
+    end
+    
     M
 end
 
