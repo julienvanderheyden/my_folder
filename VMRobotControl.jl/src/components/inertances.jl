@@ -151,6 +151,7 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
     J = _jacobian(cache, inr.coord)
     Iʷ = change_inertia_frame(r, inr.inertia) # Inertia in world frame
     Mw = get_inertance_matrix_workspace(cache)
+    initial_M = M
     
     @assert ~any(isnan, J) "Jacobian has NaNs: $J"
 
@@ -176,9 +177,6 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
             # However, when i == j, we will double count
             
             M[i, j] += M_ij
-            if isnan(M[i,j])
-                print("M[i,j] is Nan, M_ij = $(M_ij)")
-            end
 
             if M[i,j] >= 1
                 print(M_ij)
@@ -208,7 +206,7 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
         end
     end
 
-    @assert ~any(isnan, M) "Inertance has NaNs: $M, $inr,JACOBIAN : $J, INERTIA IN WORLD FRAME : $Iʷ, INERTANCE MATRIX WORKSPACE $Mw"
+    @assert ~any(isnan, M) "Inertance has NaNs: $inr. Initial m : $(initial_M), final m: $M"
 
     # Check symmetry
     # TODO assess performance of this
