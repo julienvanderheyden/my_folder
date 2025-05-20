@@ -22,14 +22,13 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, tsc::TypeStab
     @assert eltype(M) == eltype(cache)
     @assert size(M) == (ndof(cache), ndof(cache))
     #foreach(c->inertance_matrix!(M, cache, c), tsc)
-    print(tsc)
     foreach(c -> begin
     if any(isnan, M)
-        error("M has NaN before processing component: $(c)")
+        error("M has NaN before processing component: $(c) TSC is $(tsc)")
     end
     inertance_matrix!(M, cache, c)
     if any(isnan, M)
-        error("M has NaN after processing component: $(c)")
+        error("M has NaN after processing component: $(c) TSC is $(tsc)")
     end
 end, tsc)
     M
