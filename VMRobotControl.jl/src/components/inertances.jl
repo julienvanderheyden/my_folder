@@ -204,7 +204,7 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
                 if isapprox(M[i, j], M[j, i]; atol=1e-8, rtol=1e-8)
                     M[i, j] = M[j, i]
                 else
-                    error("Inertance matrix is not symmetric: $(M[i, j]) != $(M[j, i])")
+                    error("Inertance matrix is not symmetric: $(M[i, j]) != $(M[j, i]), modified")
                 end
             end
         end
