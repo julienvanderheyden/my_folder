@@ -181,9 +181,9 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
                 print(M[i,j])
             end
 
-            if isnan(M[i,j])
-                error("M[$(i), $(j)] is NaN, first case. M_ij = $(M_ij)")
-            end
+            # if isnan(M[i,j])
+            #     error("M[$(i), $(j)] is NaN, first case. M_ij = $(M_ij)")
+            # end
         end
     else    
         # Do it all in one go, this gets slow for large N
@@ -201,9 +201,9 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
             end
            
 
-            if isnan([i,j])
-                error("M[$(i), $(j)] is NaN, second case ")
-            end
+            # if isnan([i,j])
+            #     error("M[$(i), $(j)] is NaN, second case ")
+            # end
         end
     end
 
