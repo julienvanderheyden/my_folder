@@ -177,7 +177,7 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
             M[i, j] += M_ij
 
             if isnan(M_ij)
-                @warn "M[$(i), $(j)] is NaN, first case"
+                error("M[$(i), $(j)] is NaN, first case")
             end
         end
     else    
@@ -191,7 +191,7 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
             M[i, j] += M_ij
 
             if isnan(M_ij)
-                @warn "M[$(i), $(j)] is NaN, second case "
+                error("M[$(i), $(j)] is NaN, second case ")
             end
         end
     end
