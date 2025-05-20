@@ -174,9 +174,11 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
             end
             # We know the result is symmetric, so we can add both at once
             # However, when i == j, we will double count
-            print("M[i,j] before addtiion = $(M[i,j])")
+            
             M[i, j] += M_ij
-            print("M[i,j] after addtiion = $(M[i,j])")
+            if isnan(M[i,j])
+                print("M[i,j] is Nan, M_ij = $(M_ij)")
+            end
 
             if M[i,j] >= 1
                 print(M_ij)
