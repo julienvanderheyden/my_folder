@@ -207,7 +207,7 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
         end
     end
 
-    @assert ~any(isnan, M) "Inertance has NaNs: $M, $inr, $r, $J, $Iʷ, $Mw"
+    @assert ~any(isnan, M) "Inertance has NaNs: $M, $inr,JACOBIAN : $J, INERTIA IN WORLD FRAME : $Iʷ, INERTANCE MATRIX WORKSPACE $Mw"
 
     # Check symmetry
     # TODO assess performance of this
