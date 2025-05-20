@@ -307,6 +307,7 @@ function loop_active(connection::ROSPyClientConnection, control_func!::Function)
                 end
                 stop = control_func!(connection.torques, data.state, i, t, dt)
                 stop && return STATE_STOPPED # Stop the controller gracefully
+                print(connection.torques)
                 any(isnan, connection.torques) && error("Control function returned NaN torques: $(connection.torques)")
                 send_torques(connection, data.sequence_number)
 
