@@ -94,7 +94,7 @@ function object_centric_power_sphere(ball_radius)
         add_joint!(vm_robot, Rigid(Transform(SVector(0.0,0.0,ball_radius))); parent ="revo_frame_2_$(attracted_frames_names[i])", child ="ee_frame_$(attracted_frames_names[i])", id = "fixed_joint_$(attracted_frames_names[i])")
 
         add_coordinate!(vm_robot, FrameOrigin("ee_frame_$(attracted_frames_names[i])"); id="$(attracted_frames_names[i]) ee position")
-        add_component!(vm_robot, PointMass(0.001, "$(attracted_frames_names[i]) ee position"); id="$(attracted_frames_names[i]) ee mass")
+        add_component!(vm_robot, PointMass(0.01, "$(attracted_frames_names[i]) ee position"); id="$(attracted_frames_names[i]) ee mass")
         inertia = 0.001*(ball_radius^2)/5
         I_mat = @SMatrix [inertia  0.    0.  ;0.    inertia  0.  ;0.    0.    inertia]
         add_inertia!(vm_robot, "ee_frame_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) ee inertia")
@@ -142,7 +142,7 @@ function object_centric_power_sphere(ball_radius)
         add_component!(vms, ExponentialDamper(exponential_damping_matrix, "ee $(attracted_frames_names[i]) diff", damping_decay_rate); id = "ee $(attracted_frames_names[i]) exp damper")
     end
 
-    add_component!(vms, LinearDamper(SMatrix{3, 3}(3.0, 0., 0., 0., 3.0, 0., 0., 0., 3.0), "ee thmiddle diff"); id = "thmiddle massive damper")
+    add_component!(vms, LinearDamper(SMatrix{3, 3}(10.0, 0., 0., 0., 10.0, 0., 0., 0., 10.0), "ee thmiddle diff"); id = "thmiddle massive damper")
 
     # fingers spacing : Joint level
 
