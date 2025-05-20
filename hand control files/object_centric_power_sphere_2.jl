@@ -97,7 +97,7 @@ function object_centric_power_sphere(ball_radius)
         add_component!(vm_robot, PointMass(0.001, "$(attracted_frames_names[i]) ee position"); id="$(attracted_frames_names[i]) ee mass")
         inertia = 0.001*(ball_radius^2)/5
         I_mat = @SMatrix [inertia  0.    0.  ;0.    inertia  0.  ;0.    0.    inertia]
-        add_inertia!(vm, "ee_frame_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) ee inertia")
+        add_inertia!(vm_robot, "ee_frame_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) ee inertia")
 
         #add_coordinate!(vm_robot, JointSubspace("revo_joint_1_$(attracted_frames_names[i])"); id="revo_joint_1_$(attracted_frames_names[i])")
         #add_component!(vm_robot, LinearDamper(10.0, "revo_joint_1_$(attracted_frames_names[i])"); id="revo_joint_1_$(attracted_frames_names[i])_damper")
