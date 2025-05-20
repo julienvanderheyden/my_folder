@@ -43,7 +43,7 @@ function object_centric_power_sphere(ball_radius)
     add_coordinate!(vm_robot, FrameOrigin("rh_rfdistal"); id="rh_rfdistal")
     add_coordinate!(vm_robot, FrameOrigin("rh_lfdistal"); id="rh_lfdistal")
     add_coordinate!(vm_robot, FrameOrigin("rh_thdistal"); id="rh_thdistal")
-    add_coordinate!(robot, FrameOrigin("rh_thmiddle"); id="rh_thmiddle")
+    add_coordinate!(vm_robot, FrameOrigin("rh_thmiddle"); id="rh_thmiddle")
 
     println("URDF parsed !")
 
