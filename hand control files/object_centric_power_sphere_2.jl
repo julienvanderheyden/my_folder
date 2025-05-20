@@ -71,9 +71,9 @@ function object_centric_power_sphere(ball_radius)
 
     print("Building the virtual mechanisms...")
     if ball_radius < 0.02
-        ball_position = SVector(0.0, -0.09, 0.32)
+        ball_position = SVector(0.0, -0.09, 0.33)
     else
-        ball_position = SVector(0.0, -ball_radius - 0.01, 0.32)
+        ball_position = SVector(0.0, -ball_radius - 0.021, 0.33)
     end
 
     attracted_frames = ("rh_lfdistal_mass_coord", "rh_lfmiddle_mass_coord", "rh_lfproximal_mass_coord", "rh_rfdistal_mass_coord", 
@@ -144,7 +144,7 @@ function object_centric_power_sphere(ball_radius)
 
     add_component!(vms, LinearDamper(SMatrix{3, 3}(10.0, 0., 0., 0., 10.0, 0., 0., 0., 10.0), "ee thmiddle diff"); id = "thmiddle massive damper")
 
-    add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_WRJ1_coord"); id = "wrj1 spring")
+    #add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_WRJ1_coord"); id = "wrj1 spring")
 
     # fingers spacing : Joint level
 
