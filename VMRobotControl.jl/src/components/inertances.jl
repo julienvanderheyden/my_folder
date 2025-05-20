@@ -175,7 +175,7 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
             # We know the result is symmetric, so we can add both at once
             # However, when i == j, we will double count
             M[i, j] += M_ij
-            
+
             if M[i,j] >= 1
                 print(M_ij)
                 print(M[i,j])
@@ -215,7 +215,7 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
                 if isapprox(M[i, j], M[j, i]; atol=1e-8, rtol=1e-8)
                     M[i, j] = M[j, i]
                 else
-                    error("Inertance matrix is not symmetric: $(M[i, j]) != $(M[j, i]), modified")
+                    error("Inertance matrix is not symmetric: $(i), $(j), $(M[i, j]) != $(M[j, i]), modified")
                 end
             end
         end
