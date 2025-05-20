@@ -175,7 +175,11 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
             # We know the result is symmetric, so we can add both at once
             # However, when i == j, we will double count
             M[i, j] += M_ij
-            print(M_ij)
+            
+            if M[i,j] >= 1
+                print(M_ij)
+                print(M[i,j])
+            end
 
             if isnan(M_ij)
                 error("M[$(i), $(j)] is NaN, first case")
@@ -190,7 +194,12 @@ function inertance_matrix!(M::Matrix, cache::MechanismCacheBundle, inr::Inertia)
                 M_ij += J[k, i] * (dot(Iʷ[k, _1_to_3], J[_1_to_3, j]))
             end
             M[i, j] += M_ij
-            print(M_ij)
+
+            if M[i,j] >= 1
+                print(M_ij)
+                print(M[i,j])
+            end
+           
 
             if isnan(M_ij)
                 error("M[$(i), $(j)] is NaN, second case ")
