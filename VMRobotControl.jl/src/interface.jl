@@ -608,7 +608,6 @@ function control_step!(bundle::VMSDynamicsBundle, t_in, qʳ_in, q̇ʳ_in)
     # that exist on the actual robot. We do not need to apply these forces again!
     # Instead, we only need to compute the forces on the virtual mechanism...
     fᵛ = _generalized_force!(virtual_mechanism_bundle)
-    print("fᵛ: $(fᵛ) \n" )
 
     if(any(isnan , fᵛ ))
         error("forces are NaN $(fᵛ)")
