@@ -142,7 +142,7 @@ function object_centric_power_sphere(ball_radius)
         add_component!(vms, ExponentialDamper(exponential_damping_matrix, "ee $(attracted_frames_names[i]) diff", damping_decay_rate); id = "ee $(attracted_frames_names[i]) exp damper")
     end
 
-    add_component!(vms, LinearDamper(SMatrix{3, 3}(10.0, 0., 0., 0., 10.0, 0., 0., 0., 10.0), "ee thmiddle diff"); id = "thmiddle massive damper")
+    add_component!(vms, LinearDamper(SMatrix{3, 3}(5.0, 0., 0., 0., 5.0, 0., 0., 0., 5.0), "ee thmiddle diff"); id = "thmiddle massive damper")
 
     #add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_WRJ1_coord"); id = "wrj1 spring")
 
