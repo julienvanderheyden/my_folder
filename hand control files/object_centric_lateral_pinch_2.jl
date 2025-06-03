@@ -263,6 +263,7 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     cvms = compile(vms)
     qᵛ = generate_q_init(cvms; mf=true, rf=true, lf=true)
     #thumb max extension
+    qᵛ[21] = 0.2
     qᵛ[23] = -0.7
     qᵛ[24] = -0.26
     qᵛ[5] = 1.57
