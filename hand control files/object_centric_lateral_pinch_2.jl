@@ -45,6 +45,7 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     add_coordinate!(vm_robot, FrameOrigin("rh_thtip"); id = "rh_thtip")
     add_coordinate!(vm_robot, FrameOrigin("rh_thdistal"); id="rh_thdistal")
     add_coordinate!(vm_robot, FrameOrigin("rh_thmiddle"); id="rh_thmiddle")
+    add_coordinate!(vm_robot, FramePoint("rh_thdistal", SVector(0.0, -0.009, 0.0)); id="rh_thdistal_offset")
 
     println("URDF parsed !")
 
@@ -122,7 +123,7 @@ function object_centric_lateral_pinch(box_width, box_thickness)
 
     base_damping = 0.05
     D = SMatrix{3, 3}(base_damping , 0., 0., 0., base_damping, 0., 0., 0., base_damping)
-    x_stiffnesses = [0.01, 0.01, 0.01, 0.01, 0.05, 0.05]
+    x_stiffnesses = [0.01, 0.01, 0.01, 0.01, 0.1, 0.1]
     yz_stiffness = 0.1
 
     #damping_decay_rate = 161 # 20% of damping at |z| = 0.01
@@ -170,8 +171,8 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     
     repulsed_frames = (".virtual_mechanism.rh_fftip_mass_coord", ".virtual_mechanism.rh_ffmiddle_mass_coord", ".virtual_mechanism.rh_ffproximal_mass_coord", ".virtual_mechanism.rh_fftip", 
                         ".virtual_mechanism.rh_ffmiddle", ".virtual_mechanism.rh_ffproximal", ".virtual_mechanism.rh_thtip", ".virtual_mechanism.rh_thdistal", ".virtual_mechanism.rh_thdistal_mass_coord", 
-                        ".virtual_mechanism.rh_thproximal_mass_coord", ".virtual_mechanism.rh_thmiddle")
-    frames_names = ("fftip_mass", "ffmiddle_mass", "ffprox_mass", "fftip", "ffmiddle", "ffprox", "thtip", "thdistal", "thdistal_mass", "thproximal_mass", "thmiddle")
+                        ".virtual_mechanism.rh_thproximal_mass_coord", ".virtual_mechanism.rh_thmiddle", ".virtual_mechanism.rh_thdistal_offset")
+    frames_names = ("fftip_mass", "ffmiddle_mass", "ffprox_mass", "fftip", "ffmiddle", "ffprox", "thtip", "thdistal", "thdistal_mass", "thproximal_mass", "thmiddle", "thdistal_offset")
     
     for i in 1:length(repulsed_frames)
         frame = repulsed_frames[i]
