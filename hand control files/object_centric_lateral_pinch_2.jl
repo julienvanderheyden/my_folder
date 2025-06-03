@@ -45,7 +45,6 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     add_coordinate!(vm_robot, FrameOrigin("rh_thtip"); id = "rh_thtip")
     add_coordinate!(vm_robot, FrameOrigin("rh_thdistal"); id="rh_thdistal")
     add_coordinate!(vm_robot, FrameOrigin("rh_thmiddle"); id="rh_thmiddle")
-    add_coordinate!(vm_robot, FramePoint("rh_thdistal", SVector(0.0, -0.009, 0.0)); id="rh_thdistal_offset")
 
     println("URDF parsed !")
 
@@ -70,7 +69,6 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     println("Robot built !")
 
     print("Building the virtual mechanisms...")
-
 
     box_dimensions = [box_thickness, box_width, 0.05]
     box_position = SVector(0.042 + box_dimensions[1], -0.03, 0.32+box_dimensions[3])
@@ -141,6 +139,8 @@ function object_centric_lateral_pinch(box_width, box_thickness)
         add_component!(vms, ExponentialDamper(exponential_damping_matrix, "ee $(attracted_frames_names[i]) diff", damping_decay_rate); id = "ee $(attracted_frames_names[i]) exp damper")
     end
 
+    add_component!(vms, LinearDamper(SMatrix{3, 3}(1.0, 0., 0., 0., 1.0, 0., 0., 0., 1.0),"ee thdistal diff"); id = "ee thdistal mass damper")
+
     # "Closing" the finger ---> connecting the two extremes to the corners of the box
     K = SMatrix{3, 3}(yz_stiffness, 0., 0., 0., yz_stiffness, 0., 0., 0., yz_stiffness)
 
@@ -171,8 +171,8 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     
     repulsed_frames = (".virtual_mechanism.rh_fftip_mass_coord", ".virtual_mechanism.rh_ffmiddle_mass_coord", ".virtual_mechanism.rh_ffproximal_mass_coord", ".virtual_mechanism.rh_fftip", 
                         ".virtual_mechanism.rh_ffmiddle", ".virtual_mechanism.rh_ffproximal", ".virtual_mechanism.rh_thtip", ".virtual_mechanism.rh_thdistal", ".virtual_mechanism.rh_thdistal_mass_coord", 
-                        ".virtual_mechanism.rh_thproximal_mass_coord", ".virtual_mechanism.rh_thmiddle", ".virtual_mechanism.rh_thdistal_offset")
-    frames_names = ("fftip_mass", "ffmiddle_mass", "ffprox_mass", "fftip", "ffmiddle", "ffprox", "thtip", "thdistal", "thdistal_mass", "thproximal_mass", "thmiddle", "thdistal_offset")
+                        ".virtual_mechanism.rh_thproximal_mass_coord", ".virtual_mechanism.rh_thmiddle")
+    frames_names = ("fftip_mass", "ffmiddle_mass", "ffprox_mass", "fftip", "ffmiddle", "ffprox", "thtip", "thdistal", "thdistal_mass", "thproximal_mass", "thmiddle")
     
     for i in 1:length(repulsed_frames)
         frame = repulsed_frames[i]
