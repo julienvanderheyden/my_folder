@@ -188,21 +188,21 @@ uncoupled_joints = ["rh_WRJ1", "rh_WRJ2", "rh_FFJ3", "rh_FFJ4", "rh_MFJ3", "rh_M
 for joint_id in uncoupled_joints
     add_coordinate!(vms, CoordDifference(".robot.$(joint_id)_coord", ".virtual_mechanism.$(joint_id)_coord");id="$(joint_id) coord diff")
     # use deadzone springs instead of linear springs to take the mismatches into account
-    #add_deadzone_springs!(vms, feedback_stiffness, (-0.05, 0.05), "$(joint_id) coord diff") 
-    add_component!(vms, LinearSpring(feedback_stiffness, "$(joint_id) coord diff"); id="$(joint_id) feedback spring")
+    add_deadzone_springs!(vms, feedback_stiffness, (-0.05, 0.05), "$(joint_id) coord diff") 
+    #add_component!(vms, LinearSpring(feedback_stiffness, "$(joint_id) coord diff"); id="$(joint_id) feedback spring")
     #add_component!(vms, LinearDamper(0.00, "$(joint_id) coord diff"); id = "$(joint_id) coord damper")  no damping for the moment
 end
 
 
 # LINKING COUPLED JOINTS
 
-coupled_joints = ["rh_FFJ0", "rh_MFJ0", "rh_RFJ0", "rh_LFJ0"]
+coupled_joints = ["rh_FFJ0", "rh_MFJ0", "rh_LFJ0"] # RFJ0 is removed because of hardware failure : no feedback on this joint
 
 for joint_id in coupled_joints
     add_coordinate!(vms, CoordDifference(".robot.$(joint_id)_coord", ".virtual_mechanism.$(joint_id)_coord");id="$(joint_id) coord diff")
     # use deadzone springs instead of linear springs to take the mismatch into account
-    # add_deadzone_springs!(vms, feedback_stiffness, (-0.05, 0.05), "$(joint_id) coord diff") 
-    add_component!(vms, LinearSpring(feedback_stiffness, "$(joint_id) coord diff"); id="$(joint_id) feedback spring")
+    add_deadzone_springs!(vms, feedback_stiffness, (-0.05, 0.05), "$(joint_id) coord diff") 
+    #add_component!(vms, LinearSpring(feedback_stiffness, "$(joint_id) coord diff"); id="$(joint_id) feedback spring")
     #add_component!(vms, LinearDamper(0.00, "$(joint_id) coord diff"); id = "$(joint_id) coord damper")  no damping for the moment  
 end
 
