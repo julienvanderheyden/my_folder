@@ -1,5 +1,5 @@
 function rotor_to_matrix(R)
-    s, (x, y, z) = R.scalar, R.bivector # Extract scalar and vector part
+    s, (x, y, z) = R.scalar, R.bivector # Extract scalar and vector parts
     
     return [
         1 - 2(y^2 + z^2)   2(x*y - s*z)   2(x*z + s*y)
