@@ -1,26 +1,34 @@
 using RobotOS
-
-# Import the ROS message definition
-@rosimport std_msgs.msg: Float64
+@rosimport std_msgs.msg: Int32
 rostypegen()
+using .std_msgs.msg
+
+
+# Callback function for the subscriber
+function callback(msg)
+    println("Received integer: $(msg.data)")
+end
 
 function main()
-    # Initialize ROS node
-    init_node("julia_number_publisher")
+    init_node("julia_int_publisher")
 
-    # Create publisher with queue_size
-    pub = Publisher("/simple_number", std_msgs.msg.Float64Msg; queue_size=10)
+    pub = Publisher("/simple_number", Int32Msg; queue_size=10)
+    rate = Rate(1.0)
+    x = 0
+    
+    sub = Subscriber{Int32Msg}("/simple_number_2", callback; queue_size=10)
 
-    rate = Rate(1.0)  # 1 Hz
-    x = 0.0
 
     while !is_shutdown()
-        msg = std_msgs.msg.Float64Msg(data = x)
-        publish(pub, msg)
-        println("Published number: $x")
-        x += 0.1
-        sleep(rate)
+	msg = Int32Msg(x)
+	publish(pub, msg)
+	println("Published integer: $x")
+	x += 1
+	sleep(rate)
     end
+
 end
 
 main()
+
+
