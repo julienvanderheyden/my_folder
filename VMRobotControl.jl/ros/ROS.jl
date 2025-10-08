@@ -450,6 +450,12 @@ function ros_vm_position_controller(
             hand_state = get_virtual_hand_state(qv, robot_vm_idxs) 
             #display(hand_state)
             torques .= hand_state
+
+            if hand_state == qʳ
+                @info "Hand reached desired position"
+                return true
+            end
+            
             return false
         end
     end
