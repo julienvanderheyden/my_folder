@@ -4,19 +4,23 @@ using RobotOS
 @rosimport std_msgs.msg: Float64
 rostypegen()
 
-# Initialize ROS node
-init_node("julia_number_publisher")
+function main()
+    # Initialize ROS node
+    init_node("julia_number_publisher")
 
-# Create publisher (note the 'Float64Msg' here!)
-pub = Publisher("/simple_number", std_msgs.msg.Float64Msg)
+    # Create publisher with queue_size
+    pub = Publisher("/simple_number", std_msgs.msg.Float64Msg; queue_size=10)
 
-rate = Rate(1.0)  # 1 Hz
+    rate = Rate(1.0)  # 1 Hz
+    x = 0.0
 
-x = 0.0
-while !is_shutdown()
-    msg = std_msgs.msg.Float64Msg(data = x)
-    publish(pub, msg)
-    println("Published number: $x")
-    x += 0.1
-    sleep(rate)
+    while !is_shutdown()
+        msg = std_msgs.msg.Float64Msg(data = x)
+        publish(pub, msg)
+        println("Published number: $x")
+        x += 0.1
+        sleep(rate)
+    end
 end
+
+main()
