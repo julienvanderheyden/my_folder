@@ -460,7 +460,7 @@ function ros_vm_position_controller(
             vel_ok = all(abs.(q̇ʳ) .< velocity_threshold)
 
             # Are all position differences below threshold?
-            pos_ok = all(abs.(qv .- qr) .< position_threshold)
+            pos_ok = all(abs.(qʳ .- qr) .< position_threshold)
 
             return vel_ok && pos_ok
 
