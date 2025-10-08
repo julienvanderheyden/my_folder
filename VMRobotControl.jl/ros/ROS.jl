@@ -453,8 +453,8 @@ function ros_vm_position_controller(
 
             # --- STEADY STATE CHECK ---
             # You can tune these thresholds
-            velocity_threshold = 1e-3   # rad/s
-            position_threshold = 1e-3   # rad
+            velocity_threshold = 1e-4   # rad/s
+            position_threshold = 1e-4   # rad
 
             # Are all velocities below threshold?
             vel_ok = all(abs.(q̇ʳ) .< velocity_threshold)
