@@ -451,12 +451,20 @@ function ros_vm_position_controller(
             #display(hand_state)
             torques .= hand_state
 
-            if hand_state == qʳ
-                @info "Hand reached desired position"
-                return true
-            end
-            
-            return false
+            # --- STEADY STATE CHECK ---
+            # You can tune these thresholds
+            velocity_threshold = 1e-3   # rad/s
+            position_threshold = 1e-3   # rad
+
+            # Are all velocities below threshold?
+            vel_ok = all(abs.(q̇ʳ) .< velocity_threshold)
+
+            # Are all position differences below threshold?
+            pos_ok = all(abs.(qv .- qr) .< position_threshold)
+
+            return vel_ok && pos_ok
+
+            #return false
         end
     end
     # Check that stored energy is within bounds
