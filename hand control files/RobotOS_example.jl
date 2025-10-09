@@ -13,7 +13,7 @@ function main()
     init_node("julia_int_publisher")
 
     pub = Publisher("/ros_julia_synchronization", Int32Msg; queue_size=10)
-    #rate = Rate(1.0)
+    rate = Rate(1.0)
     x = 1
     
     #sub = Subscriber{Int32Msg}("/simple_number_2", callback; queue_size=10)
