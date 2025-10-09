@@ -41,7 +41,7 @@ function main()
     println("Starting the test, sending arm to position", current_step +1)
     publish(pub, msg)
 
-
+    spin()
 end
 
 main()
