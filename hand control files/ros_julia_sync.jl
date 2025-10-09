@@ -31,12 +31,12 @@ function main()
             msg = Int32Msg(current_step + 1 )
             publish(pub, msg)
         else 
-            println("Arm motion went wrong, stopping the test")
+            #println("Arm motion went wrong, stopping the test")
             return
         end
     end
     
-    #sub = Subscriber{Int32Msg}("/ros_julia_synchronization", callback; queue_size=10)
+    sub = Subscriber{Int32Msg}("/ros_julia_synchronization", callback; queue_size=10)
     msg = Int32Msg(current_step + 1)
     println("Starting the test, sending arm to position ", current_step +1)
     publish(pub, msg)
