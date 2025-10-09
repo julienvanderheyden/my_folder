@@ -28,7 +28,7 @@ function main()
                 return
             end
             println("Hand motion completed, sending arm to position", current_step +1)
-            msg = Int32Msg(current_step)
+            msg = Int32Msg(current_step + 1 )
             publish(pub, msg)
         else 
             println("Arm motion went wrong, stopping the test")
@@ -37,7 +37,8 @@ function main()
     end
     
     sub = Subscriber{Int32Msg}("/ros_julia_synchronization", callback; queue_size=10)
-
+    msg = Int32Msg(current_step +1)
+    publish(pub, msg)
 
 
 end
