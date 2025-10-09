@@ -25,14 +25,14 @@ function main()
             if current_step > 5
                 current_step = 1
                 println("All steps completed, test is done")
-                break
+                return
             end
             println("Hand motion completed, sending arm to position", current_step +1)
             msg = Int32Msg(current_step)
             publish(pub, msg)
         else 
             println("Arm motion went wrong, stopping the test")
-            break
+            return
         end
     end
     
