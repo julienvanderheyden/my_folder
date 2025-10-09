@@ -14,7 +14,7 @@ function main()
 
     pub = Publisher("/ros_julia_synchronization", Int32Msg; queue_size=10)
     rate = Rate(1.0)
-    x = 1
+    x = 2
     
     #sub = Subscriber{Int32Msg}("/simple_number_2", callback; queue_size=10)
 

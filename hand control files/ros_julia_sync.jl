@@ -40,6 +40,8 @@ function main()
     msg = Int32Msg(current_step + 1)
     println("Starting the test, sending arm to position ", current_step +1)
     publish(pub, msg)
+    sleep(1.0)
+    publish(pub, msg)
     println("Waiting for arm to complete motion...")
 
     spin()
