@@ -20,11 +20,11 @@ function main()
 
 
     while !is_shutdown()
-	msg = Int32Msg(x)
-	publish(pub, msg)
-	println("Published integer: $x")
-	x += 1
-	sleep(rate)
+        msg = Int32Msg(x)
+        publish(pub, msg)
+        println("Published integer: $x")
+        x += 1
+        sleep(rate)
     end
 
 end
