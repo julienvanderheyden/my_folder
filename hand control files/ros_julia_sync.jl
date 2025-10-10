@@ -3,7 +3,7 @@ using RobotOS
 rostypegen()
 using .std_msgs.msg
 
-include("object_centric_medium_wrap_2.jl")
+include("object_centric_grasping.jl")
 
 
 # Callback function for the subscriber
