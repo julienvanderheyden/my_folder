@@ -17,8 +17,7 @@ function main()
     current_step = 1 # step 1 : going to home position
 
     grasp_type = 1 # 1 for medium wrap, 2 for power sphere, 3 for lateral pinch
-    grasp_parameters = [0.03, 0.04, 0.03, 0.04]
-
+    grasp_parameters = [0.03, 0.04, 0.03, 0.04, 0.03] 
     function callback(msg)
         if msg.data == 0
             
@@ -26,18 +25,18 @@ function main()
             if current_step !=1 
                 println("Arm motion completed , executing hand motion")
                 if grasp_type == 1
-                    object_centric_medium_wrap(grasp_parameters[current_step])
+                    object_centric_medium_wrap(grasp_parameters[current_step - 1])
                 elseif grasp_type == 2
-                    object_centric_power_sphere(grasp_parameters[current_step])
+                    object_centric_power_sphere(grasp_parameters[current_step - 1])
                 elseif grasp_type == 3
-                    object_centric_lateral_pinch(grasp_parameters[current_step])
+                    object_centric_lateral_pinch(grasp_parameters[current_step - 1])
                 end
             else 
                 println("Arm to home position, sequence is starting")
             end 
 
             current_step += 1
-            if current_step >= 6
+            if current_step >= 7
                 println("All steps completed, test is done. Arm back to home position")
                 msg = Int32Msg(1)
                 publish(pub, msg)
