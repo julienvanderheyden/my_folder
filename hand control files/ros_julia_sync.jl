@@ -19,8 +19,7 @@ function main()
     grasp_type = 1 # 1 for medium wrap, 2 for power sphere, 3 for lateral pinch
     grasp_parameters = [0.03, 0.04, 0.03, 0.04, 0.03] 
     function callback(msg)
-        if msg.data == 0
-            
+        if msg.data == 0 && current_step <= 6 
             
             if current_step !=1 
                 println("Arm motion completed , executing hand motion")
