@@ -21,9 +21,10 @@ function main()
 
     function callback(msg)
         if msg.data == 0
-            println("Arm motion completed , executing hand motion")
+            
             
             if current_step !=1 
+                println("Arm motion completed , executing hand motion")
                 if grasp_type == 1
                     object_centric_medium_wrap(grasp_parameters[current_step])
                 elseif grasp_type == 2
@@ -31,6 +32,8 @@ function main()
                 elseif grasp_type == 3
                     object_centric_lateral_pinch(grasp_parameters[current_step])
                 end
+            else 
+                println("Arm to home position, sequence is starting")
             end 
 
             current_step += 1
