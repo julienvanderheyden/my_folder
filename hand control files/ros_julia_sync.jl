@@ -14,20 +14,31 @@ function main()
 
     pub = Publisher("/ros_julia_synchronization", Int32Msg; queue_size=10)
 
-    current_step = 1
+    current_step = 2
+
+    grasp_type = 1 # 1 for medium wrap, 2 for power sphere, 3 for lateral pinch
     grasp_parameters = [0.03, 0.04, 0.03, 0.04]
 
     function callback(msg)
         if msg.data == 0
             println("Arm motion completed , executing hand motion")
-            object_centric_medium_wrap(grasp_parameters[current_step])
+
+            if grasp_type == 1
+                object_centric_medium_wrap(grasp_parameters[current_step])
+            elseif grasp_type == 2
+                object_centric_power_sphere(grasp_parameters[current_step])
+            elseif grasp_type == 3
+                object_centric_lateral_pinch(grasp_parameters[current_step])
+            end
+
             current_step += 1
-            if current_step > 5
-                current_step = 1
-                println("All steps completed, test is done")
+            if current_step >= 5
+                println("All steps completed, test is done. Arm back to home position")
+                msg = Int32Msg(1)
+                publish(pub, msg)
                 return
             end
-            println("Hand motion completed, sending arm to position", current_step +1)
+            println("Hand motion completed, sending arm to position ", current_step +1)
             msg = Int32Msg(current_step + 1 )
             publish(pub, msg)
         else 
@@ -40,7 +51,6 @@ function main()
     msg = Int32Msg(current_step + 1)
     println("Starting the test, sending arm to position ", current_step +1)
     publish(pub, msg)
-    println("First message sent, waiting a bit and resending")
     sleep(Rate(1.0))
     publish(pub, msg)
     println("Waiting for arm to complete motion...")
