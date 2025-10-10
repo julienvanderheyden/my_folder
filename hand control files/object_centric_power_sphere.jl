@@ -5,6 +5,7 @@ using StaticArrays
 using VMRobotControl
 using VMRobotControl.Splines: CubicSpline
 using DifferentialEquations
+include("functions.jl")
 #using MeshIO
 
 module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
@@ -42,13 +43,14 @@ function object_centric_power_sphere(ball_radius)
     add_coordinate!(vm_robot, FrameOrigin("rh_rfdistal"); id="rh_rfdistal")
     add_coordinate!(vm_robot, FrameOrigin("rh_lfdistal"); id="rh_lfdistal")
     add_coordinate!(vm_robot, FrameOrigin("rh_thdistal"); id="rh_thdistal")
+    add_coordinate!(vm_robot, FrameOrigin("rh_thmiddle"); id="rh_thmiddle")
 
     println("URDF parsed !")
 
     print("Building the virtual robot...")
 
     # Gravity Compensation and joint limits/damping
-    add_gravity_compensation!(vm_robot, VMRobotControl.DEFAULT_GRAVITY)
+    
 
     joint_limits = vm_cfg.joint_limits
 
@@ -68,14 +70,19 @@ function object_centric_power_sphere(ball_radius)
     println("Robot built !")
 
     print("Building the virtual mechanisms...")
-    ball_position = SVector(0.0, -0.035, 0.32)
+    if ball_radius < 0.02
+        ball_position = SVector(0.0, -0.11, 0.33)
+    else
+        ball_position = SVector(0.0, -ball_radius - 0.021, 0.33)
+    end
 
-    attracted_frames = ("rh_ffdistal_mass_coord", "rh_mfdistal_mass_coord", "rh_rfdistal_mass_coord","rh_lfdistal_mass_coord" , 
-                        "rh_thdistal_mass_coord", "rh_ffmiddle_mass_coord","rh_mfmiddle_mass_coord", "rh_rfmiddle_mass_coord",
-                        "rh_lfmiddle_mass_coord",  "rh_thmiddle_mass_coord", "rh_ffproximal_mass_coord", "rh_mfproximal_mass_coord",
-                        "rh_rfproximal_mass_coord", "rh_lfproximal_mass_coord", "rh_thproximal_mass_coord", "rh_palm_mass_coord")
-    attracted_frames_names = ("ffdistal", "mfdistal", "rfdistal", "lfdistal", "thdistal", "ffmiddle", "mfmiddle", "rfmiddle", "lfmiddle", "thmiddle", "ffprox", 
-                    "mfprox", "rfprox", "lfprox", "thprox", "palm")
+    attracted_frames = ("rh_lfdistal_mass_coord", "rh_lfmiddle_mass_coord", "rh_lfproximal_mass_coord", "rh_rfdistal_mass_coord", 
+    "rh_rfmiddle_mass_coord", "rh_rfproximal_mass_coord", "rh_mfdistal_mass_coord", "rh_mfmiddle_mass_coord",
+    "rh_mfproximal_mass_coord", "rh_ffdistal_mass_coord", "rh_ffmiddle_mass_coord", "rh_ffproximal_mass_coord",
+    "rh_thdistal_mass_coord", "rh_thmiddle_mass_coord") #, "rh_thproximal_mass_coord" , "rh_palm_mass_coord")
+    
+    attracted_frames_names = ("lfdistal", "lfmiddle", "lfprox", "rfdistal", "rfmiddle", "rfprox", "mfdistal", "mfmiddle", "mfprox", "ffdistal", "ffmiddle", 
+    "ffprox", "thdistal", "thmiddle") #, "thprox", "palm")
 
 
     for i in 1:length(attracted_frames)
@@ -88,25 +95,43 @@ function object_centric_power_sphere(ball_radius)
 
         add_coordinate!(vm_robot, FrameOrigin("ee_frame_$(attracted_frames_names[i])"); id="$(attracted_frames_names[i]) ee position")
         add_component!(vm_robot, PointMass(0.01, "$(attracted_frames_names[i]) ee position"); id="$(attracted_frames_names[i]) ee mass")
-
-        add_coordinate!(vm_robot, JointSubspace("revo_joint_1_$(attracted_frames_names[i])"); id="revo_joint_1_$(attracted_frames_names[i])")
-        #add_component!(vm_robot, LinearDamper(10.0, "revo_joint_1_$(attracted_frames_names[i])"); id="revo_joint_1_$(attracted_frames_names[i])_damper")
-        add_coordinate!(vm_robot, JointSubspace("revo_joint_2_$(attracted_frames_names[i])"); id="revo_joint_2_$(attracted_frames_names[i])")
-        #add_component!(vm_robot, LinearDamper(0.5, "revo_joint_2_$(attracted_frames_names[i])"); id="revo_joint_2_$(attracted_frames_names[i])_damper")   
-        
-        I_mat = @SMatrix [0.1  0.    0.  ;0.    0.1  0.  ;0.    0.    0.1]
+        inertia = 0.001*(ball_radius^2)/5
+        I_mat = @SMatrix [inertia  0.    0.  ;0.    inertia  0.  ;0.    0.    inertia]
         add_inertia!(vm_robot, "ee_frame_$(attracted_frames_names[i])", I_mat; id="$(attracted_frames_names[i]) ee inertia")
+
+        #add_coordinate!(vm_robot, JointSubspace("revo_joint_1_$(attracted_frames_names[i])"); id="revo_joint_1_$(attracted_frames_names[i])")
+        #add_component!(vm_robot, LinearDamper(10.0, "revo_joint_1_$(attracted_frames_names[i])"); id="revo_joint_1_$(attracted_frames_names[i])_damper")
+        #add_coordinate!(vm_robot, JointSubspace("revo_joint_2_$(attracted_frames_names[i])"); id="revo_joint_2_$(attracted_frames_names[i])")
+        #add_component!(vm_robot, LinearDamper(0.5, "revo_joint_2_$(attracted_frames_names[i])"); id="revo_joint_2_$(attracted_frames_names[i])_damper")   
     end
+
+    add_gravity_compensation!(vm_robot, VMRobotControl.DEFAULT_GRAVITY)
 
     
     vms = VirtualMechanismSystem("myShadowVMS", shadow_robot, vm_robot)
 
     # HAND MOTION
 
-    D = SMatrix{3, 3}(0.05, 0., 0., 0., 0.05, 0., 0., 0., 0.05)
+    D = SMatrix{3, 3}(0.15, 0., 0., 0., 0.15, 0., 0., 0., 0.15)
 
-    stiffnesses = [0.03, 0.03, 0.03, 0.03, 0.03, 0.05, 0.05, 0.05, 0.05, 0.05, 0.15, 0.15, 0.15, 0.15, 0.15, 0.03]
+    base_stiffness = 0.05
 
+    # for linear scaling : 
+        # > 0 means that the proximal stiffness is higher than the distal stiffness
+        # < 0 means that the distal stiffness is higher than the proximal stiffness
+
+    # for geometric scaling :
+        # > 1 means that the proximal stiffness is higher than the distal stiffness
+        # < 1 means that the distal stiffness is higher than the proximal stiffness
+
+    phalanx_scaling_factor = 0.1
+    finger_scaling_factor = 1.5
+
+    stiffnesses = generate_stiffnesses_geometric_scaling(base_stiffness, phalanx_scaling_factor, finger_scaling_factor)
+
+    damping_decay_rate = 161 # 20% of damping at |z| = 0.01
+    exponential_damping_coeff = 0.2
+    exponential_damping_matrix = SMatrix{3, 3}(exponential_damping_coeff, 0., 0., 0., exponential_damping_coeff, 0., 0., 0., exponential_damping_coeff)
     # hand converging to the ball 
 
     for i in 1:length(attracted_frames)
@@ -114,7 +139,12 @@ function object_centric_power_sphere(ball_radius)
         add_coordinate!(vms, CoordDifference(".virtual_mechanism.$(attracted_frames_names[i]) ee position", ".virtual_mechanism.$(attracted_frames[i])"); id = "ee $(attracted_frames_names[i]) diff")
         add_component!(vms, LinearSpring(K, "ee $(attracted_frames_names[i]) diff"); id = "ee $(attracted_frames_names[i]) spring")
         add_component!(vms, LinearDamper(D, "ee $(attracted_frames_names[i]) diff"); id = "ee $(attracted_frames_names[i]) damper")
+        add_component!(vms, ExponentialDamper(exponential_damping_matrix, "ee $(attracted_frames_names[i]) diff", damping_decay_rate); id = "ee $(attracted_frames_names[i]) exp damper")
     end
+
+    add_component!(vms, LinearDamper(SMatrix{3, 3}(5.0, 0., 0., 0., 5.0, 0., 0., 0., 5.0), "ee thmiddle diff"); id = "thmiddle massive damper")
+
+    #add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_WRJ1_coord"); id = "wrj1 spring")
 
     # fingers spacing : Joint level
 
@@ -143,33 +173,6 @@ function object_centric_power_sphere(ball_radius)
     add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_THJ4_coord", "th spring length"); id="th j4 error")
     add_component!(vms, LinearSpring(0.001, "th j4 error"); id="th j4 spring")
 
-    # finger spacing : finger level 
-
-    add_coordinate!(vms, ConstCoord(0.05); id = "finger spring length")
-
-    finger_spacing_stiffness = 0.07
-
-    add_coordinate!(vms, RotatedCoord(".virtual_mechanism.rh_mfmiddle_mass_coord", ".virtual_mechanism.rh_ffmiddle"); id="ff mf middle diff")
-    add_coordinate!(vms, CoordSlice("ff mf middle diff", SVector(1)); id="ff mf middle diff x")
-    add_coordinate!(vms, CoordNorm("ff mf middle diff x"); id="ff mf middle norm")
-    add_coordinate!(vms, CoordDifference("ff mf middle norm", "finger spring length"); id="ff mf middle error")
-    add_component!(vms, LinearSpring(finger_spacing_stiffness, "ff mf middle error"); id="ff mf middle spring")
-    add_component!(vms, LinearDamper(0.01, "ff mf middle error"); id="ff mf middle damper")
-
-    add_coordinate!(vms, RotatedCoord(".virtual_mechanism.rh_rfmiddle_mass_coord", ".virtual_mechanism.rh_mfmiddle"); id="mf rf middle diff")
-    add_coordinate!(vms, CoordSlice("mf rf middle diff", SVector(1)); id="mf rf middle diff x")
-    add_coordinate!(vms, CoordNorm("mf rf middle diff x"); id="mf rf middle norm")
-    add_coordinate!(vms, CoordDifference("mf rf middle norm", "finger spring length"); id="mf rf middle error")
-    add_component!(vms, LinearSpring(finger_spacing_stiffness, "mf rf middle error"); id="mf rf middle spring")
-    add_component!(vms, LinearDamper(0.01, "mf rf middle error"); id="mf rf middle damper")
-
-    add_coordinate!(vms, RotatedCoord(".virtual_mechanism.rh_lfmiddle_mass_coord", ".virtual_mechanism.rh_rfmiddle"); id="rf lf middle diff")
-    add_coordinate!(vms, CoordSlice("rf lf middle diff", SVector(1)); id="rf lf middle diff x")
-    add_coordinate!(vms, CoordNorm("rf lf middle diff x"); id="rf lf middle norm")
-    add_coordinate!(vms, CoordDifference("rf lf middle norm", "finger spring length"); id="rf lf middle error")
-    add_component!(vms, LinearSpring(finger_spacing_stiffness, "rf lf middle error"); id="rf lf middle spring")
-    add_component!(vms, LinearDamper(0.01, "rf lf middle error"); id="rf lf middle damper")
-
     # BALL COLLISION MODEL  
 
     add_coordinate!(vms,  ConstCoord(ball_position);  id="ball position")
@@ -181,9 +184,10 @@ function object_centric_power_sphere(ball_radius)
                         ".virtual_mechanism.rh_thtip_mass_coord", ".virtual_mechanism.rh_ffmiddle_mass_coord",".virtual_mechanism.rh_mfmiddle_mass_coord", ".virtual_mechanism.rh_rfmiddle_mass_coord",
                         ".virtual_mechanism.rh_lfmiddle_mass_coord",  ".virtual_mechanism.rh_thmiddle_mass_coord", ".virtual_mechanism.rh_ffproximal_mass_coord", ".virtual_mechanism.rh_mfproximal_mass_coord",
                         ".virtual_mechanism.rh_rfproximal_mass_coord", ".virtual_mechanism.rh_lfproximal_mass_coord", ".virtual_mechanism.rh_thproximal_mass_coord", ".virtual_mechanism.rh_palm_mass_coord", "second palm point",
-                        ".virtual_mechanism.rh_ffdistal", ".virtual_mechanism.rh_mfdistal", ".virtual_mechanism.rh_rfdistal", ".virtual_mechanism.rh_lfdistal", ".virtual_mechanism.rh_thdistal")
+                        ".virtual_mechanism.rh_ffdistal", ".virtual_mechanism.rh_mfdistal", ".virtual_mechanism.rh_rfdistal", ".virtual_mechanism.rh_lfdistal", ".virtual_mechanism.rh_thdistal",
+                        ".virtual_mechanism.rh_thmiddle")
     repulsed_frames_names = ("fftip", "mftip", "rftip", "lftip", "thtip", "ffmiddle", "mfmiddle", "rfmiddle", "lfmiddle", "thmiddle", "ffprox", 
-                    "mfprox", "rfprox", "lfprox", "thprox", "palm", "palm2", "ffdistal", "mfdistal", "rfdistal", "lfdistal", "thdistal")
+                    "mfprox", "rfprox", "lfprox", "thprox", "palm", "palm2", "ffdistal", "mfdistal", "rfdistal", "lfdistal", "thdistal", "thmiddle2")
 
     for i in 1:length(repulsed_frames)
         frame = repulsed_frames[i]
@@ -191,8 +195,8 @@ function object_centric_power_sphere(ball_radius)
         add_coordinate!(vms, CoordNorm("$(repulsed_frames_names[i]) ball error") ; id = "$(repulsed_frames_names[i]) ball error norm")
         add_coordinate!(vms, CoordDifference("$(repulsed_frames_names[i]) ball error norm", "ball radius"); id = "shifted $(repulsed_frames_names[i]) ball error" )
 
-        add_component!(vms, ReLUSpring(1.0, "shifted $(repulsed_frames_names[i]) ball error", true); id="$(repulsed_frames_names[i]) ball repulsive spring")
-        add_component!(vms, RectifiedDamper(0.1, "$(repulsed_frames_names[i]) ball error norm", (0.0, 1.1*ball_radius), true, false); id="$(repulsed_frames_names[i]) ball damper")
+        add_component!(vms, ReLUSpring(5.0, "shifted $(repulsed_frames_names[i]) ball error", true); id="$(repulsed_frames_names[i]) ball repulsive spring")
+        add_component!(vms, RectifiedDamper(5.0, "$(repulsed_frames_names[i]) ball error norm", (0.0, 1.1*ball_radius), true, false); id="$(repulsed_frames_names[i]) ball damper")
     end
 
     println("Virtual Mechanism Built !")
@@ -220,6 +224,10 @@ function object_centric_power_sphere(ball_radius)
     cvms = compile(vms)
     qᵛ = zero_q(cvms.virtual_mechanism)
     qᵛ[21] = 1.2
+    qᵛ[3] = -0.35
+    qᵛ[7] = -0.12
+    qᵛ[11] = -0.12
+    qᵛ[16] = -0.35
 
     joint_names = ["rh_WRJ1", "rh_WRJ2", "rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4", "rh_MFJ1",
                     "rh_MFJ2", "rh_MFJ3", "rh_MFJ4", "rh_RFJ1", "rh_RFJ2", "rh_RFJ3", "rh_RFJ4", 
