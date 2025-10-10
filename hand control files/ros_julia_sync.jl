@@ -16,7 +16,7 @@ function main()
 
     current_step = 1
 
-    grasp_type = 2 # 1 for medium wrap, 2 for power sphere, 3 for lateral pinch
+    grasp_type = 1 # 1 for medium wrap, 2 for power sphere, 3 for lateral pinch
     grasp_parameters = [0.03, 0.04, 0.03, 0.04]
 
     function callback(msg)
@@ -42,7 +42,6 @@ function main()
             msg = Int32Msg(current_step + 1 )
             publish(pub, msg)
         else 
-            #println("Arm motion went wrong, stopping the test")
             return
         end
     end

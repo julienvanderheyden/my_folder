@@ -18,16 +18,10 @@ end
 
 function object_centric_medium_wrap(cylinder_radius)
 
-    print("parsing robot URDF... ")
-
     module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
 
     shadow_cfg = URDFParserConfig(;suppress_warnings=true) # This is just to hide warnings about unsupported URDF features
     shadow_robot = parseURDF(joinpath(module_path, "URDFs/sr_description/sr_hand_vm_compatible.urdf"), shadow_cfg)
-
-    println("URDF parsed !")
-
-    print("parsing virtual mechanism URDF ...")
 
     vm_cfg = URDFParserConfig(;suppress_warnings=true) 
     # For the moment the urdfs are the same but we might want to change the properties of the virtual robot
@@ -41,11 +35,8 @@ function object_centric_medium_wrap(cylinder_radius)
     add_coordinate!(vm_robot, FrameOrigin("rh_ffproximal"); id="rh_ffproximal")
     add_coordinate!(vm_robot, FrameOrigin("rh_thmiddle"); id="rh_thmiddle")
 
-    println("URDF parsed !")
 
     ##### COMPLEMENTING THE VIRTUAL ROBOT #####
-
-    print("Building the virtual robot...")
 
     # Gravity Compensation and joint limits/damping
     
@@ -60,10 +51,6 @@ function object_centric_medium_wrap(cylinder_radius)
         add_deadzone_springs!(vm_robot, 0.01, (limits.lower+0.0, limits.upper-0.0), "$(joint_id)_coord")
         add_component!(vm_robot, LinearDamper(0.0001, "$(joint_id)_coord"); id="$(joint_id)_damper")
     end
-
-    println("Robot built !")
-
-    print("Building the virtual mechanisms...")
 
     m = compile(vm_robot)
     kcache = new_kinematics_cache(m)  
@@ -194,9 +181,9 @@ function object_centric_medium_wrap(cylinder_radius)
         add_component!(vms, RectifiedDamper(5.0, "$(repulsed_frames_names[i]) planar error norm", (0.0, 1.05*cylinder_radius), true, false); id="$(repulsed_frames_names[i]) cylinder damper")
     end
 
-    println("Virtual Mechanism Built !")
 
-    println("Connecting to ROS client...")
+
+    println("Virtual controller built. Connecting to ROS client...")
     cvms = compile(vms)
     qᵛ = medium_wrap_preshape
 
@@ -213,16 +200,13 @@ function object_centric_medium_wrap(cylinder_radius)
 end
 
 function object_centric_power_sphere(ball_radius)
-    print("parsing robot URDF... ")
 
     module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
 
     shadow_cfg = URDFParserConfig(;suppress_warnings=true) # This is just to hide warnings about unsupported URDF features
     shadow_robot = parseURDF(joinpath(module_path, "URDFs/sr_description/sr_hand_vm_compatible.urdf"), shadow_cfg)
 
-    println("URDF parsed !")
 
-    print("parsing virtual mechanism URDF ...")
 
     vm_cfg = URDFParserConfig(;suppress_warnings=true) 
     # For the moment the urdfs are the same but we might want to change the properties of the virtual robot
@@ -235,9 +219,7 @@ function object_centric_power_sphere(ball_radius)
     add_coordinate!(vm_robot, FrameOrigin("rh_thdistal"); id="rh_thdistal")
     add_coordinate!(vm_robot, FrameOrigin("rh_thmiddle"); id="rh_thmiddle")
 
-    println("URDF parsed !")
 
-    print("Building the virtual robot...")
 
     # Gravity Compensation and joint limits/damping
     
@@ -253,9 +235,6 @@ function object_centric_power_sphere(ball_radius)
         add_component!(vm_robot, LinearDamper(0.0001, "$(joint_id)_coord"); id="$(joint_id)_damper")
     end
 
-    println("Robot built !")
-
-    print("Building the virtual mechanisms...")
     if ball_radius < 0.02
         ball_position = SVector(0.0, -0.11, 0.33)
     else
@@ -370,10 +349,8 @@ function object_centric_power_sphere(ball_radius)
         add_component!(vms, RectifiedDamper(5.0, "$(repulsed_frames_names[i]) ball error norm", (0.0, 1.1*ball_radius), true, false); id="$(repulsed_frames_names[i]) ball damper")
     end
 
-    println("Virtual Mechanism Built !")
+    println("Virtual controller built. Connecting to ROS client...")
 
-
-    println("Connecting to ROS client...")
     cvms = compile(vms)
     qᵛ = zero_q(cvms.virtual_mechanism)
     qᵛ[21] = 1.2
@@ -395,16 +372,11 @@ function object_centric_power_sphere(ball_radius)
 end
 
 function object_centric_lateral_pinch(box_width, box_thickness)
-    print("parsing robot URDF... ")
 
     module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
 
     shadow_cfg = URDFParserConfig(;suppress_warnings=true) # This is just to hide warnings about unsupported URDF features
     shadow_robot = parseURDF(joinpath(module_path, "URDFs/sr_description/sr_hand_vm_compatible.urdf"), shadow_cfg)
-
-    println("URDF parsed !")
-
-    print("parsing virtual mechanism URDF ...")
 
     vm_cfg = URDFParserConfig(;suppress_warnings=true) 
     # For the moment the urdfs are the same but we might want to change the properties of the virtual robot
@@ -418,11 +390,7 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     add_coordinate!(vm_robot, FrameOrigin("rh_thdistal"); id="rh_thdistal")
     add_coordinate!(vm_robot, FrameOrigin("rh_thmiddle"); id="rh_thmiddle")
 
-    println("URDF parsed !")
-
     ##### COMPLEMENTING THE VIRTUAL ROBOT #####
-
-    print("Building the virtual robot...")
 
     # Gravity Compensation and joint limits/damping
     
@@ -437,10 +405,6 @@ function object_centric_lateral_pinch(box_width, box_thickness)
         add_deadzone_springs!(vm_robot, 0.01, (limits.lower+0.0, limits.upper-0.0), "$(joint_id)_coord")
         add_component!(vm_robot, LinearDamper(0.0001, "$(joint_id)_coord"); id="$(joint_id)_damper")
     end
-
-    println("Robot built !")
-
-    print("Building the virtual mechanisms...")
 
     box_dimensions = [box_thickness, box_width, 0.05]
     box_position = SVector(0.042 + box_dimensions[1], -0.03, 0.32+box_dimensions[3])
@@ -553,8 +517,6 @@ function object_centric_lateral_pinch(box_width, box_thickness)
         end
     end
 
-    println("Virtual Mechanism Built !")
-
 
     function setup_box_collision_model(cache, repulsed_frames, frames_names)
         repulsed_frames_coord_ID = []
@@ -608,7 +570,8 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     end
 
 
-    println("Connecting to ROS client...")
+    println("Virtual controller built. Connecting to ROS client...")
+
     cvms = compile(vms)
     qᵛ = generate_q_init(cvms; mf=true, rf=true, lf=true)
     #thumb max extension
