@@ -17,9 +17,9 @@ function main()
     current_step = 1 # step 1 : going to home position
 
     grasp_type = 1 # 1 for medium wrap, 2 for power sphere, 3 for lateral pinch
-    grasp_parameters = [0.008, 0.012, 0.017, 0.02, 0.022] 
+    grasp_parameters = [0.008, 0.012, 0.017, 0.02, 0.023, 0.025, 0.028, 0.032, 0.038] 
     function callback(msg)
-        if msg.data == 0 && current_step <= 6 
+        if msg.data == 0 && current_step <= 10 
             
             if current_step !=1 
                 println("Arm motion completed , executing hand motion")
@@ -35,7 +35,7 @@ function main()
             end 
 
             current_step += 1
-            if current_step >= 7
+            if current_step >= 11
                 println("All steps completed, test is done. Arm back to home position")
                 msg = Int32Msg(1)
                 publish(pub, msg)
