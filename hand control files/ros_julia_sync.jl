@@ -17,7 +17,7 @@ function main()
     current_step = 1 # step 1 : going to home position
 
     grasp_type = 1 # 1 for medium wrap, 2 for power sphere, 3 for lateral pinch
-    grasp_parameters = [0.03, 0.04, 0.03, 0.04, 0.03] 
+    grasp_parameters = [0.01, 0.015, 0.02, 0.0225, 0.025] 
     function callback(msg)
         if msg.data == 0 && current_step <= 6 
             
