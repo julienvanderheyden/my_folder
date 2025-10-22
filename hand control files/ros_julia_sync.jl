@@ -32,7 +32,7 @@ function main()
                 elseif grasp_type == 2
                     object_centric_power_sphere(grasp_parameters[current_step - 1])
                 elseif grasp_type == 3
-                    object_centric_lateral_pinch(grasp_parameters[current_step - 1])
+                    object_centric_lateral_pinch(grasp_parameters[current_step - 1][1], grasp_parameters[current_step - 1][2])
                 end
             else 
                 println("Arm to home position, sequence is starting")
