@@ -466,8 +466,8 @@ function ros_vm_position_controller(
 
             #return false
 
-            if t > 8.0
-                @info "8 seconds reached, stopping controller"
+            if t > 9.0
+                @info "9 seconds reached, stopping controller"
                 return true
             end
             return false
