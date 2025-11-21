@@ -17,7 +17,7 @@ function main()
     current_step = 1 # step 1 : going to home position
 
     grasp_type = 1 # 1 for medium wrap, 2 for power sphere, 3 for lateral pinch
-    grasp_parameters = [0.01, 0.02, 0.022, 0.023, 0.033, 0.035, 0.037, 0.055] #, 0.023, 0.025, 0.028, 0.032, 0.038] 
+    grasp_parameters = [0.01, 0.02, 0.02, 0.02, 0.033, 0.033, 0.033, 0.05] #, 0.023, 0.025, 0.028, 0.032, 0.038] 
 
     #grasp_type = 3
     #grasp_parameters = [[0.025, 0.005], [0.025, 0.005], [0.025, 0.005], [0.025, 0.005], 
