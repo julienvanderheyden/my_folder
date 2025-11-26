@@ -1,8 +1,3 @@
-using RobotOS
-
-include("ROSMessages.jl")
-using .ROSMessages
-
 include("object_centric_grasping.jl")
 
 
