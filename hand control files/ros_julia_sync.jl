@@ -20,7 +20,7 @@ function main()
     # grasp_parameters = [0.006, 0.012, 0.012, 0.015, 0.017, 0.02] #, 0.02, 0.03, 0.023, 0.025, 0.028, 0.032, 0.038]  # prisms? 
 
     grasp_type = 2
-    grasp_parameters = [0.016, 0.016, 0.016, 0.016, 0.016] 
+    grasp_parameters = [0.024, 0.024, 0.024, 0.024, 0.024] 
     # grasp_parameters = [0.016, 0.019, 0.024, 0.028, 0.032] # spheres
     # grasp_parameters = [0.016, 0.019, 0.024, 0.028, 0.032]
 
