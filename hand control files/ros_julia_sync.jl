@@ -1,3 +1,5 @@
+using RobotOS
+
 include("ROSMessages.jl")
 using .ROSMessages
 
