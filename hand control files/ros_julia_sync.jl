@@ -16,7 +16,8 @@ function main()
     current_step = 1 # step 1 : going to home position
 
     grasp_type = 1 # 1 for medium wrap, 2 for power sphere, 3 for lateral pinch
-    grasp_parameters = [0.006, 0.012, 0.015, 0.018, 0.02, 0.025, 0.0275, 0.03, 0.035]  # cylinders
+    # grasp_parameters = [0.006, 0.012, 0.015, 0.018, 0.02, 0.025, 0.0275, 0.03, 0.035]  # cylinders
+    grasp_parameters = [0.006, 0.006, 0.006, 0.006, 0.006, 0.006, 0.006, 0.006, 0.006 ]  
     # grasp_parameters = [0.006, 0.012, 0.012, 0.015, 0.017, 0.02] #, 0.02, 0.03, 0.023, 0.025, 0.028, 0.032, 0.038]  # prisms? 
 
     #grasp_type = 2
