@@ -1,7 +1,5 @@
-using RobotOS
-@rosimport std_msgs.msg: Int32
-rostypegen()
-using .std_msgs.msg
+include("ROSMessages.jl")
+using .ROSMessages
 
 include("object_centric_grasping.jl")
 
