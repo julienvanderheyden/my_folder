@@ -27,7 +27,7 @@ function main()
     #grasp_parameters = [[0.025, 0.001], [0.025, 0.006],[0.025, 0.013], [0.0375, 0.001], 
     #[0.0375, 0.006], [0.0375, 0.013], [0.05, 0.001], [0.05, 0.006], [0.05, 0.013]]
 
-    dimension_noise = 0.3
+    dimension_noise = 0.35
 
     function callback(msg)
         if msg.data == 0 && current_step <= 10 
