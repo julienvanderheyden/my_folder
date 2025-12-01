@@ -1,14 +1,3 @@
-using RobotOS
-@rosimport std_msgs.msg: Int32
-rostypegen()
-using .std_msgs.msg
-include("object_centric_grasping.jl")
-init_node("julia_ros_synchronizer")
-global pub = Publisher("/ros_julia_synchronization", Int32Msg; queue_size=10)
-
-
-
-
 function start_grasp_sequence()
     current_step = 1 # step 1 : going to home position
 
@@ -26,7 +15,7 @@ function start_grasp_sequence()
 
     # ADDING NOISE TO THE DIMENSIONS
     fixed_noise = true
-    noise_value = 0.5
+    noise_value = 0.6
     noise_std = 0.2
     if fixed_noise
         dimension_noise = noise_value
