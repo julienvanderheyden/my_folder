@@ -24,7 +24,7 @@ function main()
 
     # ADDING NOISE TO THE DIMENSIONS
     fixed_noise = true
-    noise_value = 0.1
+    noise_value = 0.2
     noise_std = 0.2
     if fixed_noise
         dimension_noise = noise_value
