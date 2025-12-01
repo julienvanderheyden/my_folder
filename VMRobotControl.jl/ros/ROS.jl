@@ -452,8 +452,8 @@ function ros_vm_position_controller(
             torques .= hand_state
 
             # # --- STEADY STATE CHECK ---
-            velocity_threshold = 1e-4   # rad/s
-            position_threshold = 1e-4   # rad
+            velocity_threshold = 1e-3   # rad/s
+            position_threshold = 1e-3   # rad
 
             # # Are all velocities below threshold?
             vel_ok = all(abs.(q̇ʳ) .< velocity_threshold)
