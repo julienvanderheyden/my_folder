@@ -56,7 +56,7 @@ function main()
     status_pub[] = Publisher("/grasp_status", Int32Msg; queue_size=10)
     
     # Subscriber for grasp commands
-    sub = Subscriber{String}("/grasp_command", grasp_command_callback; queue_size=10)
+    sub = Subscriber{StringMsg}("/grasp_command", grasp_command_callback; queue_size=10)
     
     println("Julia grasp executor node ready and listening...")
     
