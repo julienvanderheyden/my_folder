@@ -454,7 +454,7 @@ function ros_vm_position_controller(
             torques .= hand_state
 
             # # --- STEADY STATE CHECK ---
-            velocity_threshold = 5e-2   # rad/s
+            velocity_threshold = 3e-2   # rad/s
 
             # # Are all velocities below threshold?
             mask = trues(length(q̇ʳ))
@@ -464,7 +464,7 @@ function ros_vm_position_controller(
 
             # --- PRINT VELOCITIES at 5 Hz ---
             if t - last_print_time ≥ 0.5          # print every 0.5 seconds
-                @info "Joint velocities (excluding 20 & 21): $(velocities)"
+                @info "Max joint velocities (excluding 20 & 21): $(maximum(velocities))"
                 last_print_time = t
             end
 
