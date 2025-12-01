@@ -428,8 +428,6 @@ function ros_vm_position_controller(
 
     args = f_setup(control_cache) # Call user setup function
 
-    last_print_time = 0.0
-
     # Create control callback
     control_func! = let control_cache=control_cache, args=args
         function control_func!(torques, state, i, t, dt)
@@ -442,7 +440,8 @@ function ros_vm_position_controller(
             # Main control step : loop control_steps times to increase simulation frequency
             control_steps = 10
             for j in (control_steps-1):-1:0
-                t_sub = t - j * dt / control_steps  # Intermediate time step
+                t_sub = t - j * dt / control_steps  # Intermediate time step : increase simulation frequency
+                t_sub = 2*t_sub # make time go faster
                 f_control(control_cache, t_sub, args, (dt/control_steps, i)) # Call user control function
                 control_step!(control_cache, t_sub, qʳ, q̇ʳ) 
             end
@@ -454,19 +453,11 @@ function ros_vm_position_controller(
             torques .= hand_state
 
             # # --- STEADY STATE CHECK ---
-            velocity_threshold = 3e-2   # rad/s
-
-            # # Are all velocities below threshold?
+            velocity_threshold = 2e-2   # rad/s
             mask = trues(length(q̇ʳ))
-            mask[[20,21]] .= false
+            mask[[20,21]] .= false # exclude these two joints from the steady state check
             velocities = abs.(q̇ʳ[mask])
             vel_ok = all(velocities.< velocity_threshold)
-
-            # --- PRINT VELOCITIES at 5 Hz ---
-            if t - last_print_time ≥ 0.5          # print every 0.5 seconds
-                @info "Max joint velocities (excluding 20 & 21): $(maximum(velocities))"
-                last_print_time = t
-            end
 
             if t > 3 && vel_ok
                 @info "Steady state reached at t=$(t) seconds, stopping controller"
