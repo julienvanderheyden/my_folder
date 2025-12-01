@@ -428,6 +428,8 @@ function ros_vm_position_controller(
 
     args = f_setup(control_cache) # Call user setup function
 
+    last_print_time = 0.0
+
     # Create control callback
     control_func! = let control_cache=control_cache, args=args
         function control_func!(torques, state, i, t, dt)
@@ -457,15 +459,21 @@ function ros_vm_position_controller(
             # # Are all velocities below threshold?
             mask = trues(length(q̇ʳ))
             mask[[20,21]] .= false
-            vel_ok = all(abs.(q̇ʳ[mask]) .< velocity_threshold)
-            # println("Velocities: ", abs.(q̇ʳ))
+            velocities = abs.(q̇ʳ[mask])
+            vel_ok = all(velocities.< velocity_threshold)
+
+            # --- PRINT VELOCITIES at 5 Hz ---
+            if t - last_print_time ≥ 0.2          # print every 0.2 seconds
+                @info "Joint velocities (excluding 20 & 21): $(velocities)"
+                last_print_time = t
+            end
 
             if t > 3 && vel_ok
                 @info "Steady state reached at t=$(t) seconds, stopping controller"
                 return true
             end
 
-            if t > 40.0
+            if t > 12.0
                 @info "12 seconds reached, stopping controller"
                 return true
             end
