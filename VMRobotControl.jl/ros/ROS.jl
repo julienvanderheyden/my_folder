@@ -455,7 +455,9 @@ function ros_vm_position_controller(
             velocity_threshold = 1e-2   # rad/s
 
             # # Are all velocities below threshold?
-            vel_ok = all(abs.(q̇ʳ[Not([20, 21])]) .< velocity_threshold)
+            mask = trues(length(q̇ʳ))
+            mask[[20,21]] .= false
+            vel_ok = all(abs.(q̇ʳ[mask]) .< velocity_threshold)
             # println("Velocities: ", abs.(q̇ʳ))
 
             if t > 3 && vel_ok
