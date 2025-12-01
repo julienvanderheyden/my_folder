@@ -15,7 +15,7 @@ function start_grasp_sequence()
 
     # ADDING NOISE TO THE DIMENSIONS
     fixed_noise = true
-    noise_value = 0.6
+    noise_value = -0.4
     noise_std = 0.2
     if fixed_noise
         dimension_noise = noise_value
