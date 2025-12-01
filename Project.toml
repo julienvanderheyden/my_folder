@@ -1,0 +1,13 @@
+[deps]
+DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
+GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
+GeometryBasics = "5c1252a2-5f33-56bf-86c9-59e7332b4326"
+MeshIO = "7269a6da-0436-5bbc-96c2-40638cbb6118"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+TerminalLoggers = "5d786b92-1e48-4d6f-9151-6b4477ca9bed"
+VMRobotControl = "7d923390-5bb2-4b12-9c06-5b46ef7ec375"
+
+[sources]
+VMRobotControl = {path = "VMRobotControl.jl"}

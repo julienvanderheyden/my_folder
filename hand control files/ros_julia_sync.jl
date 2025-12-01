@@ -25,33 +25,30 @@ function main()
     dimension_noise = -0.7
 
     function callback(msg)
-        step = current_step[]
-        if msg.data == 0 && step <= 10 
+        if msg.data == 0 && current_step <= 10 
             
-            if step !=1 
+            if current_step !=1 
                 println("Arm motion completed , executing hand motion")
                 if grasp_type == 1
-                    object_centric_medium_wrap((1+dimension_noise)*grasp_parameters[step - 1])
+                    object_centric_medium_wrap((1+dimension_noise)*grasp_parameters[current_step - 1])
                 elseif grasp_type == 2
-                    object_centric_power_sphere((1+dimension_noise)*grasp_parameters[step - 1])
+                    object_centric_power_sphere((1+dimension_noise)*grasp_parameters[current_step - 1])
                 elseif grasp_type == 3
-                    object_centric_lateral_pinch((1+dimension_noise)*grasp_parameters[step - 1][1], (1+dimension_noise)*grasp_parameters[current_step - 1][2])
+                    object_centric_lateral_pinch((1+dimension_noise)*grasp_parameters[current_step - 1][1], (1+dimension_noise)*grasp_parameters[current_step - 1][2])
                 end
             else 
                 println("Arm to home position, sequence is starting")
             end 
 
-            current_step[] += 1
-            step = current_step[]
-
-            if step >= 11
+            current_step += 1
+            if current_step >= 11
                 println("All steps completed, test is done. Arm back to home position")
                 msg = Int32Msg(1)
                 publish(pub, msg)
                 return
             end
-            println("Hand motion completed, sending arm to position ", step)
-            msg = Int32Msg(step)
+            println("Hand motion completed, sending arm to position ", current_step)
+            msg = Int32Msg(current_step)
             publish(pub, msg)
         else 
             return
@@ -59,7 +56,7 @@ function main()
     end
     
     sub = Subscriber{Int32Msg}("/ros_julia_synchronization", callback; queue_size=10)
-    msg = Int32Msg(current_step[])
+    msg = Int32Msg(current_step)
 
     println("Starting the test, sending arm to home position ")
     publish(pub, msg)
