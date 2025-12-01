@@ -8,21 +8,29 @@ function main()
 
     pub = Publisher("/ros_julia_synchronization", Int32Msg; queue_size=10)
 
-    current_step = Ref(1) # step 1 : going to home position
+    current_step = 1 # step 1 : going to home position
 
-    grasp_type = 1 # 1 for medium wrap, 2 for power sphere, 3 for lateral pinch
-    grasp_parameters = [0.006, 0.012, 0.015, 0.018, 0.02, 0.025, 0.0275, 0.03, 0.035]  # cylinders
+    # grasp_type = 1 # 1 for medium wrap, 2 for power sphere, 3 for lateral pinch
+    # grasp_parameters = [0.006, 0.012, 0.015, 0.018, 0.02, 0.025, 0.0275, 0.03, 0.035]  # cylinders
     # grasp_parameters = [0.006, 0.012, 0.012, 0.015, 0.017, 0.02,  0.02, 0.026, 0.032 ]  # prisms 
 
     # grasp_type = 2
     # grasp_parameters = [0.016, 0.019, 0.024, 0.028, 0.032] # spheres
     # grasp_parameters = [0.016, 0.019, 0.024, 0.028, 0.032]
 
-    # grasp_type = 3
-    #grasp_parameters = [[0.025, 0.001], [0.025, 0.006],[0.025, 0.013], [0.0375, 0.001], 
-    #[0.0375, 0.006], [0.0375, 0.013], [0.05, 0.001], [0.05, 0.006], [0.05, 0.013]]
+    grasp_type = 3
+    grasp_parameters = [[0.025, 0.001], [0.025, 0.006],[0.025, 0.013], [0.0375, 0.001], 
+    [0.0375, 0.006], [0.0375, 0.013], [0.05, 0.001], [0.05, 0.006], [0.05, 0.013]]
 
-    dimension_noise = -0.7
+    # ADDING NOISE TO THE DIMENSIONS
+    fixed_noise = true
+    noise_value = 0.1
+    noise_std = 0.2
+    if fixed_noise
+        dimension_noise = noise_value
+    else
+        dimension_noise = noise_std*randn()
+    end
 
     function callback(msg)
         if msg.data == 0 && current_step <= 10 
