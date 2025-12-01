@@ -1,13 +1,18 @@
-include("object_centric_grasping.jl")
-
-
-# Callback function for the subscriber
-
-function main()
+function initialize_node()
+    using RobotOS
+    @rosimport std_msgs.msg: Int32
+    rostypegen()
+    using .std_msgs.msg
+    include("object_centric_grasping.jl")
     init_node("julia_ros_synchronizer")
+    global pub = Publisher("/ros_julia_synchronization", Int32Msg; queue_size=10)
+    sub = Subscriber{Int32Msg}("/ros_julia_synchronization", callback; queue_size=10)
 
-    pub = Publisher("/ros_julia_synchronization", Int32Msg; queue_size=10)
+end
 
+
+
+function start_grasp_sequence()
     current_step = 1 # step 1 : going to home position
 
     # grasp_type = 1 # 1 for medium wrap, 2 for power sphere, 3 for lateral pinch
@@ -24,13 +29,15 @@ function main()
 
     # ADDING NOISE TO THE DIMENSIONS
     fixed_noise = true
-    noise_value = 0.4
+    noise_value = 0.5
     noise_std = 0.2
     if fixed_noise
         dimension_noise = noise_value
     else
         dimension_noise = noise_std*randn()
     end
+
+    # Callback function for the subscriber
 
     function callback(msg)
         if msg.data == 0 && current_step <= 10 
@@ -63,7 +70,6 @@ function main()
         end
     end
     
-    sub = Subscriber{Int32Msg}("/ros_julia_synchronization", callback; queue_size=10)
     msg = Int32Msg(current_step)
 
     println("Starting the test, sending arm to home position ")
@@ -72,8 +78,7 @@ function main()
     publish(pub, msg)
 
     spin()
+    
 end
-
-main()
 
 
