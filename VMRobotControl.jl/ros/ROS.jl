@@ -461,7 +461,7 @@ function ros_vm_position_controller(
             # # Are all position differences below threshold?
             pos_ok = all(abs.(qʳ .- qr) .< position_threshold)
 
-            if vel_ok && pos_ok
+            if t > 3 && vel_ok && pos_ok
                 @info "Steady state reached at t=$(t) seconds, stopping controller"
                 return true
             end
