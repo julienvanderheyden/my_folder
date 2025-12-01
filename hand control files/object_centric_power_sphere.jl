@@ -70,7 +70,7 @@ function object_centric_power_sphere(ball_radius)
     println("Robot built !")
 
     print("Building the virtual mechanisms...")
-    if ball_radius < 0.02
+    if ball_radius <= 0.025
         ball_position = SVector(0.0, -0.11, 0.33)
     else
         ball_position = SVector(0.0, -ball_radius - 0.021, 0.33)

@@ -235,7 +235,7 @@ function object_centric_power_sphere(ball_radius)
         add_component!(vm_robot, LinearDamper(0.0001, "$(joint_id)_coord"); id="$(joint_id)_damper")
     end
 
-    if ball_radius < 0.02
+    if ball_radius <= 0.025
         ball_position = SVector(0.0, -0.11, 0.33)
     else
         ball_position = SVector(0.0, -ball_radius - 0.021, 0.33)
