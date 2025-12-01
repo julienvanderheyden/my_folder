@@ -57,6 +57,11 @@ function main()
     
     # Subscriber for grasp commands
     sub = Subscriber{StringMsg}("/grasp_command", grasp_command_callback; queue_size=10)
+
+    println("Initialization : completing the three grasps")
+    object_centric_medium_wrap(0.03)
+    object_centric_power_sphere(0.03)
+    object_centric_lateral_pinch(0.025, 0.005)
     
     println("Julia grasp executor node ready and listening...")
     
