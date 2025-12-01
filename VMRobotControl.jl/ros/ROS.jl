@@ -457,9 +457,11 @@ function ros_vm_position_controller(
 
             # # Are all velocities below threshold?
             vel_ok = all(abs.(q̇ʳ) .< velocity_threshold)
+            println("Velocities: ", abs.(q̇ʳ))
 
             # # Are all position differences below threshold?
             pos_ok = all(abs.(qʳ .- qr) .< position_threshold)
+            println("Position differences: ", abs.(qʳ .- qr))
 
             if t > 3 && vel_ok && pos_ok
                 @info "Steady state reached at t=$(t) seconds, stopping controller"
