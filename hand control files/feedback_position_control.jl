@@ -25,7 +25,7 @@ module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
 shadow_cfg = URDFParserConfig(;suppress_warnings=true) # This is just to hide warnings about unsupported URDF features
 shadow_robot = parseURDF(joinpath(module_path, "URDFs/sr_description/sr_hand_vm_compatible.urdf"), shadow_cfg)
 
-joint_limits = shadow_cfg_cfg.joint_limits
+joint_limits = shadow_cfg.joint_limits
 
 for joint_id in keys(joints(shadow_robot))
     # "limits" are here used simply to identify the joints that actually move with respect to the fixed joints
