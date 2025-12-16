@@ -194,7 +194,7 @@ function object_centric_medium_wrap(cylinder_radius)
 
 
     with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0)
+        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0, steady_state_check=true)
     end
 
 end
@@ -366,7 +366,7 @@ function object_centric_power_sphere(ball_radius)
 
 
     with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0)
+        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0, steady_state_check=true)
     end
 
 end
@@ -588,7 +588,7 @@ function object_centric_lateral_pinch(box_width, box_thickness)
 
 
     with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=10.0)
+        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=10.0, steady_state_check=true)
     end
 
 end
