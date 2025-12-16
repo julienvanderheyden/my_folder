@@ -98,7 +98,7 @@ println("Virtual Mechanism Built !")
 
 print("Linking real robot and virtual robot ...")
 
-feedback_stiffness = 0.01
+feedback_stiffness = 0.1
 # feedback_stiffness = 0.0
 
 # START BY LINKING UNCOUPLED JOINTS
