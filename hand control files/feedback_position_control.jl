@@ -97,8 +97,8 @@ root = root_frame(vms.virtual_mechanism)
 # add_component!(vms, LinearDamper(D, "Position error");  id="Linear Damper")
 
 add_coordinate!(vms, ConstCoord(1.57); id="target")
-add_coordinate!(vms, CoordDifference("virtual_mechanism.rh_FFJ1_coord", "target"); id="ffj1 pos error")
-add_coordinate!(vms, CoordDifference("virtual_mechanism.rh_FFJ2_coord", "target"); id="ffj2 pos error")
+add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_FFJ1_coord", "target"); id="ffj1 pos error")
+add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_FFJ2_coord", "target"); id="ffj2 pos error")
 
 add_component!(vms, LinearSpring(0.001, "ffj1 pos error");  id="ffj1 spring")
 add_component!(vms, LinearSpring(0.001, "ffj2 pos error");  id="ffj2 spring")
