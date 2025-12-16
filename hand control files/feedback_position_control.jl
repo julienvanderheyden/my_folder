@@ -98,10 +98,10 @@ root = root_frame(vms.virtual_mechanism)
 
 add_coordinate!(vms, ConstCoord(1.57); id="target")
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_MFJ1_coord", "target"); id="mfj1 pos error")
-add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_MFJ2_coord", "target"); id="mfj2 pos error")
+#add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_MFJ2_coord", "target"); id="mfj2 pos error")
 
 add_component!(vms, LinearSpring(0.0001, "mfj1 pos error");  id="mfj1 spring")
-add_component!(vms, LinearSpring(0.0001, "mfj2 pos error");  id="mfj2 spring")
+#add_component!(vms, LinearSpring(0.0001, "mfj2 pos error");  id="mfj2 spring")
 
 println("Virtual Mechanism Built !")
 
