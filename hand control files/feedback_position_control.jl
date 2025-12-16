@@ -89,8 +89,8 @@ for joint_id in keys(joints(shadow_robot))
 
     add_coordinate!(shadow_robot, JointSubspace(joint_id);  id="$(joint_id)_coord")
     add_coordinate!(vms, CoordDifference(".robot.$(joint_id)_coord", ".virtual_mechanism.$(joint_id)_coord");id="$(joint_id) coord diff")
-    add_component!(vms, LinearSpring(0.0, "$(joint_id) coord diff"); id = "$(joint_id) coord spring")
-    add_component!(vms, LinearDamper(0.00, "$(joint_id) coord diff"); id = "$(joint_id) coord damper")
+    add_component!(vms, LinearSpring(0.0001, "$(joint_id) coord diff"); id = "$(joint_id) coord spring")
+    add_component!(vms, LinearDamper(0.000, "$(joint_id) coord diff"); id = "$(joint_id) coord damper")
 end
 
 println("Linked !")
