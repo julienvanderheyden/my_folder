@@ -25,6 +25,19 @@ module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
 shadow_cfg = URDFParserConfig(;suppress_warnings=true) # This is just to hide warnings about unsupported URDF features
 shadow_robot = parseURDF(joinpath(module_path, "URDFs/sr_description/sr_hand_vm_compatible.urdf"), shadow_cfg)
 
+for joint_id in keys(joints(shadow_robot))
+    # "limits" are here used simply to identify the joints that actually move with respect to the fixed joints
+    limits = joint_limits[joint_id]
+    isnothing(limits) && continue
+
+    add_coordinate!(shadow_robot, JointSubspace(joint_id);  id="$(joint_id)_coord")
+end
+
+add_coordinate!(shadow_robot, CoordSum("rh_FFJ1_coord", "rh_FFJ2_coord"); id="rh_FFJ0_coord")
+add_coordinate!(shadow_robot, CoordSum("rh_MFJ1_coord", "rh_MFJ2_coord"); id="rh_MFJ0_coord")
+add_coordinate!(shadow_robot, CoordSum("rh_RFJ1_coord", "rh_RFJ2_coord"); id="rh_RFJ0_coord")
+add_coordinate!(shadow_robot, CoordSum("rh_LFJ1_coord", "rh_LFJ2_coord"); id="rh_LFJ0_coord")
+
 println("URDF parsed !")
 
 print("parsing virtual mechanism URDF ...")
@@ -57,6 +70,11 @@ for joint_id in keys(joints(vm_robot))
     add_component!(vm_robot, LinearDamper(0.0001, "$(joint_id)_coord"); id="$(joint_id)_damper")
 end
 
+add_coordinate!(vm_robot, CoordSum("rh_FFJ1_coord", "rh_FFJ2_coord"); id="rh_FFJ0_coord")
+add_coordinate!(vm_robot, CoordSum("rh_MFJ1_coord", "rh_MFJ2_coord"); id="rh_MFJ0_coord")
+add_coordinate!(vm_robot, CoordSum("rh_RFJ1_coord", "rh_RFJ2_coord"); id="rh_RFJ0_coord")
+add_coordinate!(vm_robot, CoordSum("rh_LFJ1_coord", "rh_LFJ2_coord"); id="rh_LFJ0_coord")
+
 println("Robot built !")
 
 ####### VIRTUAL MECHANISM SYSTEM #######
@@ -80,17 +98,33 @@ println("Virtual Mechanism Built !")
 
 print("Linking real robot and virtual robot ...")
 
+feedback_stiffness = 0.0005
+
+# START BY LINKING UNCOUPLED JOINTS
 joint_limits = shadow_cfg.joint_limits
+uncoupled_joints = ["rh_WRJ1", "rh_WRJ2", "rh_FFJ3", "rh_FFJ4", "rh_MFJ3", "rh_MFJ4", "rh_RFJ3", "rh_RFJ4", 
+                    "rh_LFJ3", "rh_LFJ4", "rh_LFJ5", "rh_THJ1", "rh_THJ2", "rh_THJ3", "rh_THJ4","rh_THJ5"]
 
-for joint_id in keys(joints(shadow_robot))
-    # "limits" are here used simply to identify the joints that actually move with respect to the fixed joints
-    limits = joint_limits[joint_id]
-    isnothing(limits) && continue
 
-    add_coordinate!(shadow_robot, JointSubspace(joint_id);  id="$(joint_id)_coord")
+for joint_id in uncoupled_joints
     add_coordinate!(vms, CoordDifference(".robot.$(joint_id)_coord", ".virtual_mechanism.$(joint_id)_coord");id="$(joint_id) coord diff")
-    add_component!(vms, LinearSpring(0.0001, "$(joint_id) coord diff"); id = "$(joint_id) coord spring")
-    add_component!(vms, LinearDamper(0.000, "$(joint_id) coord diff"); id = "$(joint_id) coord damper")
+    # use deadzone springs instead of linear springs to take the mismatches into account
+    add_deadzone_springs!(vms, feedback_stiffness, (-0.05, 0.05), "$(joint_id) coord diff") 
+    #add_component!(vms, LinearSpring(feedback_stiffness, "$(joint_id) coord diff"); id="$(joint_id) feedback spring")
+    #add_component!(vms, LinearDamper(0.00, "$(joint_id) coord diff"); id = "$(joint_id) coord damper")  no damping for the moment
+end
+
+
+# LINKING COUPLED JOINTS
+
+coupled_joints = ["rh_FFJ0", "rh_MFJ0", "rh_RFJ0" ,"rh_LFJ0"]
+
+for joint_id in coupled_joints
+    add_coordinate!(vms, CoordDifference(".robot.$(joint_id)_coord", ".virtual_mechanism.$(joint_id)_coord");id="$(joint_id) coord diff")
+    # use deadzone springs instead of linear springs to take the mismatch into account
+    add_deadzone_springs!(vms, feedback_stiffness, (-0.05, 0.05), "$(joint_id) coord diff") 
+    #add_component!(vms, LinearSpring(feedback_stiffness, "$(joint_id) coord diff"); id="$(joint_id) feedback spring")
+    #add_component!(vms, LinearDamper(0.00, "$(joint_id) coord diff"); id = "$(joint_id) coord damper")  no damping for the moment  
 end
 
 println("Linked !")
