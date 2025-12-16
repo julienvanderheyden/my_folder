@@ -88,13 +88,19 @@ root = root_frame(vms.virtual_mechanism)
 
 # MOTION MECHANISMS
 
-add_coordinate!(vms, FramePoint(".virtual_mechanism.$root", SVector(0.03, -0.02, 0.3));        id="Target position")
-add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_fftip_mass_coord", "Target position"); id="Position error");
+# add_coordinate!(vms, FramePoint(".virtual_mechanism.$root", SVector(0.03, -0.02, 0.3));        id="Target position")
+# add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_fftip_mass_coord", "Target position"); id="Position error");
 
-K = SMatrix{3, 3}(0.01, 0., 0., 0., 0.01, 0., 0., 0., 0.01)
-add_component!(vms, LinearSpring(K, "Position error");  id="Linear Spring")
-D = SMatrix{3, 3}(0.001, 0., 0., 0., 0.001, 0., 0., 0., 0.001)
-add_component!(vms, LinearDamper(D, "Position error");  id="Linear Damper")
+# K = SMatrix{3, 3}(0.01, 0., 0., 0., 0.01, 0., 0., 0., 0.01)
+# add_component!(vms, LinearSpring(K, "Position error");  id="Linear Spring")
+# D = SMatrix{3, 3}(0.001, 0., 0., 0., 0.001, 0., 0., 0., 0.001)
+# add_component!(vms, LinearDamper(D, "Position error");  id="Linear Damper")
+
+add_coordinate!(vms, CoordDifference("virtual_mechanism.rh_FFJ1_coord", ConstCoordinate(1.57)); id="ffj1 pos error")
+add_coordinate!(vms, CoordDifference("virtual_mechanism.rh_FFJ2_coord", ConstCoordinate(1.57)); id="ffj2 pos error")
+
+add_component!(vms, LinearSpring(0.001, "ffj1 pos error");  id="ffj1 spring")
+add_component!(vms, LinearSpring(0.001, "ffj2 pos error");  id="ffj2 spring")
 
 println("Virtual Mechanism Built !")
 
