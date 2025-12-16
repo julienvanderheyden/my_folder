@@ -64,14 +64,17 @@ println("Robot built !")
 print("Building the virtual mechanisms...")
 
 vms = VirtualMechanismSystem("myShadowVMS", shadow_robot, vm_robot)
+root = root_frame(vms.virtual_mechanism)
 
 # MOTION MECHANISMS
-add_coordinate!(vms, FrameOrigin(".virtual_mechanism.rh_fftip"); id="fftip position")
-add_coordinate!(vms, FrameOrigin(".virtual_mechanism.rh_palm"); id="palm position")
-add_coordinate!(vms, CoordDifference("fftip position", "palm position"); id="fftip position error")
 
-add_component!(vms, LinearSpring(0.001, "fftip position error"); id="fftip position spring")
-add_component!(vms, LinearDamper(0.0001, "fftip position error"); id="fftip position damper")
+add_coordinate!(vms, FramePoint(".virtual_mechanism.$root", SVector(0.0, -0.02, 0.3));        id="Target position")
+add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_fftip_mass_coord", "Target position"); id="Position error");
+
+K = SMatrix{3, 3}(0.01, 0., 0., 0., 0.01, 0., 0., 0., 0.01)
+add_component!(vms, LinearSpring(K, "Position error");  id="Linear Spring")
+D = SMatrix{3, 3}(0.001, 0., 0., 0., 0.001, 0., 0., 0., 0.001)
+add_component!(vms, LinearDamper(D, "Position error");  id="Linear Damper")
 
 println("Virtual Mechanism Built !")
 
