@@ -68,7 +68,7 @@ root = root_frame(vms.virtual_mechanism)
 
 # MOTION MECHANISMS
 
-add_coordinate!(vms, FramePoint(".virtual_mechanism.$root", SVector(0.0, -0.02, 0.3));        id="Target position")
+add_coordinate!(vms, FramePoint(".virtual_mechanism.$root", SVector(0.02, -0.02, 0.3));        id="Target position")
 add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_fftip_mass_coord", "Target position"); id="Position error");
 
 K = SMatrix{3, 3}(0.01, 0., 0., 0., 0.01, 0., 0., 0., 0.01)
