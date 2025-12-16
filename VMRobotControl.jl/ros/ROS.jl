@@ -455,21 +455,21 @@ function ros_vm_position_controller(
             torques .= hand_state
 
             # # --- STEADY STATE CHECK ---
-            velocity_threshold = 2e-2   # rad/s
-            mask = trues(length(q̇ʳ))
-            mask[[20,21]] .= false # exclude these two joints from the steady state check
-            velocities = abs.(q̇ʳ[mask])
-            vel_ok = all(velocities.< velocity_threshold)
+            # velocity_threshold = 2e-2   # rad/s
+            # mask = trues(length(q̇ʳ))
+            # mask[[20,21]] .= false # exclude these two joints from the steady state check
+            # velocities = abs.(q̇ʳ[mask])
+            # vel_ok = all(velocities.< velocity_threshold)
 
-            if t > 3 && vel_ok
-                @info "Steady state reached at t=$(t) seconds, stopping controller"
-                return true
-            end
+            # if t > 3 && vel_ok
+            #     @info "Steady state reached at t=$(t) seconds, stopping controller"
+            #     return true
+            # end
 
-            if t > 12.0
-                @info "12 seconds reached, stopping controller"
-                return true
-            end
+            # if t > 12.0
+            #     @info "12 seconds reached, stopping controller"
+            #     return true
+            # end
             return false
         end
     end
