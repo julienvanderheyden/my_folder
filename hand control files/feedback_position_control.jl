@@ -181,13 +181,15 @@ function f_control(cache, t, args, extra)
     for (robot_id, vm_id, joint_name, coupled) in zip(robot_idxs, vm_idxs, joint_names, is_coupled)
         robot_config = configuration(cache, robot_id)
         vm_config = configuration(cache, vm_id)
+        mismatch = abs(robot_config[1] - vm_config[1])
         deadzone = coupled ? 2 * mismatch_deadzone : mismatch_deadzone
-        if abs(robot_config[1] - vm_config[1]) > deadzone
-            push!(active_joints, joint_name)
+        if mismatch > deadzone
+            push!(active_joints, (joint_name, mismatch))
         end
     end
     if !isempty(active_joints)
-        println("Time: $(t): Feedback is active for joints: $(join(active_joints, ", "))")
+        joint_strings = ["$(name) (mismatch: $(mismatch))" for (name, mismatch) in active_joints]
+        println("Time: $(t): Feedback is active for joints: $(join(joint_strings, ", "))")
     end
 end
 
