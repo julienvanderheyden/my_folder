@@ -151,6 +151,35 @@ end
 
 println("Linked !")
 
+function f_setup(cache)
+    robot_idxs = []
+    vm_idxs = []
+    for joint in uncoupled_joints
+        robot_id = get_compiled_coordID(cache, ".robot.$(joint)_coord")
+        push!(robot_idxs, robot_id)
+        vm_id   = get_compiled_coordID(cache, ".virtual_mechanism.$(joint)_coord")
+        push!(vm_idxs, vm_id)
+    end
+    for joint in coupled_joints
+        robot_id = get_compiled_coordID(cache, ".robot.$(joint)_coord")
+        push!(robot_idxs, robot_id)
+        vm_id   = get_compiled_coordID(cache, ".virtual_mechanism.$(joint)_coord")
+        push!(vm_idxs, vm_id)
+    end
+    return (robot_idxs, vm_idxs)
+end
+
+function f_control(cache, t, args, extra)
+    robot_idxs, vm_idxs = args
+    for robot_id , vm_id in zip(robot_idxs, vm_idxs)
+        robot_config = configuration(cache, robot_id)
+        vm_config = configuration(cache, vm_id)
+        if abs(robot_config - vm_config) > mismatch_deadzone
+            println("Time: $(t): Feedback is active for joint id $(robot_id)")
+        end
+    end
+end 
+
 # Compile the virtual mechanism system, and run the controller via ROS
 # Make sure rospy_client.py is running first.
 println("Connecting to ROS client...")
@@ -164,5 +193,5 @@ joint_names = ["rh_WRJ1", "rh_WRJ2", "rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4",
 
 
 with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-    ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0)
+    ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_setup, f_control, E_max=10.0)
 end
