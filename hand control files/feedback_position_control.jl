@@ -113,7 +113,7 @@ feedback_stiffness = 0.00001
 # feedback_damping = 0.00001
 feedback_damping = 0.0
 # feedback_stiffness = 0.0
-mismatch_deadzone = 0.05
+mismatch_deadzone = 0.1
 
 # START BY LINKING UNCOUPLED JOINTS
 joint_limits = shadow_cfg.joint_limits
@@ -155,12 +155,14 @@ function f_setup(cache)
     robot_idxs = []
     vm_idxs = []
     joint_names = []
+    is_coupled = []
     for joint in uncoupled_joints
         robot_id = get_compiled_coordID(cache, ".robot.$(joint)_coord")
         push!(robot_idxs, robot_id)
         vm_id   = get_compiled_coordID(cache, ".virtual_mechanism.$(joint)_coord")
         push!(vm_idxs, vm_id)
         push!(joint_names, joint)
+        push!(is_coupled, false)
     end
     for joint in coupled_joints
         robot_id = get_compiled_coordID(cache, ".robot.$(joint)_coord")
@@ -168,17 +170,19 @@ function f_setup(cache)
         vm_id   = get_compiled_coordID(cache, ".virtual_mechanism.$(joint)_coord")
         push!(vm_idxs, vm_id)
         push!(joint_names, joint)
+        push!(is_coupled, true)
     end
-    return (robot_idxs, vm_idxs, joint_names)
+    return (robot_idxs, vm_idxs, joint_names, is_coupled)
 end
 
 function f_control(cache, t, args, extra)
-    robot_idxs, vm_idxs, joint_names = args
+    robot_idxs, vm_idxs, joint_names, is_coupled = args
     active_joints = []
-    for (robot_id, vm_id, joint_name) in zip(robot_idxs, vm_idxs, joint_names)
+    for (robot_id, vm_id, joint_name, coupled) in zip(robot_idxs, vm_idxs, joint_names, is_coupled)
         robot_config = configuration(cache, robot_id)
         vm_config = configuration(cache, vm_id)
-        if abs(robot_config[1] - vm_config[1]) > mismatch_deadzone
+        deadzone = coupled ? 2 * mismatch_deadzone : mismatch_deadzone
+        if abs(robot_config[1] - vm_config[1]) > deadzone
             push!(active_joints, joint_name)
         end
     end
