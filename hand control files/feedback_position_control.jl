@@ -69,7 +69,7 @@ for joint_id in keys(joints(vm_robot))
     add_coordinate!(vm_robot, JointSubspace(joint_id);  id="$(joint_id)_coord")
     @assert ~isnothing(limits.lower) && ~isnothing(limits.upper)
     #add_deadzone_springs!(vm_robot, 0.01, (limits.lower+0.0, limits.upper-0.0), "$(joint_id)_coord")
-    add_component!(vm_robot, LinearDamper(0.01, "$(joint_id)_coord"); id="$(joint_id)_damper")
+    add_component!(vm_robot, LinearDamper(0.001, "$(joint_id)_coord"); id="$(joint_id)_damper")
 end
 
 add_coordinate!(vm_robot, CoordSum("rh_FFJ1_coord", "rh_FFJ2_coord"); id="rh_FFJ0_coord")
