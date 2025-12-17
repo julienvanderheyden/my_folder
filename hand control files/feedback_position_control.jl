@@ -109,11 +109,11 @@ println("Virtual Mechanism Built !")
 
 print("Linking real robot and virtual robot ...")
 
-feedback_stiffness = 0.00001
+feedback_stiffness = 0.001
 # feedback_damping = 0.00001
 feedback_damping = 0.0
 # feedback_stiffness = 0.0
-mismatch_deadzone = 0.1
+mismatch_deadzone = 0.05
 
 # START BY LINKING UNCOUPLED JOINTS
 joint_limits = shadow_cfg.joint_limits
@@ -151,47 +151,6 @@ end
 
 println("Linked !")
 
-function f_setup(cache)
-    robot_idxs = []
-    vm_idxs = []
-    joint_names = []
-    is_coupled = []
-    for joint in uncoupled_joints
-        robot_id = get_compiled_coordID(cache, ".robot.$(joint)_coord")
-        push!(robot_idxs, robot_id)
-        vm_id   = get_compiled_coordID(cache, ".virtual_mechanism.$(joint)_coord")
-        push!(vm_idxs, vm_id)
-        push!(joint_names, joint)
-        push!(is_coupled, false)
-    end
-    for joint in coupled_joints
-        robot_id = get_compiled_coordID(cache, ".robot.$(joint)_coord")
-        push!(robot_idxs, robot_id)
-        vm_id   = get_compiled_coordID(cache, ".virtual_mechanism.$(joint)_coord")
-        push!(vm_idxs, vm_id)
-        push!(joint_names, joint)
-        push!(is_coupled, true)
-    end
-    return (robot_idxs, vm_idxs, joint_names, is_coupled)
-end
-
-function f_control(cache, t, args, extra)
-    robot_idxs, vm_idxs, joint_names, is_coupled = args
-    active_joints = []
-    for (robot_id, vm_id, joint_name, coupled) in zip(robot_idxs, vm_idxs, joint_names, is_coupled)
-        robot_config = configuration(cache, robot_id)
-        vm_config = configuration(cache, vm_id)
-        mismatch = abs(robot_config[1] - vm_config[1])
-        deadzone = coupled ? 2 * mismatch_deadzone : mismatch_deadzone
-        if mismatch > deadzone
-            push!(active_joints, (joint_name, mismatch))
-        end
-    end
-    if !isempty(active_joints)
-        joint_strings = ["$(name) (mismatch: $(mismatch))" for (name, mismatch) in active_joints]
-        #println("Time: $(t): Feedback is active for joints: $(join(joint_strings, ", "))")
-    end
-end
 
 # Compile the virtual mechanism system, and run the controller via ROS
 # Make sure rospy_client.py is running first.
@@ -206,5 +165,5 @@ joint_names = ["rh_WRJ1", "rh_WRJ2", "rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4",
 
 
 with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-    ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_setup, f_control, E_max=10.0)
+    ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0)
 end
