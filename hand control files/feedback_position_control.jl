@@ -103,7 +103,7 @@ add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_MFJ2_coord", "target
 #add_component!(vms, LinearSpring(0.0001, "mfj1 pos error");  id="mfj1 spring")
 add_component!(vms, LinearSpring(0.0001, "mfj2 pos error");  id="mfj2 spring")
 
-add_component!(vms, LinearSpring(0.00001, ".virtual_mechanism.rh_MFJ3_coord");  id="mfj3 spring")
+add_component!(vms, LinearSpring(0.0001, ".virtual_mechanism.rh_MFJ3_coord");  id="mfj3 spring")
 
 println("Virtual Mechanism Built !")
 
