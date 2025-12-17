@@ -103,7 +103,7 @@ add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_MFJ2_coord", "target
 #add_component!(vms, LinearSpring(0.0001, "mfj1 pos error");  id="mfj1 spring")
 add_component!(vms, LinearSpring(0.0001, "mfj2 pos error");  id="mfj2 spring")
 
-add_component!(vms, LinearSpring(0.0001, ".virtual_mechanism.rh_MFJ3_coord");  id="mfj3 spring")
+#add_component!(vms, LinearSpring(0.0001, ".virtual_mechanism.rh_MFJ3_coord");  id="mfj3 spring")
 
 println("Virtual Mechanism Built !")
 
@@ -189,7 +189,7 @@ function f_control(cache, t, args, extra)
     end
     if !isempty(active_joints)
         joint_strings = ["$(name) (mismatch: $(mismatch))" for (name, mismatch) in active_joints]
-        println("Time: $(t): Feedback is active for joints: $(join(joint_strings, ", "))")
+        #println("Time: $(t): Feedback is active for joints: $(join(joint_strings, ", "))")
     end
 end
 

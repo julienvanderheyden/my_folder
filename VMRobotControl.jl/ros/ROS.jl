@@ -433,6 +433,8 @@ function ros_vm_position_controller(
     control_func! = let control_cache=control_cache, args=args
         function control_func!(torques, state, i, t, dt)
 
+            println("robot_idxs :  $(robot_vm_idxs)")
+
             NDOF = robot_ndof(control_cache)
             @assert length(state) == 2*NDOF
             qʳ = view(state, 1:NDOF)
@@ -492,6 +494,7 @@ function generate_virtual_robot_idxs(vms_compiled, ordered_joint_names)
         push!(robot_idxs, joint_idx[1])
     end
 
+    println("robot_idxs :  $(robot_idxs)")
     return robot_idxs
 end
 
