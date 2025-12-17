@@ -433,7 +433,9 @@ function ros_vm_position_controller(
     control_func! = let control_cache=control_cache, args=args
         function control_func!(torques, state, i, t, dt)
 
-            println("robot_idxs :  $(robot_vm_idxs)")
+            println("state before re-ordering : $(state)")
+            state = get_real_hand_state(state, robot_vm_idxs)
+            println("state after re-ordering : $(state)")
 
             NDOF = robot_ndof(control_cache)
             @assert length(state) == 2*NDOF
@@ -494,7 +496,6 @@ function generate_virtual_robot_idxs(vms_compiled, ordered_joint_names)
         push!(robot_idxs, joint_idx[1])
     end
 
-    println("robot_idxs :  $(robot_idxs)")
     return robot_idxs
 end
 
@@ -505,6 +506,17 @@ function get_virtual_hand_state(q_vm, idxs)
     end 
     return hand_state
 end
+
+function get_real_hand_state(state, idxs)
+    hand_state = []
+    for idx in idxs
+        push!(hand_state, state[idx])
+    end 
+    for idx in idxs
+        push!(hand_state, state[length(idxs) + idx])
+    end
+    return hand_state
+end 
 
 # this function should be used if you want to simulate 
 # both the robot and the virtual mechanism, instead of 
