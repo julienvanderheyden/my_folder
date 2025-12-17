@@ -433,9 +433,7 @@ function ros_vm_position_controller(
     control_func! = let control_cache=control_cache, args=args
         function control_func!(torques, state, i, t, dt)
 
-            println("state before re-ordering : $(state)")
             state = get_real_hand_state(state, robot_vm_idxs)
-            println("state after re-ordering : $(state)")
 
             NDOF = robot_ndof(control_cache)
             @assert length(state) == 2*NDOF
