@@ -174,7 +174,7 @@ function f_control(cache, t, args, extra)
     for (robot_id , vm_id) in zip(robot_idxs, vm_idxs)
         robot_config = configuration(cache, robot_id)
         vm_config = configuration(cache, vm_id)
-        if abs(robot_config - vm_config) > mismatch_deadzone
+        if abs(robot_config[1] - vm_config[1]) > mismatch_deadzone
             println("Time: $(t): Feedback is active for joint id $(robot_id)")
         end
     end
