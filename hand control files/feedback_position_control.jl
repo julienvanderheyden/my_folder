@@ -111,6 +111,7 @@ feedback_stiffness = 0.00001
 feedback_damping = 0.0
 # feedback_damping = 0.00001
 # feedback_stiffness = 0.0
+mismatch_deadzone = 0.1
 
 # START BY LINKING UNCOUPLED JOINTS
 joint_limits = shadow_cfg.joint_limits
@@ -121,11 +122,11 @@ uncoupled_joints = ["rh_WRJ1", "rh_WRJ2", "rh_FFJ3", "rh_FFJ4", "rh_MFJ3", "rh_M
 for joint_id in uncoupled_joints
     add_coordinate!(vms, CoordDifference(".robot.$(joint_id)_coord", ".virtual_mechanism.$(joint_id)_coord");id="$(joint_id) coord diff")
     # use deadzone springs instead of linear springs to take the mismatches into account
-    add_deadzone_springs!(vms, feedback_stiffness, (-0.05, 0.05), "$(joint_id) coord diff") 
+    add_deadzone_springs!(vms, feedback_stiffness, (-mismatch_deadzone, mismatch_deadzone), "$(joint_id) coord diff") 
 
     # implement "deadzone" damping using two rectified dampers (transition is linear, not sharp)
-    add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (0.045, 0.055), false, false); id = "$(joint_id) feedback damper 1")
-    add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (-0.055, -0.045), true, false); id = "$(joint_id) feedback damper 2")
+    add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (0.9*mismatch_deadzone, 1.1*mismatch_deadzone), false, false); id = "$(joint_id) feedback damper 1")
+    add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (-1.1*mismatch_deadzone, -0.9*mismatch_deadzone), true, false); id = "$(joint_id) feedback damper 2")
     #add_component!(vms, LinearSpring(feedback_stiffness, "$(joint_id) coord diff"); id="$(joint_id) feedback spring")
     #add_component!(vms, LinearDamper(0.00, "$(joint_id) coord diff"); id = "$(joint_id) coord damper")  no damping for the moment
 end
@@ -138,10 +139,10 @@ coupled_joints = ["rh_FFJ0", "rh_MFJ0", "rh_RFJ0" ,"rh_LFJ0"]
 for joint_id in coupled_joints
     add_coordinate!(vms, CoordDifference(".robot.$(joint_id)_coord", ".virtual_mechanism.$(joint_id)_coord");id="$(joint_id) coord diff")
     # use deadzone springs instead of linear springs to take the mismatch into account
-    add_deadzone_springs!(vms, feedback_stiffness, (-0.1, 0.1), "$(joint_id) coord diff")
-    
-    add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (0.09, 0.11), false, false); id = "$(joint_id) feedback damper 1")
-    add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (-0.11, -0.09), true, false); id = "$(joint_id) feedback damper 2")
+    add_deadzone_springs!(vms, feedback_stiffness, (-2*mismatch_deadzone, 2*mismatch_deadzone), "$(joint_id) coord diff")
+
+    add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (1.8*mismatch_deadzone, 2.2*mismatch_deadzone), false, false); id = "$(joint_id) feedback damper 1")
+    add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (-2.2*mismatch_deadzone, -1.8*mismatch_deadzone), true, false); id = "$(joint_id) feedback damper 2")
     #add_component!(vms, LinearSpring(feedback_stiffness, "$(joint_id) coord diff"); id="$(joint_id) feedback spring")
     #add_component!(vms, LinearDamper(0.00, "$(joint_id) coord diff"); id = "$(joint_id) coord damper")  no damping for the moment  
 end
