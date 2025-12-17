@@ -107,11 +107,11 @@ println("Virtual Mechanism Built !")
 
 print("Linking real robot and virtual robot ...")
 
-feedback_stiffness = 0.00001
+feedback_stiffness = 0.000001
 feedback_damping = 0.0
 # feedback_damping = 0.00001
 # feedback_stiffness = 0.0
-mismatch_deadzone = 0.1
+mismatch_deadzone = 0.05
 
 # START BY LINKING UNCOUPLED JOINTS
 joint_limits = shadow_cfg.joint_limits
