@@ -154,31 +154,38 @@ println("Linked !")
 function f_setup(cache)
     robot_idxs = []
     vm_idxs = []
+    joint_names = []
     for joint in uncoupled_joints
         robot_id = get_compiled_coordID(cache, ".robot.$(joint)_coord")
         push!(robot_idxs, robot_id)
         vm_id   = get_compiled_coordID(cache, ".virtual_mechanism.$(joint)_coord")
         push!(vm_idxs, vm_id)
+        push!(joint_names, joint)
     end
     for joint in coupled_joints
         robot_id = get_compiled_coordID(cache, ".robot.$(joint)_coord")
         push!(robot_idxs, robot_id)
         vm_id   = get_compiled_coordID(cache, ".virtual_mechanism.$(joint)_coord")
         push!(vm_idxs, vm_id)
+        push!(joint_names, joint)
     end
-    return (robot_idxs, vm_idxs)
+    return (robot_idxs, vm_idxs, joint_names)
 end
 
 function f_control(cache, t, args, extra)
-    robot_idxs, vm_idxs = args
-    for (robot_id , vm_id) in zip(robot_idxs, vm_idxs)
+    robot_idxs, vm_idxs, joint_names = args
+    active_joints = []
+    for (robot_id, vm_id, joint_name) in zip(robot_idxs, vm_idxs, joint_names)
         robot_config = configuration(cache, robot_id)
         vm_config = configuration(cache, vm_id)
         if abs(robot_config[1] - vm_config[1]) > mismatch_deadzone
-            println("Time: $(t): Feedback is active for joint id $(robot_id)")
+            push!(active_joints, joint_name)
         end
     end
-end 
+    if !isempty(active_joints)
+        println("Time: $(t): Feedback is active for joints: $(join(active_joints, ", "))")
+    end
+end
 
 # Compile the virtual mechanism system, and run the controller via ROS
 # Make sure rospy_client.py is running first.
