@@ -69,7 +69,7 @@ for joint_id in keys(joints(vm_robot))
     add_coordinate!(vm_robot, JointSubspace(joint_id);  id="$(joint_id)_coord")
     @assert ~isnothing(limits.lower) && ~isnothing(limits.upper)
     #add_deadzone_springs!(vm_robot, 0.01, (limits.lower+0.0, limits.upper-0.0), "$(joint_id)_coord")
-    add_component!(vm_robot, LinearDamper(0.001, "$(joint_id)_coord"); id="$(joint_id)_damper")
+    add_component!(vm_robot, LinearDamper(0.00001, "$(joint_id)_coord"); id="$(joint_id)_damper")
 end
 
 add_coordinate!(vm_robot, CoordSum("rh_FFJ1_coord", "rh_FFJ2_coord"); id="rh_FFJ0_coord")
@@ -102,6 +102,8 @@ add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_MFJ2_coord", "target
 
 #add_component!(vms, LinearSpring(0.0001, "mfj1 pos error");  id="mfj1 spring")
 add_component!(vms, LinearSpring(0.0001, "mfj2 pos error");  id="mfj2 spring")
+
+add_component!(vms, LinearSpring(0.000001, ".virtual_mechanism.rh_MFJ3_coord");  id="mfj3 spring")
 
 println("Virtual Mechanism Built !")
 
