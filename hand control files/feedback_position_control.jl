@@ -109,9 +109,9 @@ println("Virtual Mechanism Built !")
 
 print("Linking real robot and virtual robot ...")
 
-feedback_stiffness = 0.001
+feedback_stiffness = 0.0001
 # feedback_damping = 0.00001
-feedback_damping = 0.0
+feedback_damping = 0.0001
 # feedback_stiffness = 0.0
 mismatch_deadzone = 0.05
 
