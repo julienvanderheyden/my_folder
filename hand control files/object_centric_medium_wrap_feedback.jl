@@ -241,7 +241,7 @@ function object_centric_medium_wrap_feedback(cylinder_radius)
 
     print("Linking real robot and virtual robot ...")
 
-    feedback_stiffness = 0.5
+    feedback_stiffness = 0.75
     feedback_damping = 0.000
     mismatch_deadzone = 0.05
 
