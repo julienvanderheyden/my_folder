@@ -441,9 +441,9 @@ function ros_vm_position_controller(
             q̇ʳ = view(state, NDOF+1:2*NDOF)
 
             # Main control step : loop control_steps times to increase simulation frequency
-            control_steps = 10
+            control_steps = 20
             # Make the time go faster in the simulation by a given factor
-            acceleration_factor = 1.5
+            acceleration_factor = 1.0
             for j in (control_steps-1):-1:0
                 t_sub = t - j * dt / control_steps  # Intermediate time step
                 t_fast = acceleration_factor*t_sub # make time go faster
