@@ -448,7 +448,8 @@ function ros_vm_position_controller(
                 t_sub = t - j * dt / control_steps  # Intermediate time step
                 t_fast = acceleration_factor*t_sub # make time go faster
                 f_control(control_cache, t_fast, args, (dt/control_steps, i)) # Call user control function
-                control_step!(control_cache, t_fast, qʳ, q̇ʳ) 
+                elapsed_time = @elapsed control_step!(control_cache, t_fast, qʳ, q̇ʳ)
+                println("control_step! took: $(elapsed_time) seconds")
             end
 
             qr, qv = get_q(control_cache)
