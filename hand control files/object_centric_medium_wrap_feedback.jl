@@ -21,8 +21,6 @@ end
 
 
 function object_centric_medium_wrap_feedback(cylinder_radius)
-    print("Waiting 5 seconds...")
-    sleep(5)
     print("parsing robot URDF... ")
 
     module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
@@ -243,7 +241,7 @@ function object_centric_medium_wrap_feedback(cylinder_radius)
 
     feedback_stiffness = 0.5
     feedback_damping = 0.000
-    mismatch_deadzone = 0.04
+    mismatch_deadzone = 0.025
 
     # START BY LINKING UNCOUPLED JOINTS
     joint_limits = shadow_cfg.joint_limits
