@@ -243,7 +243,7 @@ function object_centric_medium_wrap_feedback(cylinder_radius)
 
     feedback_stiffness = 0.5
     feedback_damping = 0.000
-    mismatch_deadzone = 0.025
+    mismatch_deadzone = 0.04
 
     # START BY LINKING UNCOUPLED JOINTS
     joint_limits = shadow_cfg.joint_limits
