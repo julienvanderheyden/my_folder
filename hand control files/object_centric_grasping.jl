@@ -235,11 +235,13 @@ function object_centric_power_sphere(ball_radius)
         add_component!(vm_robot, LinearDamper(0.0001, "$(joint_id)_coord"); id="$(joint_id)_damper")
     end
 
-    if ball_radius <= 0.025
-        ball_position = SVector(0.0, -0.11, 0.33)
-    else
-        ball_position = SVector(0.0, -ball_radius - 0.021, 0.33)
-    end
+    # remove parametric positioning of the ball for strucured experiments
+    # if ball_radius <= 0.025
+    #     ball_position = SVector(0.0, -0.11, 0.33)
+    # else
+    #     ball_position = SVector(0.0, -ball_radius - 0.021, 0.33)
+    # end
+    ball_position = SVector(0.0, -ball_radius - 0.021, 0.33)
 
     attracted_frames = ("rh_lfdistal_mass_coord", "rh_lfmiddle_mass_coord", "rh_lfproximal_mass_coord", "rh_rfdistal_mass_coord", 
     "rh_rfmiddle_mass_coord", "rh_rfproximal_mass_coord", "rh_mfdistal_mass_coord", "rh_mfmiddle_mass_coord",
