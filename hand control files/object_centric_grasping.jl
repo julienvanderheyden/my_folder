@@ -469,10 +469,16 @@ function object_centric_power_sphere_test(ball_radius)
         add_component!(vms, ExponentialDamper(exponential_damping_matrix, "ee $(attracted_frames_names[i]) diff", damping_decay_rate); id = "ee $(attracted_frames_names[i]) exp damper")
     end
 
-    thumb_massive_damping = 0.7
-    add_component!(vms, LinearDamper(SMatrix{3, 3}(thumb_massive_damping, 0., 0., 0., thumb_massive_damping, 0., 0., 0., thumb_massive_damping), "ee thmiddle diff"); id = "thmiddle massive damper")
-    thumb_tip_damping = 0.15
-    add_component!(vms, LinearDamper(SMatrix{3, 3}(thumb_tip_damping, 0., 0., 0., thumb_tip_damping, 0., 0., 0., thumb_tip_damping), "ee thdistal diff"); id = "thdistal massive damper")
+    if ball_radius <= 0.033
+        thumb_massive_damping = 0.7
+        add_component!(vms, LinearDamper(SMatrix{3, 3}(thumb_massive_damping, 0., 0., 0., thumb_massive_damping, 0., 0., 0., thumb_massive_damping), "ee thmiddle diff"); id = "thmiddle massive damper")
+        thumb_tip_damping = 0.15
+        add_component!(vms, LinearDamper(SMatrix{3, 3}(thumb_tip_damping, 0., 0., 0., thumb_tip_damping, 0., 0., 0., thumb_tip_damping), "ee thdistal diff"); id = "thdistal massive damper")
+    else 
+        thumb_massive_damping = 1.0
+        add_component!(vms, LinearDamper(SMatrix{3, 3}(thumb_massive_damping, 0., 0., 0., thumb_massive_damping, 0., 0., 0., thumb_massive_damping), "ee thmiddle diff"); id = "thmiddle massive damper")
+    end
+    
     add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_WRJ1_coord"); id = "wrj1 spring")
     add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_WRJ2_coord"); id = "wrj2 spring")
 
