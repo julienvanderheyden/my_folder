@@ -25,7 +25,7 @@ function grasp_command_callback(msg)
         elseif grasp_type == 2
             # Power sphere - expects 1 parameter
             param = parse(Float64, parts[2])
-            object_centric_power_sphere(param)
+            object_centric_power_sphere_test(param)
         elseif grasp_type == 3
             # Lateral pinch - expects 2 parameters
             param1 = parse(Float64, parts[2])
