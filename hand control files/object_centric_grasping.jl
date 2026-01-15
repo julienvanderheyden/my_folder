@@ -473,7 +473,7 @@ function object_centric_power_sphere_test(ball_radius)
     add_component!(vms, LinearDamper(SMatrix{3, 3}(thumb_massive_damping, 0., 0., 0., thumb_massive_damping, 0., 0., 0., thumb_massive_damping), "ee thmiddle diff"); id = "thmiddle massive damper")
     thumb_tip_damping = 0.2
     add_component!(vms, LinearDamper(SMatrix{3, 3}(thumb_tip_damping, 0., 0., 0., thumb_tip_damping, 0., 0., 0., thumb_tip_damping), "ee thdistal diff"); id = "thdistal massive damper")
-    add_component!(vms, LinearSpring(0.01, ".robot.rh_WRJ1_coord"); id = "wrj1 spring")
+    add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_WRJ1_coord"); id = "wrj1 spring")
 
     # fingers spacing : Joint level
 
@@ -529,8 +529,8 @@ function object_centric_power_sphere_test(ball_radius)
     end
 
     # Thumb-index repulsion through shadow coordinate
-    add_coordinate!(vms, ShadowCoord(".robot.rh_ffdistal"); id="shadow coord ffdistal")
-    add_coordinate!(vms, CoordDifference("shadow coord ffdistal", ".robot.rh_thdistal"); id="thumb repulsive diff")
+    add_coordinate!(vms, ShadowCoord(".virtual_mechanism.rh_ffdistal"); id="shadow coord ffdistal")
+    add_coordinate!(vms, CoordDifference("shadow coord ffdistal", ".virtual_mechanism.rh_thdistal"); id="thumb repulsive diff")
     add_coordinate!(vms, CoordNorm("thumb repulsive diff"); id="thumb repulsive diff norm")
 
     add_component!(vms, GaussianSpring("thumb repulsive diff norm"; stiffness = -1.0, width = 0.01); id="thumb repulsive gaussian spring")
