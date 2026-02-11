@@ -466,10 +466,10 @@ function ros_vm_position_controller(
                 velocities = abs.(q̇ʳ[mask])
                 vel_ok = all(velocities.< velocity_threshold)
 
-                if t > 3 && vel_ok
-                    @info "Steady state reached at t=$(t) seconds, stopping controller"
-                    return true
-                end
+                # if t > 3 && vel_ok
+                #     @info "Steady state reached at t=$(t) seconds, stopping controller"
+                #     return true
+                # end
 
                 if t > 20.0
                     @info "20 seconds reached, stopping controller"
