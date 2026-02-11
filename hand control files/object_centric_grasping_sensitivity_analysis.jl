@@ -16,7 +16,7 @@ try
 catch
 end
 
-function object_centric_medium_wrap(cylinder_radius)
+function object_centric_medium_wrap(cylinder_radius, stiffness_modifier = 0.0, damping_modifier = 0.0)
 
     module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
 
@@ -112,13 +112,14 @@ function object_centric_medium_wrap(cylinder_radius)
         add_component!(vm_robot, PointMass(0.01, "$(attracted_frames_names[i]) ee position"); id="$(attracted_frames_names[i]) ee mass")
     
         add_coordinate!(vm_robot, JointSubspace("prism_joint_$(attracted_frames_names[i])"); id="prism_joint_$(attracted_frames_names[i])")
-        add_component!(vm_robot, LinearDamper(0.1, "prism_joint_$(attracted_frames_names[i])"); id="prism_joint_$(attracted_frames_names[i])_damper")
+        cylinder_joint_damping = (1 + damping_modifier)*0.1
+        add_component!(vm_robot, LinearDamper(cylinder_joint_damping, "prism_joint_$(attracted_frames_names[i])"); id="prism_joint_$(attracted_frames_names[i])_damper")
         add_coordinate!(vm_robot, JointSubspace("revo_joint_$(attracted_frames_names[i])"); id="revo_joint_$(attracted_frames_names[i])") 
     
         add_coordinate!(vm_robot, FrameOrigin("center_frame_$(attracted_frames_names[i])"); id="center_frame_$(attracted_frames_names[i])")
         add_coordinate!(vm_robot, FrameOrigin("prism_frame_$(attracted_frames_names[i])"); id="prism_frame_$(attracted_frames_names[i])")
         add_coordinate!(vm_robot, CoordDifference("center_frame_$(attracted_frames_names[i])", "prism_frame_$(attracted_frames_names[i])"); id="$(attracted_frames_names[i])_prismatic_error")
-        comeback_stiffness = 0.1
+        comeback_stiffness = (1 + stiffness_modifier)*0.1
         comeback_stiffness_matrix = SMatrix{3, 3}(comeback_stiffness, 0., 0., 0., comeback_stiffness, 0., 0., 0., comeback_stiffness)
         add_component!(vm_robot, LinearSpring(comeback_stiffness_matrix, "$(attracted_frames_names[i])_prismatic_error"); id = "$(attracted_frames_names[i])_comeback_spring")
     end
@@ -131,14 +132,14 @@ function object_centric_medium_wrap(cylinder_radius)
 
     D = SMatrix{3, 3}(0.05, 0., 0., 0., 0.05, 0., 0., 0., 0.05)
 
-    base_stiffness = 0.05
-    phalanx_scaling_factor = 0.5
-    finger_scaling_factor = 1.5
+    base_stiffness = (1 + stiffness_modifier)*0.05
+    phalanx_scaling_factor = (1 + stiffness_modifier)*0.5
+    finger_scaling_factor = (1 + stiffness_modifier)*1.5
     
     stiffnesses = generate_stiffnesses_geometric_scaling(base_stiffness, phalanx_scaling_factor, finger_scaling_factor)
     
-    damping_decay_rate = 161 # 20% of damping at |z| = 0.01
-    exponential_damping_coeff = 0.1
+    damping_decay_rate = (1 + damping_modifier)*161 # 20% of damping at |z| = 0.01
+    exponential_damping_coeff = (1 + damping_modifier)*0.1
     exponential_damping_matrix = SMatrix{3, 3}(exponential_damping_coeff, 0., 0., 0., exponential_damping_coeff, 0., 0., 0., exponential_damping_coeff)
     
     for i in 1:length(attracted_frames)
@@ -149,11 +150,13 @@ function object_centric_medium_wrap(cylinder_radius)
         add_component!(vms, ExponentialDamper(exponential_damping_matrix, "ee $(attracted_frames_names[i]) diff", damping_decay_rate); id = "ee $(attracted_frames_names[i]) exp damper")
     end
 
-    add_component!(vms, LinearDamper(SMatrix{3, 3}(10.0, 0., 0., 0., 10.0, 0., 0., 0., 10.0), "ee thmiddle diff"); id = "thmiddle massive damper")
+    thumb_massive_damping = (1 + damping_modifier)*10.0
+    add_component!(vms, LinearDamper(SMatrix{3, 3}(thumb_massive_damping, 0., 0., 0., thumb_massive_damping, 0., 0., 0., thumb_massive_damping), "ee thmiddle diff"); id = "thmiddle massive damper")
     
     #lightly constraint some joints to avoid unwanted motions 
-    add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_WRJ1_coord"); id = "wr j1 angular spring")
-    add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_WRJ2_coord"); id = "wr j2 angular spring")
+    constraint_stiffness = (1 + stiffness_modifier)*0.01
+    add_component!(vms, LinearSpring(constraint_stiffness, ".virtual_mechanism.rh_WRJ1_coord"); id = "wr j1 angular spring")
+    add_component!(vms, LinearSpring(constraint_stiffness, ".virtual_mechanism.rh_WRJ2_coord"); id = "wr j2 angular spring")
 
     # CYLINDER COLLISION MODEL  
 
@@ -170,6 +173,8 @@ function object_centric_medium_wrap(cylinder_radius)
     repulsed_frames_names = ("fftip", "mftip", "rftip", "lftip", "thtip", "ffmiddle", "mfmiddle", "rfmiddle", "lfmiddle", "thmiddle", "ffprox", 
                     "mfprox", "rfprox", "lfprox", "thprox", "palm", "palm2", "ffdistal", "mfdistal", "rfdistal", "lfdistal", "thdistal", "thmiddle2")
     
+    repulsive_stiffness = (1 + stiffness_modifier)*5.0
+    repulsive_damping = (1 + damping_modifier)*5.0
     for i in 1:length(repulsed_frames)
         frame = repulsed_frames[i]
         add_coordinate!(vms, CoordDifference(frame, "cylinder position") ; id = "$(repulsed_frames_names[i]) cylinder diff" )
@@ -177,8 +182,8 @@ function object_centric_medium_wrap(cylinder_radius)
         add_coordinate!(vms, CoordNorm("$(repulsed_frames_names[i]) planar error") ; id = "$(repulsed_frames_names[i]) planar error norm")
         add_coordinate!(vms, CoordDifference("$(repulsed_frames_names[i]) planar error norm", "cylinder radius"); id = "shifted $(repulsed_frames_names[i]) cylinder error" )
     
-        add_component!(vms, ReLUSpring(5.0, "shifted $(repulsed_frames_names[i]) cylinder error", true); id="$(repulsed_frames_names[i]) cylinder repulsive spring")
-        add_component!(vms, RectifiedDamper(5.0, "$(repulsed_frames_names[i]) planar error norm", (0.0, 1.05*cylinder_radius), true, false); id="$(repulsed_frames_names[i]) cylinder damper")
+        add_component!(vms, ReLUSpring(repulsive_stiffness, "shifted $(repulsed_frames_names[i]) cylinder error", true); id="$(repulsed_frames_names[i]) cylinder repulsive spring")
+        add_component!(vms, RectifiedDamper(repulsive_damping, "$(repulsed_frames_names[i]) planar error norm", (0.0, 1.05*cylinder_radius), true, false); id="$(repulsed_frames_names[i]) cylinder damper")
     end
 
 
@@ -199,12 +204,13 @@ function object_centric_medium_wrap(cylinder_radius)
 
 end
 
-function object_centric_power_sphere(ball_radius)
-        module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
+
+function object_centric_power_sphere(ball_radius, stiffness_modifier = 0.0, damping_modifier = 0.0)
+
+    module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
 
     shadow_cfg = URDFParserConfig(;suppress_warnings=true) # This is just to hide warnings about unsupported URDF features
     shadow_robot = parseURDF(joinpath(module_path, "URDFs/sr_description/sr_hand_vm_compatible.urdf"), shadow_cfg)
-
 
 
     vm_cfg = URDFParserConfig(;suppress_warnings=true) 
@@ -276,14 +282,14 @@ function object_centric_power_sphere(ball_radius)
 
     D = SMatrix{3, 3}(0.15, 0., 0., 0., 0.15, 0., 0., 0., 0.15)
 
-    base_stiffness = 0.05
-    phalanx_scaling_factor = 0.1
-    finger_scaling_factor = 1.5
+    base_stiffness = (1+stiffness_modifier)*0.05
+    phalanx_scaling_factor = (1+stiffness_modifier)*0.1
+    finger_scaling_factor = (1+stiffness_modifier)*1.5
 
     stiffnesses = generate_stiffnesses_geometric_scaling(base_stiffness, phalanx_scaling_factor, finger_scaling_factor)
 
-    damping_decay_rate = 161 # 20% of damping at |z| = 0.01
-    exponential_damping_coeff = 0.2
+    damping_decay_rate = (1+damping_modifier)*0.161 # 20% of damping at |z| = 0.01
+    exponential_damping_coeff = (1+damping_modifier)*0.2
     exponential_damping_matrix = SMatrix{3, 3}(exponential_damping_coeff, 0., 0., 0., exponential_damping_coeff, 0., 0., 0., exponential_damping_coeff)
     # hand converging to the ball 
 
@@ -296,44 +302,47 @@ function object_centric_power_sphere(ball_radius)
     end
 
     if ball_radius <= 0.033
-        thumb_massive_damping = 0.7
+        thumb_massive_damping = (1+damping_modifier)*0.7
         add_component!(vms, LinearDamper(SMatrix{3, 3}(thumb_massive_damping, 0., 0., 0., thumb_massive_damping, 0., 0., 0., thumb_massive_damping), "ee thmiddle diff"); id = "thmiddle massive damper")
         thumb_tip_damping = 0.15
         add_component!(vms, LinearDamper(SMatrix{3, 3}(thumb_tip_damping, 0., 0., 0., thumb_tip_damping, 0., 0., 0., thumb_tip_damping), "ee thdistal diff"); id = "thdistal massive damper")
     else 
-        thumb_massive_damping = 1.0
+        thumb_massive_damping = (1+damping_modifier)*1.0
         add_component!(vms, LinearDamper(SMatrix{3, 3}(thumb_massive_damping, 0., 0., 0., thumb_massive_damping, 0., 0., 0., thumb_massive_damping), "ee thmiddle diff"); id = "thmiddle massive damper")
     end
     
-    add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_WRJ1_coord"); id = "wrj1 spring")
-    add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_WRJ2_coord"); id = "wrj2 spring")
+    constraint_stiffness = (1+stiffness_modifier)*0.01
+    add_component!(vms, LinearSpring(constraint_stiffness, ".virtual_mechanism.rh_WRJ1_coord"); id = "wrj1 spring")
+    add_component!(vms, LinearSpring(constraint_stiffness, ".virtual_mechanism.rh_WRJ2_coord"); id = "wrj2 spring")
 
     # fingers spacing : Joint level
 
     add_coordinate!(vms, ConstCoord(0.6); id = "angular spring length")
+    spacing_stiffness = (1+stiffness_modifier)*0.001
+    spacing_damping = (1+damping_modifier)*0.001
 
     #ff mf spacing
     add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_MFJ4_coord", ".virtual_mechanism.rh_FFJ4_coord"); id="ff mf j4 angular diff")
     add_coordinate!(vms, CoordDifference("ff mf j4 angular diff", "angular spring length") ; id="ff mf j4 angular error")
-    add_component!(vms, LinearSpring(0.001, "ff mf j4 angular error"); id="ff mf angular spring")
-    add_component!(vms, LinearDamper(0.001, "ff mf j4 angular error"); id="ff mf angular damper")
+    add_component!(vms, LinearSpring(spacing_stiffness, "ff mf j4 angular error"); id="ff mf angular spring")
+    add_component!(vms, LinearDamper(spacing_damping, "ff mf j4 angular error"); id="ff mf angular damper")
 
     #mf rf spacing
     add_coordinate!(vms, CoordSum(".virtual_mechanism.rh_RFJ4_coord", ".virtual_mechanism.rh_MFJ4_coord"); id="mf rf j4 angular diff")
     add_coordinate!(vms, CoordSum("mf rf j4 angular diff", "angular spring length") ; id="mf rf j4 angular error")
-    add_component!(vms, LinearSpring(0.001, "mf rf j4 angular error"); id="mf rf angular spring")
-    add_component!(vms, LinearDamper(0.001, "mf rf j4 angular error"); id="mf rf angular damper")
+    add_component!(vms, LinearSpring(spacing_stiffness, "mf rf j4 angular error"); id="mf rf angular spring")
+    add_component!(vms, LinearDamper(spacing_damping, "mf rf j4 angular error"); id="mf rf angular damper")
 
     #rf lf spacing
     add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_RFJ4_coord", ".virtual_mechanism.rh_LFJ4_coord"); id="rf lf j4 angular diff")
     add_coordinate!(vms, CoordDifference("rf lf j4 angular diff", "angular spring length") ; id="rf lf j4 angular error")
-    add_component!(vms, LinearSpring(0.001, "rf lf j4 angular error"); id="rf lf angular spring")
-    add_component!(vms, LinearDamper(0.001, "rf lf j4 angular error"); id="rf lf angular damper")
+    add_component!(vms, LinearSpring(spacing_stiffness, "rf lf j4 angular error"); id="rf lf angular spring")
+    add_component!(vms, LinearDamper(spacing_damping, "rf lf j4 angular error"); id="rf lf angular damper")
 
     #th spacing
     add_coordinate!(vms, ConstCoord(1.22); id="th spring length")
     add_coordinate!(vms, CoordDifference(".virtual_mechanism.rh_THJ4_coord", "th spring length"); id="th j4 error")
-    add_component!(vms, LinearSpring(0.001, "th j4 error"); id="th j4 spring")
+    add_component!(vms, LinearSpring(spacing_stiffness, "th j4 error"); id="th j4 spring")
 
     # BALL COLLISION MODEL  
 
@@ -351,14 +360,16 @@ function object_centric_power_sphere(ball_radius)
     repulsed_frames_names = ("fftip", "mftip", "rftip", "lftip", "thtip", "ffmiddle", "mfmiddle", "rfmiddle", "lfmiddle", "thmiddle", "ffprox", 
                     "mfprox", "rfprox", "lfprox", "thprox", "palm", "palm2", "ffdistal", "mfdistal", "rfdistal", "lfdistal", "thdistal", "thmiddle2")
 
+    repulsive_stiffness = (1 + stiffness_modifier)*5.0
+    repulsive_damping = (1 + damping_modifier)*5.0
     for i in 1:length(repulsed_frames)
         frame = repulsed_frames[i]
         add_coordinate!(vms, CoordDifference(frame, "ball position") ; id = "$(repulsed_frames_names[i]) ball error" )
         add_coordinate!(vms, CoordNorm("$(repulsed_frames_names[i]) ball error") ; id = "$(repulsed_frames_names[i]) ball error norm")
         add_coordinate!(vms, CoordDifference("$(repulsed_frames_names[i]) ball error norm", "ball radius"); id = "shifted $(repulsed_frames_names[i]) ball error" )
 
-        add_component!(vms, ReLUSpring(5.0, "shifted $(repulsed_frames_names[i]) ball error", true); id="$(repulsed_frames_names[i]) ball repulsive spring")
-        add_component!(vms, RectifiedDamper(5.0, "$(repulsed_frames_names[i]) ball error norm", (0.0, 1.1*ball_radius), true, false); id="$(repulsed_frames_names[i]) ball damper")
+        add_component!(vms, ReLUSpring(repulsive_stiffness, "shifted $(repulsed_frames_names[i]) ball error", true); id="$(repulsed_frames_names[i]) ball repulsive spring")
+        add_component!(vms, RectifiedDamper(repulsive_damping, "$(repulsed_frames_names[i]) ball error norm", (0.0, 1.1*ball_radius), true, false); id="$(repulsed_frames_names[i]) ball damper")
     end
 
     # Thumb-index repulsion through shadow coordinate
@@ -366,7 +377,8 @@ function object_centric_power_sphere(ball_radius)
     add_coordinate!(vms, CoordDifference("shadow coord ffdistal", ".virtual_mechanism.rh_thdistal"); id="thumb repulsive diff")
     add_coordinate!(vms, CoordNorm("thumb repulsive diff"); id="thumb repulsive diff norm")
 
-    add_component!(vms, GaussianSpring("thumb repulsive diff norm"; stiffness = -1.0, width = 0.01); id="thumb repulsive gaussian spring")
+    th_index_repulsion_stiffness = (1 + stiffness_modifier)*(-1.0)
+    add_component!(vms, GaussianSpring("thumb repulsive diff norm"; stiffness = th_index_repulsion_stiffness, width = 0.01); id="thumb repulsive gaussian spring")
 
     println("Virtual controller built. Connecting to ROS client...")
 
@@ -389,7 +401,7 @@ function object_centric_power_sphere(ball_radius)
     end
 end
 
-function object_centric_lateral_pinch(box_width, box_thickness)
+function object_centric_lateral_pinch(box_width, box_thickness, stiffness_modifier = 0.0, damping_modifier = 0.0)
 
     module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
 
@@ -447,7 +459,7 @@ function object_centric_lateral_pinch(box_width, box_thickness)
         add_component!(vm_robot, PointMass(0.01, "$(attracted_frames_names[i]) ee position"); id="$(attracted_frames_names[i]) ee mass")
 
     
-        joint_damping = 0.05
+        joint_damping = (1+damping_modifier)*0.05
         add_coordinate!(vm_robot, JointSubspace("prism_joint_1_$(attracted_frames_names[i])"); id="prism_joint_1_$(attracted_frames_names[i])")
         add_component!(vm_robot, LinearDamper(joint_damping, "prism_joint_1_$(attracted_frames_names[i])"); id="prism_joint_1_$(attracted_frames_names[i])_damper")
         add_coordinate!(vm_robot, JointSubspace("prism_joint_2_$(attracted_frames_names[i])"); id="prism_joint_2_$(attracted_frames_names[i])")
@@ -456,7 +468,7 @@ function object_centric_lateral_pinch(box_width, box_thickness)
         # DEADZONE SPRINGS : CONSTRAINT THE MOTION INSIDE THE BOX
 
         margin = 0.015
-        deadzone_stiffness = 5.0
+        deadzone_stiffness = (1+stiffness_modifier)*5.0
         add_deadzone_springs!(vm_robot, deadzone_stiffness, (-box_dimensions[2] + margin, box_dimensions[2] - margin), "prism_joint_1_$(attracted_frames_names[i])")
         add_deadzone_springs!(vm_robot, deadzone_stiffness, (-box_dimensions[3] + margin, box_dimensions[3] - margin), "prism_joint_2_$(attracted_frames_names[i])")
     end
@@ -468,13 +480,13 @@ function object_centric_lateral_pinch(box_width, box_thickness)
 
     # HAND MOTION
 
-    base_damping = 0.05
+    base_damping = (1+damping_modifier)*0.05
     D = SMatrix{3, 3}(base_damping , 0., 0., 0., base_damping, 0., 0., 0., base_damping)
-    x_stiffnesses = [0.01, 0.01, 0.01, 0.01, 0.1, 0.1]
-    yz_stiffness = 0.1
+    x_stiffnesses = (1+stiffness_modifier)*[0.01, 0.01, 0.01, 0.01, 0.1, 0.1]
+    yz_stiffness = (1+stiffness_modifier)*0.1
 
-    damping_decay_rate = 460 # 20% of damping at |z| = 0.005
-    exponential_damping_coeff = 0.1
+    damping_decay_rate = (1+damping_modifier)*460 # 20% of damping at |z| = 0.005
+    exponential_damping_coeff = (1+damping_modifier)*0.1
     exponential_damping_matrix = SMatrix{3, 3}(exponential_damping_coeff, 0., 0., 0., exponential_damping_coeff, 0., 0., 0., exponential_damping_coeff)
 
     # Establishing contact with the box 
@@ -487,7 +499,8 @@ function object_centric_lateral_pinch(box_width, box_thickness)
         add_component!(vms, ExponentialDamper(exponential_damping_matrix, "ee $(attracted_frames_names[i]) diff", damping_decay_rate); id = "ee $(attracted_frames_names[i]) exp damper")
     end
 
-    add_component!(vms, LinearDamper(SMatrix{3, 3}(1.0, 0., 0., 0., 1.0, 0., 0., 0., 1.0),"ee thdistal diff"); id = "ee thdistal mass damper")
+    thumb_massive_damping = (1+damping_modifier)*1.0
+    add_component!(vms, LinearDamper(SMatrix{3, 3}(thumb_massive_damping, 0., 0., 0., thumb_massive_damping, 0., 0., 0., thumb_massive_damping),"ee thdistal diff"); id = "ee thdistal mass damper")
 
     # "Closing" the finger ---> connecting the two extremes to the corners of the box
     K = SMatrix{3, 3}(yz_stiffness, 0., 0., 0., yz_stiffness, 0., 0., 0., yz_stiffness)
@@ -556,6 +569,8 @@ function object_centric_lateral_pinch(box_width, box_thickness)
     function update_box_collision_model(cache, collision_args)
         box_position, box_dimensions, repulsed_frames_coord_ID, repulsive_springs_damper_ID = collision_args
         margin = 0.001
+        repulsive_stiffness = (1 + stiffness_modifier)*5.0
+        repulsive_damping = (1 + damping_modifier)*5.0
         for i in 1:length(repulsed_frames_coord_ID)
             frame_pos = configuration(cache, repulsed_frames_coord_ID[i])
             for j in 1:3
@@ -563,8 +578,8 @@ function object_centric_lateral_pinch(box_width, box_thickness)
                 others = filter(x -> x ≠ j, 1:3) 
                 #Check if the position of the frame is inside "the field of action" of the spring
                 if abs(frame_pos[others[1]] - box_position[others[1]]) < (box_dimensions[others[1]]-margin) && abs(frame_pos[others[2]] - box_position[others[2]]) < (box_dimensions[others[2]]-margin)
-                    cache[repulsive_springs_damper_ID[i][2*j-1]] = remake(cache[repulsive_springs_damper_ID[i][2*j-1]] ; stiffness = 5.0)
-                    cache[repulsive_springs_damper_ID[i][2*j]] = remake(cache[repulsive_springs_damper_ID[i][2*j]] ; damping = 5.0)          
+                    cache[repulsive_springs_damper_ID[i][2*j-1]] = remake(cache[repulsive_springs_damper_ID[i][2*j-1]] ; stiffness = repulsive_stiffness)
+                    cache[repulsive_springs_damper_ID[i][2*j]] = remake(cache[repulsive_springs_damper_ID[i][2*j]] ; damping = repulsive_damping)          
                 else
                     cache[repulsive_springs_damper_ID[i][2*j-1]] = remake(cache[repulsive_springs_damper_ID[i][2*j-1]] ; stiffness = 0.0)
                     cache[repulsive_springs_damper_ID[i][2*j]] = remake(cache[repulsive_springs_damper_ID[i][2*j]] ; damping = 0.0)
