@@ -16,8 +16,8 @@ function grasp_command_callback(msg)
         parts = split(msg.data, ",")
         grasp_type = parse(Int, parts[1])
 
-        stiffness_modifier = -0.25
-        damping_modifier = 0.0
+        stiffness_modifier = 0.0
+        damping_modifier = 0.05
         
         println("Received grasp command: type=$grasp_type")
         
