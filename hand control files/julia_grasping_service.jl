@@ -16,8 +16,8 @@ function grasp_command_callback(msg)
         parts = split(msg.data, ",")
         grasp_type = parse(Int, parts[1])
 
-        stiffness_modifier = 0.0
-        damping_modifier = 0.05
+        stiffness_modifier = 0.05
+        damping_modifier = 0.0
         
         println("Received grasp command: type=$grasp_type")
         
@@ -29,7 +29,7 @@ function grasp_command_callback(msg)
         elseif grasp_type == 2
             # Power sphere - expects 1 parameter
             param = parse(Float64, parts[2])
-            object_centric_power_sphere(param)
+            object_centric_power_sphere(param, stiffness_modifier, damping_modifier)
         elseif grasp_type == 3
             # Lateral pinch - expects 2 parameters
             param1 = parse(Float64, parts[2])
