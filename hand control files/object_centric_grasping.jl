@@ -278,7 +278,7 @@ function object_centric_power_sphere(ball_radius)
 
     base_stiffness = 0.05
     phalanx_scaling_factor = 0.1
-    finger_scaling_factor = 1.5
+    finger_scaling_factor = 1.0 #for perfect symmetry
 
     stiffnesses = generate_stiffnesses_geometric_scaling(base_stiffness, phalanx_scaling_factor, finger_scaling_factor)
 
