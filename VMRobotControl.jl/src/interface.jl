@@ -783,6 +783,7 @@ function new_dynamics_cache(m::CompiledMechanism, ::Type{T}; initialize::Bool=tr
     cache = MechDynamicsCache{T}(m)
     bundle = MechanismCacheBundle(m, cache)
     initialize && dynamics!(bundle, zero(T), zero_q(m), zero_q̇(m), DEFAULT_GRAVITY, zero_u(m))
+    initialize && dynamics!(bundle, zero(T), zero_q(m), zero_q̇(m), DEFAULT_GRAVITY, zero_u(m))
     bundle
 end
 
