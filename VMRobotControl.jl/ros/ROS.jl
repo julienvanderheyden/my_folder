@@ -446,12 +446,12 @@ function ros_vm_position_controller(
             dt_fast = acceleration_factor*dt # make time go faster
 
             # Main control step : loop control_steps times to increase simulation frequency and avoid unstabilities
-            control_steps = 150
+            control_steps = 20
             for j in (control_steps-1):-1:0
                 t_sub = t_fast - j * dt_fast / control_steps  # Intermediate time step
                 f_control(control_cache, t_sub, args, (dt_fast/control_steps, i)) # Call user control function. 
 
-                control_step!(control_cache, t_sub, qʳ, q̇ʳ) # takes around 0.5 ms 
+                @time control_step!(control_cache, t_sub, qʳ, q̇ʳ) # takes around 0.5 ms 
                 # the joint updates at 125Hz, so there is one update every 8 ms --> maximum of 16 control steps
             end
 
