@@ -443,7 +443,7 @@ function ros_vm_position_controller(
             q̇ʳ = view(state, NDOF+1:2*NDOF)
 
             # Make the time go faster in the simulation by a given factor
-            acceleration_factor = 2.5
+            acceleration_factor = 2.4
             t_fast = acceleration_factor*t # make time go faster
             dt_fast = acceleration_factor*dt # make time go faster
 
