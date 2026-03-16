@@ -446,7 +446,7 @@ function ros_vm_position_controller(
             dt_fast = acceleration_factor*dt # make time go faster
 
             # Main control step : loop control_steps times to increase simulation frequency and avoid unstabilities
-            control_steps = 20
+            control_steps = 30
             for j in (control_steps-1):-1:0
                 t_sub = t_fast - j * dt_fast / control_steps  # Intermediate time step
                 f_control(control_cache, t_sub, args, (dt_fast/control_steps, i)) # Call user control function. 
