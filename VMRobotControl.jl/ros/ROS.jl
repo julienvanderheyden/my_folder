@@ -474,11 +474,13 @@ function ros_vm_position_controller(
 
                 if t > 3 && vel_ok
                     @info "Steady state reached at t=$(t) seconds, stopping controller"
+                    show(to)
                     return true
                 end
 
                 if t > 15.0
                     @info "15 seconds reached, stopping controller"
+                    show(to)
                     return true
                 end
             end 
