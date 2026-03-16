@@ -3,6 +3,8 @@ using Sockets
 using StaticArrays
 using .Threads 
 using VMRobotControl
+using TimerOutputs
+const to = TimerOutput()
 
 using VMRobotControl:
     DEFAULT_GRAVITY,
@@ -451,7 +453,8 @@ function ros_vm_position_controller(
                 t_sub = t_fast - j * dt_fast / control_steps  # Intermediate time step
                 f_control(control_cache, t_sub, args, (dt_fast/control_steps, i)) # Call user control function. 
 
-                @time control_step!(control_cache, t_sub, qʳ, q̇ʳ) # takes around 0.5 ms 
+                #control_step!(control_cache, t_sub, qʳ, q̇ʳ) # takes around 0.5 ms 
+                @timeit to "control_step" control_step!(control_cache, t_sub, qʳ, q̇ʳ)
                 # the joint updates at 125Hz, so there is one update every 8 ms --> maximum of 16 control steps
             end
 
