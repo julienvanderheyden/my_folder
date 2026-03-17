@@ -296,7 +296,20 @@ function object_centric_power_sphere(ball_radius, feedback_stiffness, feedback_d
     shadow_cfg = URDFParserConfig(;suppress_warnings=true) # This is just to hide warnings about unsupported URDF features
     shadow_robot = parseURDF(joinpath(module_path, "URDFs/sr_description/sr_hand_vm_compatible.urdf"), shadow_cfg)
 
+    joint_limits = shadow_cfg.joint_limits
 
+    for joint_id in keys(joints(shadow_robot))
+        # "limits" are here used simply to identify the joints that actually move with respect to the fixed joints
+        limits = joint_limits[joint_id]
+        isnothing(limits) && continue
+
+        add_coordinate!(shadow_robot, JointSubspace(joint_id);  id="$(joint_id)_coord")
+    end
+
+    add_coordinate!(shadow_robot, CoordSum("rh_FFJ1_coord", "rh_FFJ2_coord"); id="rh_FFJ0_coord")
+    add_coordinate!(shadow_robot, CoordSum("rh_MFJ1_coord", "rh_MFJ2_coord"); id="rh_MFJ0_coord")
+    add_coordinate!(shadow_robot, CoordSum("rh_RFJ1_coord", "rh_RFJ2_coord"); id="rh_RFJ0_coord")
+    add_coordinate!(shadow_robot, CoordSum("rh_LFJ1_coord", "rh_LFJ2_coord"); id="rh_LFJ0_coord")
 
     vm_cfg = URDFParserConfig(;suppress_warnings=true) 
     # For the moment the urdfs are the same but we might want to change the properties of the virtual robot
@@ -521,6 +534,21 @@ function object_centric_lateral_pinch(box_width, box_thickness, feedback_stiffne
 
     shadow_cfg = URDFParserConfig(;suppress_warnings=true) # This is just to hide warnings about unsupported URDF features
     shadow_robot = parseURDF(joinpath(module_path, "URDFs/sr_description/sr_hand_vm_compatible.urdf"), shadow_cfg)
+
+    joint_limits = shadow_cfg.joint_limits
+
+    for joint_id in keys(joints(shadow_robot))
+        # "limits" are here used simply to identify the joints that actually move with respect to the fixed joints
+        limits = joint_limits[joint_id]
+        isnothing(limits) && continue
+
+        add_coordinate!(shadow_robot, JointSubspace(joint_id);  id="$(joint_id)_coord")
+    end
+
+    add_coordinate!(shadow_robot, CoordSum("rh_FFJ1_coord", "rh_FFJ2_coord"); id="rh_FFJ0_coord")
+    add_coordinate!(shadow_robot, CoordSum("rh_MFJ1_coord", "rh_MFJ2_coord"); id="rh_MFJ0_coord")
+    add_coordinate!(shadow_robot, CoordSum("rh_RFJ1_coord", "rh_RFJ2_coord"); id="rh_RFJ0_coord")
+    add_coordinate!(shadow_robot, CoordSum("rh_LFJ1_coord", "rh_LFJ2_coord"); id="rh_LFJ0_coord")
 
     vm_cfg = URDFParserConfig(;suppress_warnings=true) 
     # For the moment the urdfs are the same but we might want to change the properties of the virtual robot
