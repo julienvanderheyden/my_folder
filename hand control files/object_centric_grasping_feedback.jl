@@ -290,7 +290,7 @@ function object_centric_medium_wrap_feedback(cylinder_radius, feedback_stiffness
 
 end
 
-function object_centric_power_sphere(ball_radius)
+function object_centric_power_sphere(ball_radius, feedback_stiffness, feedback_damping)
         module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
 
     shadow_cfg = URDFParserConfig(;suppress_warnings=true) # This is just to hide warnings about unsupported URDF features
@@ -515,7 +515,7 @@ function object_centric_power_sphere(ball_radius)
     end
 end
 
-function object_centric_lateral_pinch(box_width, box_thickness)
+function object_centric_lateral_pinch(box_width, box_thickness, feedback_stiffness, feedback_damping)
 
     module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
 
