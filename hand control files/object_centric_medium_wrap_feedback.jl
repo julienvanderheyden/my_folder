@@ -20,7 +20,7 @@ catch
 end
 
 
-function object_centric_medium_wrap_feedback(cylinder_radius)
+function object_centric_medium_wrap_feedback(cylinder_radius, feedback_stiffness, feedback_damping)
     print("parsing robot URDF... ")
 
     module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
@@ -239,8 +239,6 @@ function object_centric_medium_wrap_feedback(cylinder_radius)
 
     print("Linking real robot and virtual robot ...")
 
-    feedback_stiffness = 0.1
-    feedback_damping = 0.000
     mismatch_deadzone = 0.05
 
     # START BY LINKING UNCOUPLED JOINTS
