@@ -529,7 +529,7 @@ function object_centric_power_sphere(ball_radius, feedback_stiffness, feedback_d
 
 
     with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0, steady_state_check=true)
+        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0)
     end
 end
 
@@ -804,7 +804,7 @@ function object_centric_lateral_pinch(box_width, box_thickness, feedback_stiffne
 
 
     with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=10.0, steady_state_check=true)
+        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=10.0)
     end
 
 end
