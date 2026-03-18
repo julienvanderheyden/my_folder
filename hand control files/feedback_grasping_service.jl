@@ -24,17 +24,17 @@ function grasp_command_callback(msg)
         if grasp_type == 1
             # Medium wrap - expects 1 parameter
             param = parse(Float64, parts[2])
-            object_centric_medium_wrap_feedback(param, feedback_stiffness, feedback_damping)
+            object_centric_medium_wrap_feedback(param, feedback_stiffness, feedback_dampin, steady_state_check=true)
         elseif grasp_type == 2
             # Power sphere - expects 1 parameter
             param = parse(Float64, parts[2])
-            object_centric_power_sphere_feedback(param, feedback_stiffness, feedback_damping)
+            object_centric_power_sphere_feedback(param, feedback_stiffness, feedback_damping, steady_state_check=true)
 
         elseif grasp_type == 3
             # Lateral pinch - expects 2 parameters
             param1 = parse(Float64, parts[2])
             param2 = parse(Float64, parts[3])
-            object_centric_lateral_pinch_feedback(param1, param2, feedback_stiffness, feedback_damping)
+            object_centric_lateral_pinch_feedback(param1, param2, feedback_stiffness, feedback_damping, steady_state_check=true)
         else
             println("Unknown grasp type: $grasp_type")
             # Send error status

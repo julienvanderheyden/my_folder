@@ -20,7 +20,7 @@ catch
 end
 
 
-function object_centric_medium_wrap_feedback(cylinder_radius, feedback_stiffness, feedback_damping)
+function object_centric_medium_wrap_feedback(cylinder_radius, feedback_stiffness, feedback_damping; steady_state_check=false)
     print("parsing robot URDF... ")
 
     module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
@@ -285,12 +285,12 @@ function object_centric_medium_wrap_feedback(cylinder_radius, feedback_stiffness
 
 
     with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0)
+        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0, steady_state_check=steady_state_check)
     end
 
 end
 
-function object_centric_power_sphere_feedback(ball_radius, feedback_stiffness, feedback_damping)
+function object_centric_power_sphere_feedback(ball_radius, feedback_stiffness, feedback_damping; steady_state_check=false)
         module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
 
     shadow_cfg = URDFParserConfig(;suppress_warnings=true) # This is just to hide warnings about unsupported URDF features
@@ -529,11 +529,11 @@ function object_centric_power_sphere_feedback(ball_radius, feedback_stiffness, f
 
 
     with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0)
+        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0, steady_state_check=steady_state_check)
     end
 end
 
-function object_centric_lateral_pinch_feedback(box_width, box_thickness, feedback_stiffness, feedback_damping)
+function object_centric_lateral_pinch_feedback(box_width, box_thickness, feedback_stiffness, feedback_damping; steady_state_check=false)
 
     module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
 
@@ -804,7 +804,7 @@ function object_centric_lateral_pinch_feedback(box_width, box_thickness, feedbac
 
 
     with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=10.0)
+        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=10.0, steady_state_check=steady_state_check)
     end
 
 end
