@@ -24,7 +24,7 @@ function grasp_command_callback(msg)
         if grasp_type == 1
             # Medium wrap - expects 1 parameter
             param = parse(Float64, parts[2])
-            object_centric_medium_wrap_feedback(param, feedback_stiffness, feedback_dampin, steady_state_check=true)
+            object_centric_medium_wrap_feedback(param, feedback_stiffness, feedback_damping, steady_state_check=true)
         elseif grasp_type == 2
             # Power sphere - expects 1 parameter
             param = parse(Float64, parts[2])
