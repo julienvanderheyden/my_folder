@@ -16,7 +16,7 @@ try
 catch
 end
 
-stiffness_modifier = -0.5 # stiffness_modifier = 1.0 corresponds to multiplying all stiffnesses by 2
+stiffness_modifier = -0.75 # stiffness_modifier = 1.0 corresponds to multiplying all stiffnesses by 2
 damping_modifier = 0.0
 #damping_modifier = stiffness_modifier # damping_modifier = 1.0 corresponds to multiplying all damping coefficients by 2
 
