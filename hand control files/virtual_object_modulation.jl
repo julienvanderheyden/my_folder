@@ -286,6 +286,13 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
     
     function f_setup(cache)
 
+        
+        radius_joints = Dict{String, Any}()
+        for frame in attracted_frames_names
+            jointID = get_compiled_jointID(cache, ".virtual_mechanism.fixed_joint_$(frame)")
+            radius_joints[frame] = jointID
+        end
+
         feedback_coordID_uncoupled = Dict{String, Any}()
         for joint in uncoupled_joints
             coordID = get_compiled_coordID(cache, "$(joint) coord diff")
@@ -297,34 +304,59 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
             coordID = get_compiled_coordID(cache, "$(joint) coord diff")
             feedback_coordID_coupled[joint] = coordID
         end
-        
-        radius_joints = Dict{String, Any}()
+
+        attraction_coordID = Dict{String, Any}()
         for frame in attracted_frames_names
-            jointID = get_compiled_jointID(cache, ".virtual_mechanism.fixed_joint_$(frame)")
-            radius_joints[frame] = jointID
+            coordID = get_compiled_coordID(cache, "ee $(frame) diff")
+            attraction_coordID[frame] = coordID
         end
 
-        return radius_joints, feedback_coordID_uncoupled, feedback_coordID_coupled
+        return radius_joints, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID
         
     end
     
     function f_control(cache, t, args, extra)
         
-        radius_joints, feedback_coordID_uncoupled, feedback_coordID_coupled = args 
+        radius_joints, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID = args 
 
-        for joint in uncoupled_joints
-            mismatch = configuration(cache, feedback_coordID_uncoupled[joint])
-            if abs(only(mismatch)) > mismatch_deadzone
-                println("Feedback active for joint $joint, mismatch = $mismatch")
-            end
-        end 
-
-        for joint in coupled_joints
-            mismatch = configuration(cache, feedback_coordID_coupled[joint])
-            if abs(only(mismatch)) > 2*mismatch_deadzone
-                println("Feedback active for coupled joint $joint, mismatch = $mismatch")
+        ff_attach_point = ["ffdistal", "ffmiddle", "ffprox"]
+        ff_equilibrium = false
+        for point in ff_attach_point
+            attraction_error = cache[attraction_coordID[point]]
+            if attraction_error < 0.001 #meaning we are at equilibrium
+                ff_equilibrium = true
+                break
             end
         end
+
+        ff_joints_uncoupled = ["rh_FFJ3", "rh_FFJ4"]
+        ff_joints_coupled = ["rh_FFJ0"]
+        contact_detected = false
+
+        # check is contact is detected -> there is mismatch in the joint
+        for joint in ff_joints_uncoupled
+            feedback_error = cache[feedback_coordID_uncoupled[joint]]
+            if abs(only(feedback_error)) > mismatch_deadzone
+                contact_detected = true
+                break
+            end
+        end
+
+        for joint in ff_joints_coupled
+            feedback_error = cache[feedback_coordID_coupled[joint]]
+            if abs(only(feedback_error)) > 2*mismatch_deadzone
+                contact_detected = true
+                break
+            end
+        end
+
+
+        if !contact_detected && ff_equilibrium
+            println("Radius should be decreased !")
+        end
+            
+
+        
         # # Virtual object radius modulation
         # if t  > 10.0 
         #     new_radius = 0.01
