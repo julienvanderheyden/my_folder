@@ -339,7 +339,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         if t  > 10.0
             new_radius = 0.01
             cache[rigid_joints["ffdistal"]] = remake(cache[rigid_joints["ffdistal"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius))))
-            cache[rigid_joints["thmiddle"]] = remake(cache[rigid_joints["thmiddle"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius))))
+            cache[rigid_joints["ffmiddle"]] = remake(cache[rigid_joints["ffmiddle"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius))))
             cache[rigid_joints["ffprox"]] = remake(cache[rigid_joints["ffprox"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius))))
 
         end
