@@ -325,7 +325,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         
         rigid_joints = Dict{String, Any}()
         for frame in attracted_frames_names
-            jointID = get_compiled_jointID(cache, "fixed_joint_$(frame)")
+            jointID = get_compiled_jointID(cache, ".virtual_mechanism.fixed_joint_$(frame)")
             rigid_joints[frame] = jointID
         end
         return rigid_joints
