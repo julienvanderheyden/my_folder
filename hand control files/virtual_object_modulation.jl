@@ -329,14 +329,17 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
             jointID = get_compiled_jointID(cache, ".virtual_mechanism.fixed_joint_$(frame)")
             rigid_joints[frame] = jointID
         end
-        return rigid_joints
+        object_modulated = false
+        return rigid_joints, object_modulated
         
     end
     
     function f_control(cache, t, args, extra)
         
-        rigid_joints = args 
-        if t  > 10.0
+        rigid_joints, object_modulated = args 
+        if t  > 10.0 && !object_modulated
+            println("Modulating the virtual object !")
+            object_modulated = true
             new_radius = 0.01
             cache[rigid_joints["ffdistal"]] = remake(cache[rigid_joints["ffdistal"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius))))
             cache[rigid_joints["ffmiddle"]] = remake(cache[rigid_joints["ffmiddle"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius))))
