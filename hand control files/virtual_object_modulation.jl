@@ -282,6 +282,72 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
     println("Linked !")
 
+
+        
+    function setup_box_collision_model(cache, repulsed_frames, frames_names)
+        repulsed_frames_coord_ID = []
+        repulsive_springs_damper_ID = []
+        for i in 1:length(repulsed_frames)
+            frame = repulsed_frames[i]
+            push!(repulsed_frames_coord_ID, get_compiled_coordID(cache, frame))
+            frame_springs_dampers_vec = []
+            for j in 1:3
+                push!(frame_springs_dampers_vec, get_compiled_componentID(cache, "$(frames_names[i]) dimension $(j) repulsive spring"))
+                push!(frame_springs_dampers_vec, get_compiled_componentID(cache, "$(frames_names[i]) dimension $(j) damper"))
+            end
+            push!(repulsive_springs_damper_ID, frame_springs_dampers_vec)
+        end
+    
+        return box_position, box_dimensions, repulsed_frames_coord_ID, repulsive_springs_damper_ID
+    end
+    
+    function update_box_collision_model(cache, collision_args)
+        box_position, box_dimensions, repulsed_frames_coord_ID, repulsive_springs_damper_ID = collision_args
+        margin = 0.001
+        for i in 1:length(repulsed_frames_coord_ID)
+            frame_pos = configuration(cache, repulsed_frames_coord_ID[i])
+            for j in 1:3
+                # get the indices different from j
+                others = filter(x -> x ≠ j, 1:3) 
+                #Check if the position of the frame is inside "the field of action" of the spring
+                if abs(frame_pos[others[1]] - box_position[others[1]]) < (box_dimensions[others[1]]-margin) && abs(frame_pos[others[2]] - box_position[others[2]]) < (box_dimensions[others[2]]-margin)
+                    cache[repulsive_springs_damper_ID[i][2*j-1]] = remake(cache[repulsive_springs_damper_ID[i][2*j-1]] ; stiffness = 5.0)
+                    cache[repulsive_springs_damper_ID[i][2*j]] = remake(cache[repulsive_springs_damper_ID[i][2*j]] ; damping = 5.0)          
+                else
+                    cache[repulsive_springs_damper_ID[i][2*j-1]] = remake(cache[repulsive_springs_damper_ID[i][2*j-1]] ; stiffness = 0.0)
+                    cache[repulsive_springs_damper_ID[i][2*j]] = remake(cache[repulsive_springs_damper_ID[i][2*j]] ; damping = 0.0)
+                end
+            end
+        end
+    end
+    
+    function f_setup(cache)
+        
+        rigid_joints = Dict{String, Any}()
+        for frame in attracted_frames_names
+            jointID = get_compiled_jointID(cache, "fixed_joint_$(frame)")
+            rigid_joints[frame] = jointID
+        end
+        return rigid_joints
+        
+    end
+    
+    function f_control(cache, t, args, extra)
+        
+        rigid_joints = args 
+        # if t  > 10.0
+        #     for jointID in rigid_joints
+        #         cache[jointID] = remake(cache[jointID]; stiffness = 1000.0)
+        #     end
+
+        # end
+        if t > 10.0
+            println("t = $t")
+        end 
+    end
+
+
+
     # Compile the virtual mechanism system, and run the controller via ROS
     # Make sure rospy_client.py is running first.
     println("Connecting to ROS client...")
@@ -295,7 +361,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
 
     with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0)
+        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=10.0)
     end
 
 end
