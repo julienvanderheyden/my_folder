@@ -356,7 +356,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         if !contact_detected && ff_equilibrium
             
             radius = max(radius - 0.001, 0.005) # don't let the radius be smaller than 5mm
-            println("Radius : $(radiius)")
+            println("Radius : $(radius)")
             cache[radius_joints["ffdistal"]] = remake(cache[radius_joints["ffdistal"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, radius))))
             cache[radius_joints["ffmiddle"]] = remake(cache[radius_joints["ffmiddle"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, radius))))
             cache[radius_joints["ffprox"]] = remake(cache[radius_joints["ffprox"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, radius))))
