@@ -322,7 +322,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         ff_attach_point = ["ffdistal", "ffmiddle", "ffprox"]
         ff_equilibrium = false
         for point in ff_attach_point
-            attraction_error = cache[attraction_coordID[point]]
+            attraction_error = configuration(cache, attraction_coordID[point])
             if attraction_error < 0.001 #meaning we are at equilibrium
                 ff_equilibrium = true
                 break
@@ -335,7 +335,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
         # check is contact is detected -> there is mismatch in the joint
         for joint in ff_joints_uncoupled
-            feedback_error = cache[feedback_coordID_uncoupled[joint]]
+            feedback_error = configuration(cache, feedback_coordID_uncoupled[joint])
             if abs(only(feedback_error)) > mismatch_deadzone
                 contact_detected = true
                 break
@@ -343,7 +343,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         end
 
         for joint in ff_joints_coupled
-            feedback_error = cache[feedback_coordID_coupled[joint]]
+            feedback_error = configuration(cache, feedback_coordID_coupled[joint])
             if abs(only(feedback_error)) > 2*mismatch_deadzone
                 contact_detected = true
                 break
