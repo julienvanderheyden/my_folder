@@ -323,7 +323,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         ff_equilibrium = false
         for point in ff_attach_point
             attraction_error = configuration(cache, attraction_coordID[point])
-            if attraction_error < 0.001 #meaning we are at equilibrium
+            if norm(attraction_error) < 0.001 #meaning we are at equilibrium
                 ff_equilibrium = true
                 break
             end
