@@ -335,15 +335,13 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
     function f_control(cache, t, args, extra)
         
         rigid_joints = args 
-        # if t  > 10.0
-        #     for jointID in rigid_joints
-        #         cache[jointID] = remake(cache[jointID]; stiffness = 1000.0)
-        #     end
+        if t  > 10.0
+            new_radius = 0.01
+            cache[rigid_joints["ffdistal"]] = remake(cache[rigid_joints["ffdistal"]]; transform = Transform(SVector(0.0, 0.0, new_radius)))
+            cache[rigid_joints["thmiddle"]] = remake(cache[rigid_joints["thmiddle"]]; transform = Transform(SVector(0.0, 0.0, new_radius)))
+            cache[rigid_joints["ffprox"]] = remake(cache[rigid_joints["ffprox"]]; transform = Transform(SVector(0.0, 0.0, new_radius)))
 
-        # end
-        if t > 10.0
-            println("t = $t")
-        end 
+        end
     end
 
 
