@@ -314,14 +314,14 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
         for joint in uncoupled_joints
             mismatch = configuration(cache, feedback_coordID_uncoupled[joint])
-            if abs(mismatch) > mismatch_deadzone
+            if abs(only(mismatch)) > mismatch_deadzone
                 println("Feedback active for joint $joint, mismatch = $mismatch")
             end
         end 
 
         for joint in coupled_joints
             mismatch = configuration(cache, feedback_coordID_coupled[joint])
-            if abs(mismatch) > 2*mismatch_deadzone
+            if abs(only(mismatch)) > 2*mismatch_deadzone
                 println("Feedback active for coupled joint $joint, mismatch = $mismatch")
             end
         end
