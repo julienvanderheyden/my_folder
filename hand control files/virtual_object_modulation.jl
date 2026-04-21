@@ -276,76 +276,62 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
     for joint_id in coupled_joints
         add_coordinate!(vms, CoordDifference(".robot.$(joint_id)_coord", ".virtual_mechanism.$(joint_id)_coord");id="$(joint_id) coord diff")
-        add_deadzone_springs!(vms, feedback_stiffness, (-mismatch_deadzone, mismatch_deadzone), "$(joint_id) coord diff")
+        add_deadzone_springs!(vms, feedback_stiffness, (-2*mismatch_deadzone, 2*mismatch_deadzone), "$(joint_id) coord diff")
         add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (1.8*mismatch_deadzone, 2.2*mismatch_deadzone), false, false); id = "$(joint_id) feedback damper 1")
         add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (-2.2*mismatch_deadzone, -1.8*mismatch_deadzone), true, false); id = "$(joint_id) feedback damper 2")
     end
 
     println("Linked !")
 
-
-        
-    function setup_box_collision_model(cache, repulsed_frames, frames_names)
-        repulsed_frames_coord_ID = []
-        repulsive_springs_damper_ID = []
-        for i in 1:length(repulsed_frames)
-            frame = repulsed_frames[i]
-            push!(repulsed_frames_coord_ID, get_compiled_coordID(cache, frame))
-            frame_springs_dampers_vec = []
-            for j in 1:3
-                push!(frame_springs_dampers_vec, get_compiled_componentID(cache, "$(frames_names[i]) dimension $(j) repulsive spring"))
-                push!(frame_springs_dampers_vec, get_compiled_componentID(cache, "$(frames_names[i]) dimension $(j) damper"))
-            end
-            push!(repulsive_springs_damper_ID, frame_springs_dampers_vec)
-        end
-    
-        return box_position, box_dimensions, repulsed_frames_coord_ID, repulsive_springs_damper_ID
-    end
-    
-    function update_box_collision_model(cache, collision_args)
-        box_position, box_dimensions, repulsed_frames_coord_ID, repulsive_springs_damper_ID = collision_args
-        margin = 0.001
-        for i in 1:length(repulsed_frames_coord_ID)
-            frame_pos = configuration(cache, repulsed_frames_coord_ID[i])
-            for j in 1:3
-                # get the indices different from j
-                others = filter(x -> x ≠ j, 1:3) 
-                #Check if the position of the frame is inside "the field of action" of the spring
-                if abs(frame_pos[others[1]] - box_position[others[1]]) < (box_dimensions[others[1]]-margin) && abs(frame_pos[others[2]] - box_position[others[2]]) < (box_dimensions[others[2]]-margin)
-                    cache[repulsive_springs_damper_ID[i][2*j-1]] = remake(cache[repulsive_springs_damper_ID[i][2*j-1]] ; stiffness = 5.0)
-                    cache[repulsive_springs_damper_ID[i][2*j]] = remake(cache[repulsive_springs_damper_ID[i][2*j]] ; damping = 5.0)          
-                else
-                    cache[repulsive_springs_damper_ID[i][2*j-1]] = remake(cache[repulsive_springs_damper_ID[i][2*j-1]] ; stiffness = 0.0)
-                    cache[repulsive_springs_damper_ID[i][2*j]] = remake(cache[repulsive_springs_damper_ID[i][2*j]] ; damping = 0.0)
-                end
-            end
-        end
-    end
     
     function f_setup(cache)
+
+        feedback_coordID_uncoupled = Dict{String, Any}()
+        for joint in uncoupled_joints
+            coordID = get_compiled_coordID(cache, "$(joint) coord diff")
+            feedback_coordID_uncoupled[joint] = coordID
+        end
+
+        feedback_coordID_coupled = Dict{String, Any}()
+        for joint in coupled_joints
+            coordID = get_compiled_coordID(cache, "$(joint) coord diff")
+            feedback_coordID_coupled[joint] = coordID
+        end
         
-        rigid_joints = Dict{String, Any}()
+        radius_joints = Dict{String, Any}()
         for frame in attracted_frames_names
             jointID = get_compiled_jointID(cache, ".virtual_mechanism.fixed_joint_$(frame)")
-            rigid_joints[frame] = jointID
+            radius_joints[frame] = jointID
         end
-        object_modulated = false
-        return rigid_joints, object_modulated
+
+        return radius_joints, feedback_coordID_uncoupled, feedback_coordID_coupled
         
     end
     
     function f_control(cache, t, args, extra)
         
-        rigid_joints, object_modulated = args 
-        if t  > 10.0 && !object_modulated
-            println("Modulating the virtual object !")
-            object_modulated = true
-            new_radius = 0.01
-            cache[rigid_joints["ffdistal"]] = remake(cache[rigid_joints["ffdistal"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius))))
-            cache[rigid_joints["ffmiddle"]] = remake(cache[rigid_joints["ffmiddle"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius))))
-            cache[rigid_joints["ffprox"]] = remake(cache[rigid_joints["ffprox"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius))))
+        radius_joints, feedback_coordID_uncoupled, feedback_coordID_coupled = args 
 
+        for joint in uncoupled_joints
+            mismatch = configuration(cache, feedback_coordID_uncoupled[joint])
+            if abs(mismatch) > mismatch_deadzone
+                println("Feedback active for joint $joint, mismatch = $mismatch")
+            end
+        end 
+
+        for joint in coupled_joints
+            mismatch = configuration(cache, feedback_coordID_coupled[joint])
+            if abs(mismatch) > 2*mismatch_deadzone
+                println("Feedback active for coupled joint $joint, mismatch = $mismatch")
+            end
         end
+        # # Virtual object radius modulation
+        # if t  > 10.0 
+        #     new_radius = 0.01
+        #     cache[radius_joints["ffdistal"]] = remake(cache[radius_joints["ffdistal"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius))))
+        #     cache[radius_joints["ffmiddle"]] = remake(cache[radius_joints["ffmiddle"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius))))
+        #     cache[radius_joints["ffprox"]] = remake(cache[radius_joints["ffprox"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius))))
+        # end
     end
 
 
