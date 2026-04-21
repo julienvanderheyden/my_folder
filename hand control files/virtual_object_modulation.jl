@@ -3,6 +3,7 @@ using GeometryBasics: Vec3f, Point3f
 using LinearAlgebra
 using StaticArrays
 using VMRobotControl
+using VMRobotControl: remake
 using VMRobotControl.Splines: CubicSpline
 using DifferentialEquations
 include("functions.jl")
