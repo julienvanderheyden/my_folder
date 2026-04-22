@@ -421,7 +421,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
             for frame in repulsed_frames_names
                 cache[cylinder_radius_coord_dict[frame]] = remake(
                     cache[cylinder_radius_coord_dict[frame]];
-                    coord_data = radius
+                    coord_data = ConstCoord(radius)
                 )
             end
 
