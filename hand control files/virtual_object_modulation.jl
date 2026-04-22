@@ -315,64 +315,85 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         
     end
 
+    # State variables
     radius = cylinder_radius
-    
+
+    ff_equilibrium = false
+    contact_detected = false
+
+    radius_modulation_activated = false
+    radius_modulation_activation_time = 0.0  # time when activation condition first met
+    last_t = 0.0
+
+    contact_stopping_time = 0.0             # time when stopping condition first met
+    radius_modulation_stopped = false
+
     function f_control(cache, t, args, extra)
-        
-        radius_joints, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID = args 
 
-        ff_attach_point = ["ffdistal", "ffmiddle", "ffprox"]
-        ff_equilibrium = false
-        for point in ff_attach_point
-            attraction_error = configuration(cache, attraction_coordID[point])
-            if norm(attraction_error) < 0.001 #meaning we are at equilibrium
-                ff_equilibrium = true
-                break
+        radius_joints, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID = args
+
+        # ── 1. VIRTUAL CONTACT: any attach point has reached virtual object ────────
+        ff_attach_points = ["ffdistal", "ffmiddle", "ffprox"]
+        ff_equilibrium = any(ff_attach_points) do point
+            norm(configuration(cache, attraction_coordID[point])) < 0.001
+        end
+
+        # ── 2. REAL CONTACT: mismatch exceeds deadzone on any relevant joint ───────
+        uncoupled_contact = any(["rh_FFJ3", "rh_FFJ4"]) do joint
+            abs(only(configuration(cache, feedback_coordID_uncoupled[joint]))) > mismatch_deadzone
+        end
+
+        coupled_contact = any(["rh_FFJ0"]) do joint
+            abs(only(configuration(cache, feedback_coordID_coupled[joint]))) > 2 * mismatch_deadzone
+        end
+
+        contact_detected = uncoupled_contact || coupled_contact
+
+        # ── 3. ACTIVATION: sustained virtual contact without real contact ──────────
+        if !radius_modulation_activated && !radius_modulation_stopped
+            if ff_equilibrium && !contact_detected
+                if radius_modulation_activation_time == 0.0
+                    radius_modulation_activation_time = t          # start timing
+                elseif t - radius_modulation_activation_time > 0.2 # sustained 0.2s
+                    radius_modulation_activated = true
+                end
+            else
+                radius_modulation_activation_time = 0.0            # reset if condition lost
             end
         end
 
-        ff_joints_uncoupled = ["rh_FFJ3", "rh_FFJ4"]
-        ff_joints_coupled = ["rh_FFJ0"]
-        contact_detected = false
+        # ── 4. RADIUS MODULATION ───────────────────────────────────────────────────
+        if radius_modulation_activated && !radius_modulation_stopped
 
-        # check is contact is detected -> there is mismatch in the joint
-        for joint in ff_joints_uncoupled
-            feedback_error = configuration(cache, feedback_coordID_uncoupled[joint])
-            if abs(only(feedback_error)) > mismatch_deadzone
-                contact_detected = true
-                break
+            # Decrement radius at each control step
+            radius = max(radius - 0.005 * (t - last_t), 0.005)    # rate: 0.5cm/s, floor: 5mm
+
+            for point in ff_attach_points
+                cache[radius_joints[point]] = remake(
+                    cache[radius_joints[point]];
+                    jointData = Rigid(Transform(SVector(0.0, 0.0, radius)))
+                )
             end
-        end
 
-        for joint in ff_joints_coupled
-            feedback_error = configuration(cache, feedback_coordID_coupled[joint])
-            if abs(only(feedback_error)) > 2*mismatch_deadzone
-                contact_detected = true
-                break
+            # ── 5. STOPPING: sustained real contact detected ───────────────────────
+            if contact_detected
+                if contact_stopping_time == 0.0
+                    contact_stopping_time = t                      # start stop timer
+                elseif t - contact_stopping_time > 0.2            # sustained 0.2s
+                    radius_modulation_activated = false
+                    radius_modulation_stopped = true               # lock: do not re-activate
+                    @info "Radius modulation stopped at r = $(round(radius*1000, digits=1)) mm"
+                end
+            else
+                contact_stopping_time = 0.0                        # reset if contact lost
             end
+
         end
 
-
-        if !contact_detected && ff_equilibrium
-            
-            radius = max(radius - 0.001, 0.005) # don't let the radius be smaller than 5mm
-            println("Radius : $(radius)")
-            cache[radius_joints["ffdistal"]] = remake(cache[radius_joints["ffdistal"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, radius))))
-            cache[radius_joints["ffmiddle"]] = remake(cache[radius_joints["ffmiddle"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, radius))))
-            cache[radius_joints["ffprox"]] = remake(cache[radius_joints["ffprox"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, radius))))
-        end
-            
-
-        
-        # # Virtual object radius modulation
-        # if t  > 10.0 
-        #     new_radius = 0.01
-        #     cache[radius_joints["ffdistal"]] = remake(cache[radius_joints["ffdistal"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius))))
-        #     cache[radius_joints["ffmiddle"]] = remake(cache[radius_joints["ffmiddle"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius))))
-        #     cache[radius_joints["ffprox"]] = remake(cache[radius_joints["ffprox"]]; jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius))))
-        # end
+        last_t = t
     end
 
+    
 
 
     # Compile the virtual mechanism system, and run the controller via ROS
