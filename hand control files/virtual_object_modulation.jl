@@ -416,7 +416,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         # last_t = t
         if t> 10.0
             
-            radius = max(cylinder_radius - (t -10)*0.01, 0.005)
+            radius = max(cylinder_radius - (t -10)*0.0025, 0.005)
             @info "radius = $(round(radius*1000, digits=2)) mm"
 
             update_cylinder_radius(cache, radius, radius_joints, cylinder_radius_coord_dict, virtual_object_damper_component_dict)
