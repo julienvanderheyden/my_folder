@@ -412,7 +412,8 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
     # Make sure rospy_client.py is running first.
     println("Connecting to ROS client...")
     cvms = compile(vms)
-    qᵛ = medium_wrap_preshape
+    # qᵛ = medium_wrap_preshape
+    qᵛ = zeros(24)
 
     joint_names = ["rh_WRJ1", "rh_WRJ2", "rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4", "rh_MFJ1",
                     "rh_MFJ2", "rh_MFJ3", "rh_MFJ4", "rh_RFJ1", "rh_RFJ2", "rh_RFJ3", "rh_RFJ4", 
@@ -427,6 +428,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 end
 
 function update_cylinder_position(m, cache, kcache, new_radius, root_jointID)
+        @info "Updating cylinder position for radius: $(round(new_radius*1000, digits=2)) mm"
         medium_wrap_preshape = zeros(24)
         medium_wrap_preshape[21] = 1.2 # thumb extended
         kinematics!(kcache, 0.0, medium_wrap_preshape)
