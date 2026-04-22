@@ -462,7 +462,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
 end
 
-function update_cylinder_position(m, cache, kcache, new_radius, root_jointID)
+function update_cylinder_position(m, cache, kcache, new_radius, root_jointID, cylinder_position_coord_dict)
     medium_wrap_preshape = zeros(24)
     medium_wrap_preshape[21] = 1.2 # thumb extended
     kinematics!(kcache, 0.0, medium_wrap_preshape)
