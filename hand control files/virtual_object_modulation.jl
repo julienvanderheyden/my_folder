@@ -218,7 +218,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
     # CYLINDER COLLISION MODEL  
 
-    add_coordinate!(vms,  ConstCoord(cylinder_position);  id="cylinder position")
+    # add_coordinate!(vms,  ConstCoord(cylinder_position);  id="cylinder position")
     # add_coordinate!(vms, ConstCoord(cylinder_radius); id="cylinder radius")
     
     add_coordinate!(vms, FramePoint(".virtual_mechanism.rh_palm", SVector(0. , 0., 0.07)); id="second palm point")
@@ -238,7 +238,11 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
     
     for i in 1:length(repulsed_frames)
         frame = repulsed_frames[i]
+        # make radius and position frame-dependent to be able to modulate the cylinder properties during the motion 
         add_coordinate!(vms, ConstCoord(cylinder_radius); id = "$(repulsed_frames_names[i]) cylinder radius")
+        add_coordinate!(vms, ConstCoord(cylinder_position); id = "$(repulsed_frames_names[i]) cylinder position")
+
+        #standard repulsive spring-damper pair
         add_coordinate!(vms, CoordDifference(frame, "cylinder position") ; id = "$(repulsed_frames_names[i]) cylinder diff" )
         add_coordinate!(vms, CoordSlice("$(repulsed_frames_names[i]) cylinder diff", SVector(2,3)); id="$(repulsed_frames_names[i]) planar error")
         add_coordinate!(vms, CoordNorm("$(repulsed_frames_names[i]) planar error") ; id = "$(repulsed_frames_names[i]) planar error norm")
@@ -288,7 +292,6 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
     
     function f_setup(cache)
 
-        
         radius_joints = Dict{String, Any}()
         root_joints = Dict{String, Any}()
         for frame in attracted_frames_names
@@ -299,10 +302,15 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         end
 
         cylinder_radius_coord_dict = Dict{String, Any}()
+        cylinder_position_coord_dict = Dict{String, Any}()
         for frame in repulsed_frames_names
             cylinder_radius_coordID = get_compiled_coordID(cache, "$(frame) cylinder radius")
             cylinder_radius_coord_dict[frame] = cylinder_radius_coordID
+            cylinder_position_coordID = get_compiled_coordID(cache, "$(frame) cylinder position")
+            cylinder_position_coord_dict[frame] = cylinder_position_coordID
         end
+
+        
 
         feedback_coordID_uncoupled = Dict{String, Any}()
         for joint in uncoupled_joints
@@ -322,7 +330,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
             attraction_coordID[frame] = coordID
         end
 
-        return radius_joints, root_joints, cylinder_radius_coord_dict ,feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID
+        return radius_joints, root_joints, cylinder_radius_coord_dict, cylinder_position_coord_dict, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID
         
     end
 
@@ -426,7 +434,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
             end
 
 
-            #update_cylinder_position(m, cache, kcache, radius, root_joints)
+            update_cylinder_position(m, cache, kcache, radius, root_joints, cylinder_position_coord_dict)
         end
 
 
@@ -454,48 +462,58 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
 end
 
-# function update_cylinder_position(m, cache, kcache, new_radius, root_jointID)
-#     medium_wrap_preshape = zeros(24)
-#     medium_wrap_preshape[21] = 1.2 # thumb extended
-#     kinematics!(kcache, 0.0, medium_wrap_preshape)
+function update_cylinder_position(m, cache, kcache, new_radius, root_jointID)
+    medium_wrap_preshape = zeros(24)
+    medium_wrap_preshape[21] = 1.2 # thumb extended
+    kinematics!(kcache, 0.0, medium_wrap_preshape)
 
-#     if new_radius < 0.015
-#         # add one centimeter to the radius to avoid intersection with the fingers 
-#         rh_ffknuckle_frame_id = get_compiled_frameID(m, "rh_ffknuckle")
-#         ffknuckle_transform = get_transform(kcache, rh_ffknuckle_frame_id)
+    if new_radius < 0.015
+        # add one centimeter to the radius to avoid intersection with the fingers 
+        rh_ffknuckle_frame_id = get_compiled_frameID(m, "rh_ffknuckle")
+        ffknuckle_transform = get_transform(kcache, rh_ffknuckle_frame_id)
     
-#         cylinder_pos = SVector(0.0, -0.03, ffknuckle_transform.origin[3] - new_radius - 0.007)
-#     else
-#         # Get the positions of the finger tips
-#         rh_fftip_frame_id = get_compiled_frameID(m, "rh_fftip")
-#         fftip_transform = get_transform(kcache, rh_fftip_frame_id)
-#         p11 = [fftip_transform.origin[2], fftip_transform.origin[3]]  
+        cylinder_pos = SVector(0.0, -0.03, ffknuckle_transform.origin[3] - new_radius - 0.007)
+    else
+        # Get the positions of the finger tips
+        rh_fftip_frame_id = get_compiled_frameID(m, "rh_fftip")
+        fftip_transform = get_transform(kcache, rh_fftip_frame_id)
+        p11 = [fftip_transform.origin[2], fftip_transform.origin[3]]  
 
-#         rh_ffmiddle_frame_id = get_compiled_frameID(m, "rh_ffmiddle")
-#         ffmiddle_transform = get_transform(kcache, rh_ffmiddle_frame_id)
-#         p12 = [ffmiddle_transform.origin[2], ffmiddle_transform.origin[3]]
+        rh_ffmiddle_frame_id = get_compiled_frameID(m, "rh_ffmiddle")
+        ffmiddle_transform = get_transform(kcache, rh_ffmiddle_frame_id)
+        p12 = [ffmiddle_transform.origin[2], ffmiddle_transform.origin[3]]
 
-#         rh_thtip_frame_id = get_compiled_frameID(m, "rh_thtip")
-#         thtip_transform = get_transform(kcache, rh_thtip_frame_id)
-#         p21 = [thtip_transform.origin[2], thtip_transform.origin[3]]
+        rh_thtip_frame_id = get_compiled_frameID(m, "rh_thtip")
+        thtip_transform = get_transform(kcache, rh_thtip_frame_id)
+        p21 = [thtip_transform.origin[2], thtip_transform.origin[3]]
 
-#         rh_thmiddle_frame_id = get_compiled_frameID(m, "rh_thmiddle")
-#         thmiddle_transform = get_transform(kcache, rh_thmiddle_frame_id)
-#         p22 = [thmiddle_transform.origin[2], thmiddle_transform.origin[3]]
+        rh_thmiddle_frame_id = get_compiled_frameID(m, "rh_thmiddle")
+        thmiddle_transform = get_transform(kcache, rh_thmiddle_frame_id)
+        p22 = [thmiddle_transform.origin[2], thmiddle_transform.origin[3]]
 
-#         # add one centimeter to the radius to avoid intersection with the fingers
-#         cylinder_pos = circle_center_tangent_to_lines(p11, p12, p21, p22, new_radius + 0.01)
-#         cylinder_pos = SVector(0.0, cylinder_pos[1], cylinder_pos[2])  # Convert to SVector
-#     end
+        # add one centimeter to the radius to avoid intersection with the fingers
+        cylinder_pos = circle_center_tangent_to_lines(p11, p12, p21, p22, new_radius + 0.01)
+        cylinder_pos = SVector(0.0, cylinder_pos[1], cylinder_pos[2])  # Convert to SVector
+    end
 
-#     attracted_frames = ("rh_ffdistal_mass_coord", "rh_ffmiddle_mass_coord", "rh_ffproximal_mass_coord")
-#     attracted_frames_names = ("ffdistal", "ffmiddle", "ffprox")
+    attracted_frames = ("rh_ffdistal_mass_coord", "rh_ffmiddle_mass_coord", "rh_ffproximal_mass_coord")
+    attracted_frames_names = ("ffdistal", "ffmiddle", "ffprox")
 
-#     for i in 1:length(attracted_frames)
-#         frame_pos = configuration(kcache, get_compiled_coordID(kcache, attracted_frames[i]))
-#         cache[root_jointID[attracted_frames_names[i]]] = remake(
-#             cache[root_jointID[attracted_frames_names[i]]];
-#             jointData = Rigid(Transform(SVector(frame_pos[1], cylinder_pos[2], cylinder_pos[3])))
-#         )
-#     end
-# end
+    for i in 1:length(attracted_frames)
+        frame_pos = configuration(kcache, get_compiled_coordID(kcache, attracted_frames[i]))
+        cache[root_jointID[attracted_frames_names[i]]] = remake(
+            cache[root_jointID[attracted_frames_names[i]]];
+            jointData = Rigid(Transform(SVector(frame_pos[1], cylinder_pos[2], cylinder_pos[3])))
+        )
+    end
+
+    repulsed_frames_names = ("fftip", "ffmiddle",  "ffprox", "ffdistal")
+
+    for i in 1:length(repulsed_frames_names)
+        frame = repulsed_frames_names[i]
+        cache[cylinder_position_coord_dict[frame]] = remake(
+            cache[cylinder_position_coord_dict[frame]];
+            coord_data = ConstCoord(cylinder_pos)
+        )
+    end
+end
