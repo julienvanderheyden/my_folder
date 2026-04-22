@@ -401,7 +401,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         # last_t = t
         if t> 10.0
             
-            radius = cylinder_radius + (t -10)*0.01
+            radius = min(cylinder_radius + (t -10)*0.01, 0.05)
             @info "radius = $(round(radius*1000, digits=2)) mm"
 
             for point in ff_attach_points
