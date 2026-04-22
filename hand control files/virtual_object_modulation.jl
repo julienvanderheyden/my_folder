@@ -407,14 +407,13 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
             @info "radius = $(round(radius*1000, digits=2)) mm"
 
             for point in ff_attach_points 
-                println(point)
                 cache[radius_joints[point]] = remake(
                     cache[radius_joints[point]];
                     jointData = Rigid(Transform(SVector(0.0, 0.0, radius)))
                 )
             end
 
-            #update_cylinder_position(m, cache, kcache, radius, root_joints)
+            update_cylinder_position(m, cache, kcache, radius, root_joints)
         end
 
 
