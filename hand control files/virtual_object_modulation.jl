@@ -400,6 +400,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
         # last_t = t
         if t> 10.0
+            @info "updating radius to 5cm for testing"
             radius = 0.05
 
             for point in ff_attach_points
