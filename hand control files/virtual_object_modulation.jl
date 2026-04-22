@@ -297,8 +297,6 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
             root_joints[frame] = root_jointID
         end
 
-        
-""
         feedback_coordID_uncoupled = Dict{String, Any}()
         for joint in uncoupled_joints
             coordID = get_compiled_coordID(cache, "$(joint) coord diff")
@@ -403,7 +401,28 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         last_t = t
     end
 
-    function update_cylinder_position(m, cache, kcache, cylinder_radius, root_jointID)
+    
+
+
+    # Compile the virtual mechanism system, and run the controller via ROS
+    # Make sure rospy_client.py is running first.
+    println("Connecting to ROS client...")
+    cvms = compile(vms)
+    qᵛ = medium_wrap_preshape
+
+    joint_names = ["rh_WRJ1", "rh_WRJ2", "rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4", "rh_MFJ1",
+                    "rh_MFJ2", "rh_MFJ3", "rh_MFJ4", "rh_RFJ1", "rh_RFJ2", "rh_RFJ3", "rh_RFJ4", 
+                    "rh_LFJ1", "rh_LFJ2", "rh_LFJ3", "rh_LFJ4", "rh_LFJ5", "rh_THJ1", "rh_THJ2", 
+                    "rh_THJ3", "rh_THJ4", "rh_THJ5"]
+
+
+    with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
+        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=10.0)
+    end
+
+end
+
+function update_cylinder_position(m, cache, kcache, cylinder_radius, root_jointID)
         medium_wrap_preshape = zeros(24)
         medium_wrap_preshape[21] = 1.2 # thumb extended
         kinematics!(kcache, 0.0, medium_wrap_preshape)
@@ -448,24 +467,3 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
             )
         end
     end
-
-    
-
-
-    # Compile the virtual mechanism system, and run the controller via ROS
-    # Make sure rospy_client.py is running first.
-    println("Connecting to ROS client...")
-    cvms = compile(vms)
-    qᵛ = medium_wrap_preshape
-
-    joint_names = ["rh_WRJ1", "rh_WRJ2", "rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4", "rh_MFJ1",
-                    "rh_MFJ2", "rh_MFJ3", "rh_MFJ4", "rh_RFJ1", "rh_RFJ2", "rh_RFJ3", "rh_RFJ4", 
-                    "rh_LFJ1", "rh_LFJ2", "rh_LFJ3", "rh_LFJ4", "rh_LFJ5", "rh_THJ1", "rh_THJ2", 
-                    "rh_THJ3", "rh_THJ4", "rh_THJ5"]
-
-
-    with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=10.0)
-    end
-
-end
