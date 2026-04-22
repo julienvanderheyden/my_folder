@@ -356,6 +356,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
                     radius_modulation_activation_time = t          # start timing
                 elseif t - radius_modulation_activation_time > 0.2 # sustained 0.2s
                     radius_modulation_activated = true
+                    @info "Radius modulation activated"
                 end
             else
                 radius_modulation_activation_time = 0.0            # reset if condition lost
@@ -367,6 +368,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
             # Decrement radius at each control step
             radius = max(radius - 0.005 * (t - last_t), 0.005)    # rate: 0.5cm/s, floor: 5mm
+            @info "Current radius: $(round(radius*1000, digits=2)) mm"
 
             for point in ff_attach_points
                 cache[radius_joints[point]] = remake(
