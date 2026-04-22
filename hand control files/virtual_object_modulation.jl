@@ -347,8 +347,6 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
     contact_stopping_time = 0.0             # time when stopping condition first met
     radius_modulation_stopped = false
 
-    switched = false
-
     function f_control(cache, t, args, extra)
 
         radius_joints, root_joints, cylinder_radius_coord_dict, cylinder_position_coord_dict, virtual_object_damper_component_dict, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID = args
@@ -416,34 +414,12 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         # end
 
         # last_t = t
-        if t> 0.1 && !switched
+        if t> 10.0
             
-            switched = true
-            # radius = max(cylinder_radius - (t -10)*0.01, 0.005)
-            # @info "radius = $(round(radius*1000, digits=2)) mm"
+            radius = max(cylinder_radius - (t -10)*0.01, 0.005)
+            @info "radius = $(round(radius*1000, digits=2)) mm"
 
-            radius = 0.005
-
-            for point in ff_attach_points 
-                cache[radius_joints[point]] = remake(
-                    cache[radius_joints[point]];
-                    jointData = Rigid(Transform(SVector(0.0, 0.0, radius)))
-                )
-            end
-
-            for frame in repulsed_frames_names
-                cache[cylinder_radius_coord_dict[frame]] = remake(
-                    cache[cylinder_radius_coord_dict[frame]];
-                    coord_data = ConstCoord(radius)
-                )
-
-                cache[virtual_object_damper_component_dict[frame]] = remake(
-                    cache[virtual_object_damper_component_dict[frame]];
-                    bounds = (0.0, 1.05*radius)
-                )
-            end
-
-
+            update_cylinder_radius(cache, radius, radius_joints, cyliunder_radius_coord_dict, virtual_object_damper_component_dict)
 
             update_cylinder_position(m, cache, kcache, radius, root_joints, cylinder_position_coord_dict)
         end
@@ -525,6 +501,31 @@ function update_cylinder_position(m, cache, kcache, new_radius, root_jointID, cy
         cache[cylinder_position_coord_dict[frame]] = remake(
             cache[cylinder_position_coord_dict[frame]];
             coord_data = ConstCoord(cylinder_pos)
+        )
+    end
+end
+
+function update_cylinder_radius(cache, new_radius, radius_joints, cylinder_radius_coord_dict, virtual_object_damper_component_dict)
+    attracted_frames_names = ("ffdistal", "ffmiddle", "ffprox")
+
+    for frame in attracted_frames_names 
+        cache[radius_joints[frame]] = remake(
+            cache[radius_joints[frame]];
+            jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius)))
+        )
+    end
+
+    repulsed_frames_names = ("fftip", "ffmiddle",  "ffprox", "ffdistal")
+
+    for frame in repulsed_frames_names
+        cache[cylinder_radius_coord_dict[frame]] = remake(
+            cache[cylinder_radius_coord_dict[frame]];
+            coord_data = ConstCoord(new_radius)
+        )
+
+        cache[virtual_object_damper_component_dict[frame]] = remake(
+            cache[virtual_object_damper_component_dict[frame]];
+            bounds = (0.0, 1.05*new_radius)
         )
     end
 end
