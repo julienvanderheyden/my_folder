@@ -164,9 +164,6 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         add_component!(vm_robot, LinearSpring(comeback_stiffness_matrix, "$(attracted_frames_names[i])_prismatic_error"); id = "$(attracted_frames_names[i])_comeback_spring")
     end
 
-    # WHY NOT REDUCING THE LAST RIGID JOINT (FOR THE LITTLE FINGER) SUCH THAT THIS FINGER EXERTS MORE FORCE? (read in a paper that this finger exerts more force) 
-    # ---> should also adapt the collision model then   
-
     add_gravity_compensation!(vm_robot, VMRobotControl.DEFAULT_GRAVITY)
     
     vms = VirtualMechanismSystem("myShadowVMS", shadow_robot, vm_robot)
@@ -303,11 +300,14 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
         cylinder_radius_coord_dict = Dict{String, Any}()
         cylinder_position_coord_dict = Dict{String, Any}()
+        virtual_object_damper_component_dict = Dict{String, Any}()
         for frame in repulsed_frames_names
             cylinder_radius_coordID = get_compiled_coordID(cache, "$(frame) cylinder radius")
             cylinder_radius_coord_dict[frame] = cylinder_radius_coordID
             cylinder_position_coordID = get_compiled_coordID(cache, "$(frame) cylinder position")
             cylinder_position_coord_dict[frame] = cylinder_position_coordID
+            damper_componentID = get_compiled_componentID(cache, "$(frame) cylinder damper")
+            virtual_object_damper_component_dict[frame] = damper_componentID
         end
 
         
@@ -330,7 +330,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
             attraction_coordID[frame] = coordID
         end
 
-        return radius_joints, root_joints, cylinder_radius_coord_dict, cylinder_position_coord_dict, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID
+        return radius_joints, root_joints, cylinder_radius_coord_dict, cylinder_position_coord_dict,virtual_object_damper_component_dict, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID
         
     end
 
@@ -351,7 +351,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
     function f_control(cache, t, args, extra)
 
-        radius_joints, root_joints, cylinder_radius_coord_dict, cylinder_position_coord_dict, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID = args
+        radius_joints, root_joints, cylinder_radius_coord_dict, cylinder_position_coord_dict, virtual_object_damper_component_dict, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID = args
 
         # # ── 1. VIRTUAL CONTACT: any attach point has reached virtual object ────────
         ff_attach_points = ["ffdistal", "ffmiddle", "ffprox"]
@@ -436,7 +436,13 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
                     cache[cylinder_radius_coord_dict[frame]];
                     coord_data = ConstCoord(radius)
                 )
+
+                cache[virtual_object_damper_component_dict[frame]] = remake(
+                    cache[virtual_object_damper_component_dict[frame]];
+                    bounds = (0.0, 1.05*radius)
+                )
             end
+
 
 
             update_cylinder_position(m, cache, kcache, radius, root_joints, cylinder_position_coord_dict)
