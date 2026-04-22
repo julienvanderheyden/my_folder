@@ -21,6 +21,7 @@ catch
 end
 
 
+
 function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback_damping)
     print("parsing robot URDF... ")
 
@@ -288,11 +289,16 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
         
         radius_joints = Dict{String, Any}()
+        root_joints = Dict{String, Any}()
         for frame in attracted_frames_names
-            jointID = get_compiled_jointID(cache, ".virtual_mechanism.fixed_joint_$(frame)")
-            radius_joints[frame] = jointID
+            radius_jointID = get_compiled_jointID(cache, ".virtual_mechanism.fixed_joint_$(frame)")
+            radius_joints[frame] = radius_jointID
+            root_jointID = get_compiled_jointID(cache, ".virtual_mechanism.root_joint_$(frame)")
+            root_joints[frame] = root_jointID
         end
 
+        
+""
         feedback_coordID_uncoupled = Dict{String, Any}()
         for joint in uncoupled_joints
             coordID = get_compiled_coordID(cache, "$(joint) coord diff")
@@ -311,7 +317,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
             attraction_coordID[frame] = coordID
         end
 
-        return radius_joints, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID
+        return radius_joints, root_joints, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID
         
     end
 
@@ -330,7 +336,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
     function f_control(cache, t, args, extra)
 
-        radius_joints, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID = args
+        radius_joints, root_joints, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID = args
 
         # ── 1. VIRTUAL CONTACT: any attach point has reached virtual object ────────
         ff_attach_points = ["ffdistal", "ffmiddle", "ffprox"]
@@ -340,11 +346,11 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
         # ── 2. REAL CONTACT: mismatch exceeds deadzone on any relevant joint ───────
         uncoupled_contact = any(["rh_FFJ3", "rh_FFJ4"]) do joint
-            abs(only(configuration(cache, feedback_coordID_uncoupled[joint]))) > 0.9*mismatch_deadzone
+            abs(only(configuration(cache, feedback_coordID_uncoupled[joint]))) > mismatch_deadzone
         end
 
         coupled_contact = any(["rh_FFJ0"]) do joint
-            abs(only(configuration(cache, feedback_coordID_coupled[joint]))) > 2 * 0.9 * mismatch_deadzone
+            abs(only(configuration(cache, feedback_coordID_coupled[joint]))) > 2 * mismatch_deadzone
         end
 
         contact_detected = uncoupled_contact || coupled_contact
@@ -377,6 +383,8 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
                 )
             end
 
+            update_cylinder_position(m, kcache, radius, root_joints)
+
             # ── 5. STOPPING: sustained real contact detected ───────────────────────
             if contact_detected
                 if contact_stopping_time == 0.0
@@ -393,6 +401,52 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         end
 
         last_t = t
+    end
+
+    function update_cylinder_position(m, kcache, cylinder_radius, root_jointID)
+        medium_wrap_preshape = zeros(24)
+        medium_wrap_preshape[21] = 1.2 # thumb extended
+        kinematics!(kcache, 0.0, medium_wrap_preshape)
+
+        if cylinder_radius < 0.015
+            # add one centimeter to the radius to avoid intersection with the fingers 
+            rh_ffknuckle_frame_id = get_compiled_frameID(m, "rh_ffknuckle")
+            ffknuckle_transform = get_transform(kcache, rh_ffknuckle_frame_id)
+        
+            cylinder_position = SVector(0.0, -0.03, ffknuckle_transform.origin[3] - cylinder_radius - 0.007)
+        else
+            # Get the positions of the finger tips
+            rh_fftip_frame_id = get_compiled_frameID(m, "rh_fftip")
+            fftip_transform = get_transform(kcache, rh_fftip_frame_id)
+            p11 = [fftip_transform.origin[2], fftip_transform.origin[3]]  
+
+            rh_ffmiddle_frame_id = get_compiled_frameID(m, "rh_ffmiddle")
+            ffmiddle_transform = get_transform(kcache, rh_ffmiddle_frame_id)
+            p12 = [ffmiddle_transform.origin[2], ffmiddle_transform.origin[3]]
+
+            rh_thtip_frame_id = get_compiled_frameID(m, "rh_thtip")
+            thtip_transform = get_transform(kcache, rh_thtip_frame_id)
+            p21 = [thtip_transform.origin[2], thtip_transform.origin[3]]
+
+            rh_thmiddle_frame_id = get_compiled_frameID(m, "rh_thmiddle")
+            thmiddle_transform = get_transform(kcache, rh_thmiddle_frame_id)
+            p22 = [thmiddle_transform.origin[2], thmiddle_transform.origin[3]]
+
+            # add one centimeter to the radius to avoid intersection with the fingers
+            cylinder_position = circle_center_tangent_to_lines(p11, p12, p21, p22, cylinder_radius + 0.01)
+            cylinder_position = SVector(0.0, cylinder_position[1], cylinder_position[2])  # Convert to SVector
+        end
+
+        attracted_frames = ("rh_ffdistal_mass_coord", "rh_ffmiddle_mass_coord", "rh_ffproximal_mass_coord")
+        attracted_frames_names = ("ffdistal", "ffmiddle", "ffprox")
+
+        for i in 1:length(attracted_frames)
+            frame_pos = configuration(kcache, get_compiled_coordID(kcache, attracted_frames[i]))
+            cache[root_jointID[attracted_frames_names[i]]] = remake(
+                cache[root_jointID[attracted_frames_names[i]]];
+                jointData = Rigid(Transform(SVector(frame_pos[1], cylinder_position[2], cylinder_position[3])))
+            )
+        end
     end
 
     
