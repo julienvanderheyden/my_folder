@@ -386,7 +386,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         if radius_modulation_activated && !radius_modulation_stopped
 
             # Decrement radius at each control step
-            radius = max(radius - 0.0025 * (t - last_t), 0.005)    # rate: 2.5mm/s, floor: 5mm
+            radius = max(radius - 0.002 * (t - last_t), 0.005)    # rate: 2 mm/s, floor: 5mm
             @info "Current radius: $(round(radius*1000, digits=2)) mm"
 
             update_cylinder_radius(cache, radius, radius_joints, cylinder_radius_coord_dict, virtual_object_damper_component_dict)
