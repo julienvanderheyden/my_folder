@@ -340,11 +340,11 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
         # ── 2. REAL CONTACT: mismatch exceeds deadzone on any relevant joint ───────
         uncoupled_contact = any(["rh_FFJ3", "rh_FFJ4"]) do joint
-            abs(only(configuration(cache, feedback_coordID_uncoupled[joint]))) > mismatch_deadzone
+            abs(only(configuration(cache, feedback_coordID_uncoupled[joint]))) > 0.9*mismatch_deadzone
         end
 
         coupled_contact = any(["rh_FFJ0"]) do joint
-            abs(only(configuration(cache, feedback_coordID_coupled[joint]))) > 2 * mismatch_deadzone
+            abs(only(configuration(cache, feedback_coordID_coupled[joint]))) > 2 * 0.9 * mismatch_deadzone
         end
 
         contact_detected = uncoupled_contact || coupled_contact
