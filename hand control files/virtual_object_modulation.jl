@@ -243,7 +243,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         add_coordinate!(vms, ConstCoord(cylinder_position); id = "$(repulsed_frames_names[i]) cylinder position")
 
         #standard repulsive spring-damper pair
-        add_coordinate!(vms, CoordDifference(frame, "cylinder position") ; id = "$(repulsed_frames_names[i]) cylinder diff" )
+        add_coordinate!(vms, CoordDifference(frame, "$(repulsed_frames_names[i]) cylinder position") ; id = "$(repulsed_frames_names[i]) cylinder diff" )
         add_coordinate!(vms, CoordSlice("$(repulsed_frames_names[i]) cylinder diff", SVector(2,3)); id="$(repulsed_frames_names[i]) planar error")
         add_coordinate!(vms, CoordNorm("$(repulsed_frames_names[i]) planar error") ; id = "$(repulsed_frames_names[i]) planar error norm")
         add_coordinate!(vms, CoordDifference("$(repulsed_frames_names[i]) planar error norm", "$(repulsed_frames_names[i]) cylinder radius"); id = "shifted $(repulsed_frames_names[i]) cylinder error" )
