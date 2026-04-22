@@ -416,8 +416,10 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         # last_t = t
         if t> 10.0
             
-            radius = max(cylinder_radius - (t -10)*0.01, 0.005)
-            @info "radius = $(round(radius*1000, digits=2)) mm"
+            # radius = max(cylinder_radius - (t -10)*0.01, 0.005)
+            # @info "radius = $(round(radius*1000, digits=2)) mm"
+
+            radius = 0.005
 
             for point in ff_attach_points 
                 cache[radius_joints[point]] = remake(
