@@ -383,7 +383,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
                 )
             end
 
-            update_cylinder_position(m, kcache, radius, root_joints)
+            update_cylinder_position(m, cache, kcache, radius, root_joints)
 
             # ── 5. STOPPING: sustained real contact detected ───────────────────────
             if contact_detected
@@ -403,7 +403,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         last_t = t
     end
 
-    function update_cylinder_position(m, kcache, cylinder_radius, root_jointID)
+    function update_cylinder_position(m, cache, kcache, cylinder_radius, root_jointID)
         medium_wrap_preshape = zeros(24)
         medium_wrap_preshape[21] = 1.2 # thumb extended
         kinematics!(kcache, 0.0, medium_wrap_preshape)
