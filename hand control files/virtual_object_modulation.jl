@@ -349,7 +349,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
     function f_control(cache, t, args, extra)
 
-        radius_joints, root_joints, cylinder_radius_coord_dict ,feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID = args
+        radius_joints, root_joints, cylinder_radius_coord_dict, cylinder_position_coord_dict, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID = args
 
         # # ── 1. VIRTUAL CONTACT: any attach point has reached virtual object ────────
         ff_attach_points = ["ffdistal", "ffmiddle", "ffprox"]
