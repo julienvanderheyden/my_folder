@@ -336,69 +336,73 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
         radius_joints, root_joints, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID = args
 
-        # ── 1. VIRTUAL CONTACT: any attach point has reached virtual object ────────
-        ff_attach_points = ["ffdistal", "ffmiddle", "ffprox"]
-        ff_equilibrium = any(ff_attach_points) do point
-            norm(configuration(cache, attraction_coordID[point])) < 0.001
+        # # ── 1. VIRTUAL CONTACT: any attach point has reached virtual object ────────
+        # ff_attach_points = ["ffdistal", "ffmiddle", "ffprox"]
+        # ff_equilibrium = any(ff_attach_points) do point
+        #     norm(configuration(cache, attraction_coordID[point])) < 0.001
+        # end
+
+        # # ── 2. REAL CONTACT: mismatch exceeds deadzone on any relevant joint ───────
+        # uncoupled_contact = any(["rh_FFJ3", "rh_FFJ4"]) do joint
+        #     abs(only(configuration(cache, feedback_coordID_uncoupled[joint]))) > mismatch_deadzone
+        # end
+
+        # coupled_contact = any(["rh_FFJ0"]) do joint
+        #     abs(only(configuration(cache, feedback_coordID_coupled[joint]))) > 2 * mismatch_deadzone
+        # end
+
+        # contact_detected = uncoupled_contact || coupled_contact
+
+        # # ── 3. ACTIVATION: sustained virtual contact without real contact ──────────
+        # if !radius_modulation_activated && !radius_modulation_stopped
+        #     if ff_equilibrium && !contact_detected
+        #         if radius_modulation_activation_time == 0.0
+        #             radius_modulation_activation_time = t          # start timing
+        #         elseif t - radius_modulation_activation_time > 0.2 # sustained 0.2s
+        #             radius_modulation_activated = true
+        #             @info "Radius modulation activated"
+        #         end
+        #     else
+        #         radius_modulation_activation_time = 0.0            # reset if condition lost
+        #     end
+        # end
+
+        # # ── 4. RADIUS MODULATION ───────────────────────────────────────────────────
+        # if radius_modulation_activated && !radius_modulation_stopped
+
+        #     # Decrement radius at each control step
+        #     radius = max(radius - 0.001 * (t - last_t), 0.005)    # rate: 1mm/s, floor: 5mm
+        #     @info "Current radius: $(round(radius*1000, digits=2)) mm"
+
+        #     for point in ff_attach_points
+        #         cache[radius_joints[point]] = remake(
+        #             cache[radius_joints[point]];
+        #             jointData = Rigid(Transform(SVector(0.0, 0.0, radius)))
+        #         )
+        #     end
+
+        #     update_cylinder_position(m, cache, kcache, radius, root_joints)
+
+        #     # ── 5. STOPPING: sustained real contact detected ───────────────────────
+        #     if contact_detected
+        #         if contact_stopping_time == 0.0
+        #             contact_stopping_time = t                      # start stop timer
+        #         elseif t - contact_stopping_time > 0.2            # sustained 0.2s
+        #             radius_modulation_activated = false
+        #             radius_modulation_stopped = true               # lock: do not re-activate
+        #             @info "Radius modulation stopped at r = $(round(radius*1000, digits=1)) mm"
+        #         end
+        #     else
+        #         contact_stopping_time = 0.0                        # reset if contact lost
+        #     end
+
+        # end
+
+        # last_t = t
+
+        if t > 10
+            update_cylinder_position(m, cache, kcache, 0.05, root_joints)
         end
-
-        # ── 2. REAL CONTACT: mismatch exceeds deadzone on any relevant joint ───────
-        uncoupled_contact = any(["rh_FFJ3", "rh_FFJ4"]) do joint
-            abs(only(configuration(cache, feedback_coordID_uncoupled[joint]))) > mismatch_deadzone
-        end
-
-        coupled_contact = any(["rh_FFJ0"]) do joint
-            abs(only(configuration(cache, feedback_coordID_coupled[joint]))) > 2 * mismatch_deadzone
-        end
-
-        contact_detected = uncoupled_contact || coupled_contact
-
-        # ── 3. ACTIVATION: sustained virtual contact without real contact ──────────
-        if !radius_modulation_activated && !radius_modulation_stopped
-            if ff_equilibrium && !contact_detected
-                if radius_modulation_activation_time == 0.0
-                    radius_modulation_activation_time = t          # start timing
-                elseif t - radius_modulation_activation_time > 0.2 # sustained 0.2s
-                    radius_modulation_activated = true
-                    @info "Radius modulation activated"
-                end
-            else
-                radius_modulation_activation_time = 0.0            # reset if condition lost
-            end
-        end
-
-        # ── 4. RADIUS MODULATION ───────────────────────────────────────────────────
-        if radius_modulation_activated && !radius_modulation_stopped
-
-            # Decrement radius at each control step
-            radius = max(radius - 0.001 * (t - last_t), 0.005)    # rate: 1mm/s, floor: 5mm
-            @info "Current radius: $(round(radius*1000, digits=2)) mm"
-
-            for point in ff_attach_points
-                cache[radius_joints[point]] = remake(
-                    cache[radius_joints[point]];
-                    jointData = Rigid(Transform(SVector(0.0, 0.0, radius)))
-                )
-            end
-
-            update_cylinder_position(m, cache, kcache, radius, root_joints)
-
-            # ── 5. STOPPING: sustained real contact detected ───────────────────────
-            if contact_detected
-                if contact_stopping_time == 0.0
-                    contact_stopping_time = t                      # start stop timer
-                elseif t - contact_stopping_time > 0.2            # sustained 0.2s
-                    radius_modulation_activated = false
-                    radius_modulation_stopped = true               # lock: do not re-activate
-                    @info "Radius modulation stopped at r = $(round(radius*1000, digits=1)) mm"
-                end
-            else
-                contact_stopping_time = 0.0                        # reset if contact lost
-            end
-
-        end
-
-        last_t = t
     end
 
     
@@ -422,17 +426,17 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
 end
 
-function update_cylinder_position(m, cache, kcache, cylinder_radius, root_jointID)
+function update_cylinder_position(m, cache, kcache, new_radius, root_jointID)
         medium_wrap_preshape = zeros(24)
         medium_wrap_preshape[21] = 1.2 # thumb extended
         kinematics!(kcache, 0.0, medium_wrap_preshape)
 
-        if cylinder_radius < 0.015
+        if new_radius < 0.015
             # add one centimeter to the radius to avoid intersection with the fingers 
             rh_ffknuckle_frame_id = get_compiled_frameID(m, "rh_ffknuckle")
             ffknuckle_transform = get_transform(kcache, rh_ffknuckle_frame_id)
         
-            cylinder_position = SVector(0.0, -0.03, ffknuckle_transform.origin[3] - cylinder_radius - 0.007)
+            cylinder_pos = SVector(0.0, -0.03, ffknuckle_transform.origin[3] - new_radius - 0.007)
         else
             # Get the positions of the finger tips
             rh_fftip_frame_id = get_compiled_frameID(m, "rh_fftip")
@@ -452,8 +456,8 @@ function update_cylinder_position(m, cache, kcache, cylinder_radius, root_jointI
             p22 = [thmiddle_transform.origin[2], thmiddle_transform.origin[3]]
 
             # add one centimeter to the radius to avoid intersection with the fingers
-            cylinder_position = circle_center_tangent_to_lines(p11, p12, p21, p22, cylinder_radius + 0.01)
-            cylinder_position = SVector(0.0, cylinder_position[1], cylinder_position[2])  # Convert to SVector
+            cylinder_pos = circle_center_tangent_to_lines(p11, p12, p21, p22, new_radius + 0.01)
+            cylinder_pos = SVector(0.0, cylinder_pos[1], cylinder_pos[2])  # Convert to SVector
         end
 
         attracted_frames = ("rh_ffdistal_mass_coord", "rh_ffmiddle_mass_coord", "rh_ffproximal_mass_coord")
@@ -463,7 +467,7 @@ function update_cylinder_position(m, cache, kcache, cylinder_radius, root_jointI
             frame_pos = configuration(kcache, get_compiled_coordID(kcache, attracted_frames[i]))
             cache[root_jointID[attracted_frames_names[i]]] = remake(
                 cache[root_jointID[attracted_frames_names[i]]];
-                jointData = Rigid(Transform(SVector(frame_pos[1], cylinder_position[2], cylinder_position[3])))
+                jointData = Rigid(Transform(SVector(frame_pos[1], cylinder_pos[2], cylinder_pos[3])))
             )
         end
     end
