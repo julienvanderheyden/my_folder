@@ -416,7 +416,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         # end
 
         # last_t = t
-        if t> 10.0 && !switched
+        if t> 0.1 && !switched
             
             switched = true
             # radius = max(cylinder_radius - (t -10)*0.01, 0.005)
