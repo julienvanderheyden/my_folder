@@ -367,7 +367,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         if radius_modulation_activated && !radius_modulation_stopped
 
             # Decrement radius at each control step
-            radius = max(radius - 0.005 * (t - last_t), 0.005)    # rate: 0.5cm/s, floor: 5mm
+            radius = max(radius - 0.001 * (t - last_t), 0.005)    # rate: 1mm/s, floor: 5mm
             @info "Current radius: $(round(radius*1000, digits=2)) mm"
 
             for point in ff_attach_points
