@@ -347,6 +347,8 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
     contact_stopping_time = 0.0             # time when stopping condition first met
     radius_modulation_stopped = false
 
+    switched = false
+
     function f_control(cache, t, args, extra)
 
         radius_joints, root_joints, cylinder_radius_coord_dict, cylinder_position_coord_dict, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID = args
@@ -414,8 +416,9 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         # end
 
         # last_t = t
-        if t> 10.0
+        if t> 10.0 && !switched
             
+            switched = true
             # radius = max(cylinder_radius - (t -10)*0.01, 0.005)
             # @info "radius = $(round(radius*1000, digits=2)) mm"
 
