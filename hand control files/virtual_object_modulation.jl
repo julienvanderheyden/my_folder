@@ -411,7 +411,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
                 )
             end
 
-            update_cylinder_position(m, cache, kcache, radius, root_joints)
+            #update_cylinder_position(m, cache, kcache, radius, root_joints)
         end
 
 
