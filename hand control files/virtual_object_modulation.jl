@@ -588,14 +588,8 @@ function update_finger_state!(state, finger, cache, t, attraction_coordID, feedb
     cfg = FINGER_CONFIGS[finger]
 
     # ── 1. Virtual contact ────────────────────────────────────────────────────
-    state.equilibrium = all(cfg.attracted_frames_names) do point
+    state.equilibrium = any(cfg.attracted_frames_names) do point
         norm(configuration(cache, attraction_coordID[point])) < 0.002
-    end
-    
-    if finger == "th"
-        for frame in cfg.attracted_frames_names
-            @info "th $(frame) attraction error: $(norm(configuration(cache, attraction_coordID[frame])))"
-        end
     end
 
     # ── 2. Real contact ───────────────────────────────────────────────────────
