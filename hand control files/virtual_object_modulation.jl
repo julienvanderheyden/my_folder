@@ -589,7 +589,7 @@ function update_finger_state!(state, finger, cache, t, attraction_coordID, feedb
 
     # ── 1. Virtual contact ────────────────────────────────────────────────────
     state.equilibrium = any(cfg.attracted_frames_names) do point
-        norm(configuration(cache, attraction_coordID[point])) < 0.002
+        norm(configuration(cache, attraction_coordID[point])) < 0.0025
     end
 
     # ── 2. Real contact ───────────────────────────────────────────────────────
