@@ -20,6 +20,68 @@ try
 catch
 end
 
+struct FingerConfig
+    attracted_frames::Vector{String}       # mass coord IDs used for attraction springs
+    attracted_frames_names::Vector{String} # short names for those frames
+    repulsed_frames::Vector{String}        # mass coord IDs used for repulsion
+    repulsed_frames_names::Vector{String}  # short names for those frames
+    coupled_joints::Vector{String}         # joints where J0 = J1 + J2
+    uncoupled_joints::Vector{String}       # standard individual joints
+end
+
+const FINGER_CONFIGS = Dict{String, FingerConfig}(
+
+    "ff" => FingerConfig(
+        ["rh_ffdistal_mass_coord", "rh_ffmiddle_mass_coord", "rh_ffproximal_mass_coord"],
+        ["ffdistal", "ffmiddle", "ffprox"],
+        ["rh_fftip_mass_coord", "rh_ffmiddle_mass_coord",
+         "rh_ffproximal_mass_coord", "rh_ffdistal"],
+        ["fftip", "ffmiddle", "ffprox", "ffdistal"],
+        ["rh_FFJ0"],
+        ["rh_FFJ3", "rh_FFJ4"],
+    ),
+
+    "mf" => FingerConfig(
+        ["rh_mfdistal_mass_coord", "rh_mfmiddle_mass_coord", "rh_mfproximal_mass_coord"],
+        ["mfdistal", "mfmiddle", "mfprox"],
+        ["rh_mftip_mass_coord", "rh_mfmiddle_mass_coord",
+         "rh_mfproximal_mass_coord", "rh_mfdistal"],
+        ["mftip", "mfmiddle", "mfprox", "mfdistal"],
+        ["rh_MFJ0"],
+        ["rh_MFJ3", "rh_MFJ4"],
+    ),
+
+    "rf" => FingerConfig(
+        ["rh_rfdistal_mass_coord", "rh_rfmiddle_mass_coord", "rh_rfproximal_mass_coord"],
+        ["rfdistal", "rfmiddle", "rfprox"],
+        ["rh_rftip_mass_coord", "rh_rfmiddle_mass_coord",
+         "rh_rfproximal_mass_coord", "rh_rfdistal"],
+        ["rftip", "rfmiddle", "rfprox", "rfdistal"],
+        ["rh_RFJ0"],
+        ["rh_RFJ3", "rh_RFJ4"],
+    ),
+
+    "lf" => FingerConfig(
+        ["rh_lfdistal_mass_coord", "rh_lfmiddle_mass_coord", "rh_lfproximal_mass_coord"],
+        ["lfdistal", "lfmiddle", "lfprox"],
+        ["rh_lftip_mass_coord", "rh_lfmiddle_mass_coord",
+         "rh_lfproximal_mass_coord", "rh_lfdistal"],
+        ["lftip", "lfmiddle", "lfprox", "lfdistal"],
+        ["rh_LFJ0"],
+        ["rh_LFJ3", "rh_LFJ4", "rh_LFJ5"],
+    ),
+
+    "th" => FingerConfig(
+        ["rh_thdistal_mass_coord", "rh_thmiddle_mass_coord"],
+        ["thdistal", "thmiddle"],
+        ["rh_thtip_mass_coord", "rh_thmiddle_mass_coord",
+         "rh_thdistal"],
+        ["thtip", "thmiddle", "thdistal"],
+        [],                                          # thumb has no coupled J0
+        ["rh_THJ1", "rh_THJ2", "rh_THJ3", "rh_THJ4", "rh_THJ5"],
+    ),
+)
+
 
 
 function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback_damping)
@@ -291,17 +353,20 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
         radius_joints = Dict{String, Any}()
         root_joints = Dict{String, Any}()
-        for frame in attracted_frames_names
+        attraction_coordID = Dict{String, Any}()
+        for frame in FINGER_CONFIGS["ff"].attracted_frames_names
             radius_jointID = get_compiled_jointID(cache, ".virtual_mechanism.fixed_joint_$(frame)")
             radius_joints[frame] = radius_jointID
             root_jointID = get_compiled_jointID(cache, ".virtual_mechanism.root_joint_$(frame)")
             root_joints[frame] = root_jointID
+            coordID = get_compiled_coordID(cache, "ee $(frame) diff")
+            attraction_coordID[frame] = coordID
         end
 
         cylinder_radius_coord_dict = Dict{String, Any}()
         cylinder_position_coord_dict = Dict{String, Any}()
         virtual_object_damper_component_dict = Dict{String, Any}()
-        for frame in repulsed_frames_names
+        for frame in FINGER_CONFIGS["ff"].repulsed_frames_names
             cylinder_radius_coordID = get_compiled_coordID(cache, "$(frame) cylinder radius")
             cylinder_radius_coord_dict[frame] = cylinder_radius_coordID
             cylinder_position_coordID = get_compiled_coordID(cache, "$(frame) cylinder position")
@@ -310,25 +375,18 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
             virtual_object_damper_component_dict[frame] = damper_componentID
         end
 
-        
-
         feedback_coordID_uncoupled = Dict{String, Any}()
-        for joint in uncoupled_joints
+        for joint in FINGER_CONFIGS["ff"].uncoupled_joints
             coordID = get_compiled_coordID(cache, "$(joint) coord diff")
             feedback_coordID_uncoupled[joint] = coordID
         end
 
         feedback_coordID_coupled = Dict{String, Any}()
-        for joint in coupled_joints
+        for joint in FINGER_CONFIGS["ff"].coupled_joints
             coordID = get_compiled_coordID(cache, "$(joint) coord diff")
             feedback_coordID_coupled[joint] = coordID
         end
 
-        attraction_coordID = Dict{String, Any}()
-        for frame in attracted_frames_names
-            coordID = get_compiled_coordID(cache, "ee $(frame) diff")
-            attraction_coordID[frame] = coordID
-        end
 
         return radius_joints, root_joints, cylinder_radius_coord_dict, cylinder_position_coord_dict,virtual_object_damper_component_dict, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID
         
@@ -352,17 +410,17 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         radius_joints, root_joints, cylinder_radius_coord_dict, cylinder_position_coord_dict, virtual_object_damper_component_dict, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID = args
 
         # ── 1. VIRTUAL CONTACT: any attach point has reached virtual object ────────
-        ff_attach_points = ["ffdistal", "ffmiddle", "ffprox"]
+        ff_attach_points = FINGER_CONFIGS["ff"].attracted_frames_names
         ff_equilibrium = any(ff_attach_points) do point
             norm(configuration(cache, attraction_coordID[point])) < 0.001
         end
 
         # ── 2. REAL CONTACT: mismatch exceeds deadzone on any relevant joint ───────
-        uncoupled_contact = any(["rh_FFJ3", "rh_FFJ4"]) do joint
+        uncoupled_contact = any(FINGER_CONFIGS["ff"].uncoupled_joints) do joint
             abs(only(configuration(cache, feedback_coordID_uncoupled[joint]))) > mismatch_deadzone
         end
 
-        coupled_contact = any(["rh_FFJ0"]) do joint
+        coupled_contact = any(FINGER_CONFIGS["ff"].coupled_joints) do joint
             abs(only(configuration(cache, feedback_coordID_coupled[joint]))) > 2 * mismatch_deadzone
         end
 
@@ -389,8 +447,8 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
             radius = max(radius - 0.002 * (t - last_t), 0.005)    # rate: 2 mm/s, floor: 5mm
             @info "Current radius: $(round(radius*1000, digits=2)) mm"
 
-            update_cylinder_radius(cache, radius, radius_joints, cylinder_radius_coord_dict, virtual_object_damper_component_dict)
-            update_cylinder_position(m, cache, kcache, radius, root_joints, cylinder_position_coord_dict)
+            update_cylinder_radius("ff", cache, radius, radius_joints, cylinder_radius_coord_dict, virtual_object_damper_component_dict)
+            update_cylinder_position("ff", m, cache, kcache, radius, root_joints, cylinder_position_coord_dict)
 
             # ── 5. STOPPING: sustained real contact detected ───────────────────────
             if contact_detected
@@ -408,16 +466,6 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         end
 
         last_t = t
-        # if t> 10.0
-            
-        #     radius = max(cylinder_radius - (t -10)*0.0025, 0.005)
-        #     @info "radius = $(round(radius*1000, digits=2)) mm"
-
-        #     update_cylinder_radius(cache, radius, radius_joints, cylinder_radius_coord_dict, virtual_object_damper_component_dict)
-
-        #     update_cylinder_position(m, cache, kcache, radius, root_joints, cylinder_position_coord_dict)
-        # end
-
 
     end
 
@@ -443,7 +491,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
 end
 
-function update_cylinder_position(m, cache, kcache, new_radius, root_jointID, cylinder_position_coord_dict)
+function update_cylinder_position(finger, m, cache, kcache, new_radius, root_jointID, cylinder_position_coord_dict)
     medium_wrap_preshape = zeros(24)
     medium_wrap_preshape[21] = 1.2 # thumb extended
     kinematics!(kcache, 0.0, medium_wrap_preshape)
@@ -477,21 +525,16 @@ function update_cylinder_position(m, cache, kcache, new_radius, root_jointID, cy
         cylinder_pos = SVector(0.0, cylinder_pos[1], cylinder_pos[2])  # Convert to SVector
     end
 
-    attracted_frames = ("rh_ffdistal_mass_coord", "rh_ffmiddle_mass_coord", "rh_ffproximal_mass_coord")
-    attracted_frames_names = ("ffdistal", "ffmiddle", "ffprox")
 
-    for i in 1:length(attracted_frames)
-        frame_pos = configuration(kcache, get_compiled_coordID(kcache, attracted_frames[i]))
-        cache[root_jointID[attracted_frames_names[i]]] = remake(
-            cache[root_jointID[attracted_frames_names[i]]];
+    for i in 1:length(FINGER_CONFIGS[finger].attracted_frames)
+        frame_pos = configuration(kcache, get_compiled_coordID(kcache, FINGER_CONFIGS[finger].attracted_frames[i]))
+        cache[root_jointID[FINGER_CONFIGS[finger].attracted_frames_names[i]]] = remake(
+            cache[root_jointID[FINGER_CONFIGS[finger].attracted_frames_names[i]]];
             jointData = Rigid(Transform(SVector(frame_pos[1], cylinder_pos[2], cylinder_pos[3])))
         )
     end
 
-    repulsed_frames_names = ("fftip", "ffmiddle",  "ffprox", "ffdistal")
-
-    for i in 1:length(repulsed_frames_names)
-        frame = repulsed_frames_names[i]
+    for frame in FINGER_CONFIGS[finger].repulsed_frames_names
         cache[cylinder_position_coord_dict[frame]] = remake(
             cache[cylinder_position_coord_dict[frame]];
             coord_data = ConstCoord(cylinder_pos)
@@ -499,19 +542,17 @@ function update_cylinder_position(m, cache, kcache, new_radius, root_jointID, cy
     end
 end
 
-function update_cylinder_radius(cache, new_radius, radius_joints, cylinder_radius_coord_dict, virtual_object_damper_component_dict)
-    attracted_frames_names = ("ffdistal", "ffmiddle", "ffprox")
+function update_cylinder_radius(finger, cache, new_radius, radius_joints, cylinder_radius_coord_dict, virtual_object_damper_component_dict)
 
-    for frame in attracted_frames_names 
+    for frame in FINGER_CONFIGS[finger].attracted_frames_names 
         cache[radius_joints[frame]] = remake(
             cache[radius_joints[frame]];
             jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius)))
         )
     end
 
-    repulsed_frames_names = ("fftip", "ffmiddle",  "ffprox", "ffdistal")
 
-    for frame in repulsed_frames_names
+    for frame in FINGER_CONFIGS[finger].repulsed_frames_names
         cache[cylinder_radius_coord_dict[frame]] = remake(
             cache[cylinder_radius_coord_dict[frame]];
             coord_data = ConstCoord(new_radius)
