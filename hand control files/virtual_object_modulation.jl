@@ -445,10 +445,10 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
             # Decrement radius at each control step
             finger_states["ff"].radius = max(finger_states["ff"].radius - 0.002 * (t - last_t), 0.005)    # rate: 2 mm/s, floor: 5mm
-            @info "Current radius: $(round(radius*1000, digits=2)) mm"
+            @info "ff current radius: $(round(finger_states["ff"].radius*1000, digits=2)) mm"
 
-            update_cylinder_radius("ff", cache, radius, radius_joints, cylinder_radius_coord_dict, virtual_object_damper_component_dict)
-            update_cylinder_position("ff", m, cache, kcache, radius, root_joints, cylinder_position_coord_dict)
+            update_cylinder_radius("ff", cache, finger_states["ff"].radius, radius_joints, cylinder_radius_coord_dict, virtual_object_damper_component_dict)
+            update_cylinder_position("ff", m, cache, kcache, finger_states["ff"].radius, root_joints, cylinder_position_coord_dict)
 
             # ── 5. STOPPING: sustained real contact detected ───────────────────────
             if finger_states["ff"].contact_detected
@@ -457,7 +457,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
                 elseif t - finger_states["ff"].stopping_time > 0.2            # sustained 0.2s
                     finger_states["ff"].modulation_activated = false
                     finger_states["ff"].modulation_stopped = true               # lock: do not re-activate
-                    @info "Radius modulation stopped at r = $(round(radius*1000, digits=1)) mm"
+                    @info "ff radius modulation stopped at r = $(round(finger_states["ff"].radius*1000, digits=1)) mm"
                 end
             else
                 finger_states["ff"].stopping_time = 0.0                        # reset if contact lost
