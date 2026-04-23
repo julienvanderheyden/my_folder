@@ -348,62 +348,63 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
     println("Linked !")
 
-    
+
     function f_setup(cache)
 
-        radius_joints = Dict{String, Any}()
-        root_joints = Dict{String, Any}()
-        attraction_coordID = Dict{String, Any}()
-        for frame in FINGER_CONFIGS["ff"].attracted_frames_names
-            radius_jointID = get_compiled_jointID(cache, ".virtual_mechanism.fixed_joint_$(frame)")
-            radius_joints[frame] = radius_jointID
-            root_jointID = get_compiled_jointID(cache, ".virtual_mechanism.root_joint_$(frame)")
-            root_joints[frame] = root_jointID
-            coordID = get_compiled_coordID(cache, "ee $(frame) diff")
-            attraction_coordID[frame] = coordID
+        radius_joints                = Dict{String, Any}() # joint IDs of the rigid joints controlling the attracting cylinder radius for each finger
+        root_joints                  = Dict{String, Any}() # joint IDs of the root joints controlling the attracting cylinder position for each finger
+        attraction_coordID           = Dict{String, Any}() # coord IDs of the attraction spring between each attach point and the corresponding cylinder center (used to detect virtual contact)
+        cylinder_radius_coord_dict   = Dict{String, Any}() # coord IDs of the spring rest length controlling the repulsive cylinder radius f
+        cylinder_position_coord_dict = Dict{String, Any}() # coord IDs of the fixed point controlling the repulsive cylinder position
+        damper_component_dict        = Dict{String, Any}() # component ID of the damper of the repulsive cylinder (cannot be modulated with coord)
+        feedback_coordID_uncoupled   = Dict{String, Any}() # coord IDs of the feedback springs for uncoupled joints (used to detect real contact)
+        feedback_coordID_coupled     = Dict{String, Any}() # coord IDs of the feedback springs for coupled joints (used to detect real contact, higher deadzone)
+
+        for (finger, cfg) in FINGER_CONFIGS
+
+            for frame in cfg.attracted_frames_names
+                radius_joints[frame]      = get_compiled_jointID(cache, ".virtual_mechanism.fixed_joint_$(frame)")
+                root_joints[frame]        = get_compiled_jointID(cache, ".virtual_mechanism.root_joint_$(frame)")
+                attraction_coordID[frame] = get_compiled_coordID(cache, "ee $(frame) diff")
+            end
+
+            for frame in cfg.repulsed_frames_names
+                cylinder_radius_coord_dict[frame]   = get_compiled_coordID(cache, "$(frame) cylinder radius")
+                cylinder_position_coord_dict[frame] = get_compiled_coordID(cache, "$(frame) cylinder position")
+                damper_component_dict[frame]        = get_compiled_componentID(cache, "$(frame) cylinder damper")
+            end
+
+            for joint in cfg.uncoupled_joints
+                feedback_coordID_uncoupled[joint] = get_compiled_coordID(cache, "$(joint) coord diff")
+            end
+
+            for joint in cfg.coupled_joints
+                feedback_coordID_coupled[joint] = get_compiled_coordID(cache, "$(joint) coord diff")
+            end
         end
 
-        cylinder_radius_coord_dict = Dict{String, Any}()
-        cylinder_position_coord_dict = Dict{String, Any}()
-        virtual_object_damper_component_dict = Dict{String, Any}()
-        for frame in FINGER_CONFIGS["ff"].repulsed_frames_names
-            cylinder_radius_coordID = get_compiled_coordID(cache, "$(frame) cylinder radius")
-            cylinder_radius_coord_dict[frame] = cylinder_radius_coordID
-            cylinder_position_coordID = get_compiled_coordID(cache, "$(frame) cylinder position")
-            cylinder_position_coord_dict[frame] = cylinder_position_coordID
-            damper_componentID = get_compiled_componentID(cache, "$(frame) cylinder damper")
-            virtual_object_damper_component_dict[frame] = damper_componentID
-        end
-
-        feedback_coordID_uncoupled = Dict{String, Any}()
-        for joint in FINGER_CONFIGS["ff"].uncoupled_joints
-            coordID = get_compiled_coordID(cache, "$(joint) coord diff")
-            feedback_coordID_uncoupled[joint] = coordID
-        end
-
-        feedback_coordID_coupled = Dict{String, Any}()
-        for joint in FINGER_CONFIGS["ff"].coupled_joints
-            coordID = get_compiled_coordID(cache, "$(joint) coord diff")
-            feedback_coordID_coupled[joint] = coordID
-        end
-
-
-        return radius_joints, root_joints, cylinder_radius_coord_dict, cylinder_position_coord_dict,virtual_object_damper_component_dict, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID
-        
+        return (radius_joints, root_joints,
+                cylinder_radius_coord_dict, cylinder_position_coord_dict, damper_component_dict,
+                feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID)
     end
 
-    # State variables
-    radius = cylinder_radius
+    mutable struct FingerModulationState
+        radius::Float64
+        equilibrium::Bool
+        contact_detected::Bool
+        modulation_activated::Bool
+        modulation_stopped::Bool
+        activation_time::Float64
+        stopping_time::Float64
+    end
 
-    ff_equilibrium = false
-    contact_detected = false
+    FingerModulationState(initial_radius::Float64) = FingerModulationState(
+        initial_radius, false, false, false, false, 0.0, 0.0
+    )
 
-    radius_modulation_activated = false
-    radius_modulation_activation_time = 0.0  # time when activation condition first met
+    finger_states = Dict(name => FingerModulationState(cylinder_radius) for name in keys(FINGER_CONFIGS))
+
     last_t = 0.0
-
-    contact_stopping_time = 0.0             # time when stopping condition first met
-    radius_modulation_stopped = false
 
     function f_control(cache, t, args, extra)
 
@@ -411,7 +412,7 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
         # ── 1. VIRTUAL CONTACT: any attach point has reached virtual object ────────
         ff_attach_points = FINGER_CONFIGS["ff"].attracted_frames_names
-        ff_equilibrium = any(ff_attach_points) do point
+        finger_states["ff"].equilibrium = any(ff_attach_points) do point
             norm(configuration(cache, attraction_coordID[point])) < 0.001
         end
 
@@ -424,43 +425,43 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
             abs(only(configuration(cache, feedback_coordID_coupled[joint]))) > 2 * mismatch_deadzone
         end
 
-        contact_detected = uncoupled_contact || coupled_contact
+        finger_states["ff"].contact_detected = uncoupled_contact || coupled_contact
 
         # ── 3. ACTIVATION: sustained virtual contact without real contact ──────────
-        if !radius_modulation_activated && !radius_modulation_stopped
-            if ff_equilibrium && !contact_detected
-                if radius_modulation_activation_time == 0.0
-                    radius_modulation_activation_time = t          # start timing
-                elseif t - radius_modulation_activation_time > 0.2 # sustained 0.2s
-                    radius_modulation_activated = true
-                    @info "Radius modulation activated"
+        if !finger_states["ff"].modulation_activated && !finger_states["ff"].modulation_stopped
+            if finger_states["ff"].equilibrium && !finger_states["ff"].contact_detected
+                if finger_states["ff"].activation_time == 0.0
+                    finger_states["ff"].activation_time = t          # start timing
+                elseif t - finger_states["ff"].activation_time > 0.2 # sustained 0.2s
+                    finger_states["ff"].modulation_activated = true
+                    @info "ff radius modulation activated"
                 end
             else
-                radius_modulation_activation_time = 0.0            # reset if condition lost
+                finger_states["ff"].activation_time = 0.0            # reset if condition lost
             end
         end
 
         # ── 4. RADIUS MODULATION ───────────────────────────────────────────────────
-        if radius_modulation_activated && !radius_modulation_stopped
+        if finger_states["ff"].modulation_activated && !finger_states["ff"].modulation_stopped
 
             # Decrement radius at each control step
-            radius = max(radius - 0.002 * (t - last_t), 0.005)    # rate: 2 mm/s, floor: 5mm
+            finger_states["ff"].radius = max(finger_states["ff"].radius - 0.002 * (t - last_t), 0.005)    # rate: 2 mm/s, floor: 5mm
             @info "Current radius: $(round(radius*1000, digits=2)) mm"
 
             update_cylinder_radius("ff", cache, radius, radius_joints, cylinder_radius_coord_dict, virtual_object_damper_component_dict)
             update_cylinder_position("ff", m, cache, kcache, radius, root_joints, cylinder_position_coord_dict)
 
             # ── 5. STOPPING: sustained real contact detected ───────────────────────
-            if contact_detected
-                if contact_stopping_time == 0.0
-                    contact_stopping_time = t                      # start stop timer
-                elseif t - contact_stopping_time > 0.2            # sustained 0.2s
-                    radius_modulation_activated = false
-                    radius_modulation_stopped = true               # lock: do not re-activate
+            if finger_states["ff"].contact_detected
+                if finger_states["ff"].stopping_time == 0.0
+                    finger_states["ff"].stopping_time = t                      # start stop timer
+                elseif t - finger_states["ff"].stopping_time > 0.2            # sustained 0.2s
+                    finger_states["ff"].modulation_activated = false
+                    finger_states["ff"].modulation_stopped = true               # lock: do not re-activate
                     @info "Radius modulation stopped at r = $(round(radius*1000, digits=1)) mm"
                 end
             else
-                contact_stopping_time = 0.0                        # reset if contact lost
+                finger_states["ff"].stopping_time = 0.0                        # reset if contact lost
             end
 
         end
