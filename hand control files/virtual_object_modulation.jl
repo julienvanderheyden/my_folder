@@ -29,6 +29,16 @@ struct FingerConfig
     uncoupled_joints::Vector{String}       # standard individual joints
 end
 
+mutable struct FingerModulationState
+    radius::Float64
+    equilibrium::Bool
+    contact_detected::Bool
+    modulation_activated::Bool
+    modulation_stopped::Bool
+    activation_time::Float64
+    stopping_time::Float64
+end
+
 const FINGER_CONFIGS = Dict{String, FingerConfig}(
 
     "ff" => FingerConfig(
@@ -386,16 +396,6 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         return (radius_joints, root_joints,
                 cylinder_radius_coord_dict, cylinder_position_coord_dict, damper_component_dict,
                 feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID)
-    end
-
-    mutable struct FingerModulationState
-        radius::Float64
-        equilibrium::Bool
-        contact_detected::Bool
-        modulation_activated::Bool
-        modulation_stopped::Bool
-        activation_time::Float64
-        stopping_time::Float64
     end
 
     FingerModulationState(initial_radius::Float64) = FingerModulationState(
