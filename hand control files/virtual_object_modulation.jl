@@ -410,9 +410,8 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
         radius_joints, root_joints, cylinder_radius_coord_dict, cylinder_position_coord_dict, virtual_object_damper_component_dict, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID = args
 
         # ── 1. VIRTUAL CONTACT: any attach point has reached virtual object ────────
-        ff_attach_points = FINGER_CONFIGS["ff"].attracted_frames_names
-        finger_states["ff"].equilibrium = any(ff_attach_points) do point
-            norm(configuration(cache, attraction_coordID[point])) < 0.001
+        finger_states["ff"].equilibrium = all(FINGER_CONFIGS["ff"].attracted_frames_names) do point
+            norm(configuration(cache, attraction_coordID[point])) < 0.002
         end
 
         # ── 2. REAL CONTACT: mismatch exceeds deadzone on any relevant joint ───────
