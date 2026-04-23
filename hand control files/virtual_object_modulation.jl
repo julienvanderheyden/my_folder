@@ -628,14 +628,9 @@ function apply_radius_modulation!(finger, state, cache, t, m, kcache,
     dt = t - last_t
     state.radius = max(state.radius - 0.002 * dt, 0.005)
 
-    update_cylinder_radius(finger, cache, state.radius,
-                           radius_joints[finger],
-                           cylinder_radius_coord_dict[finger],
-                           damper_component_dict[finger])
+    update_cylinder_radius(finger, cache, state.radius, radius_joints, cylinder_radius_coord_dict, damper_component_dict)
 
-    update_cylinder_position(finger, m, cache, kcache, state.radius,
-                             root_joints[finger],
-                             cylinder_position_coord_dict[finger])
+    update_cylinder_position(finger, m, cache, kcache, state.radius,root_joints, cylinder_position_coord_dict)
 
     # ── 5. Stopping: sustained real contact ───────────────────────────────────
     if state.contact_detected
