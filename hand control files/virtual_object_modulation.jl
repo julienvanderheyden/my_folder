@@ -20,14 +20,7 @@ try
 catch
 end
 
-struct FingerConfig
-    attracted_frames::Vector{String}       # mass coord IDs used for attraction springs
-    attracted_frames_names::Vector{String} # short names for those frames
-    repulsed_frames::Vector{String}        # mass coord IDs used for repulsion
-    repulsed_frames_names::Vector{String}  # short names for those frames
-    coupled_joints::Vector{String}         # joints where J0 = J1 + J2
-    uncoupled_joints::Vector{String}       # standard individual joints
-end
+const MISMATCH_DEADZONE = 0.05
 
 mutable struct FingerModulationState
     radius::Float64
@@ -40,6 +33,16 @@ mutable struct FingerModulationState
 end
 
 FingerModulationState(initial_radius::Float64) = FingerModulationState(initial_radius, false, false, false, false, 0.0, 0.0)
+
+struct FingerConfig
+    attracted_frames::Vector{String}       # mass coord IDs used for attraction springs
+    attracted_frames_names::Vector{String} # short names for those frames
+    repulsed_frames::Vector{String}        # mass coord IDs used for repulsion
+    repulsed_frames_names::Vector{String}  # short names for those frames
+    coupled_joints::Vector{String}         # joints where J0 = J1 + J2
+    uncoupled_joints::Vector{String}       # standard individual joints
+end
+
 
 const FINGER_CONFIGS = Dict{String, FingerConfig}(
 
@@ -405,67 +408,91 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
     last_t = 0.0
 
+    # function f_control(cache, t, args, extra)
+
+    #     radius_joints, root_joints, cylinder_radius_coord_dict, cylinder_position_coord_dict, virtual_object_damper_component_dict, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID = args
+
+    #     # ── 1. VIRTUAL CONTACT: any attach point has reached virtual object ────────
+    #     finger_states["ff"].equilibrium = all(FINGER_CONFIGS["ff"].attracted_frames_names) do point
+    #         norm(configuration(cache, attraction_coordID[point])) < 0.002
+    #     end
+
+    #     # ── 2. REAL CONTACT: mismatch exceeds deadzone on any relevant joint ───────
+    #     uncoupled_contact = any(FINGER_CONFIGS["ff"].uncoupled_joints) do joint
+    #         abs(only(configuration(cache, feedback_coordID_uncoupled[joint]))) > mismatch_deadzone
+    #     end
+
+    #     coupled_contact = any(FINGER_CONFIGS["ff"].coupled_joints) do joint
+    #         abs(only(configuration(cache, feedback_coordID_coupled[joint]))) > 2 * mismatch_deadzone
+    #     end
+
+    #     finger_states["ff"].contact_detected = uncoupled_contact || coupled_contact
+
+    #     # ── 3. ACTIVATION: sustained virtual contact without real contact ──────────
+    #     if !finger_states["ff"].modulation_activated && !finger_states["ff"].modulation_stopped
+    #         if finger_states["ff"].equilibrium && !finger_states["ff"].contact_detected
+    #             if finger_states["ff"].activation_time == 0.0
+    #                 finger_states["ff"].activation_time = t          # start timing
+    #             elseif t - finger_states["ff"].activation_time > 0.2 # sustained 0.2s
+    #                 finger_states["ff"].modulation_activated = true
+    #                 @info "ff radius modulation activated"
+    #             end
+    #         else
+    #             finger_states["ff"].activation_time = 0.0            # reset if condition lost
+    #         end
+    #     end
+
+    #     # ── 4. RADIUS MODULATION ───────────────────────────────────────────────────
+    #     if finger_states["ff"].modulation_activated && !finger_states["ff"].modulation_stopped
+
+    #         # Decrement radius at each control step
+    #         finger_states["ff"].radius = max(finger_states["ff"].radius - 0.002 * (t - last_t), 0.005)    # rate: 2 mm/s, floor: 5mm
+    #         @info "ff current radius: $(round(finger_states["ff"].radius*1000, digits=2)) mm"
+
+    #         update_cylinder_radius("ff", cache, finger_states["ff"].radius, radius_joints, cylinder_radius_coord_dict, virtual_object_damper_component_dict)
+    #         update_cylinder_position("ff", m, cache, kcache, finger_states["ff"].radius, root_joints, cylinder_position_coord_dict)
+
+    #         # ── 5. STOPPING: sustained real contact detected ───────────────────────
+    #         if finger_states["ff"].contact_detected
+    #             if finger_states["ff"].stopping_time == 0.0
+    #                 finger_states["ff"].stopping_time = t                      # start stop timer
+    #             elseif t - finger_states["ff"].stopping_time > 0.2            # sustained 0.2s
+    #                 finger_states["ff"].modulation_activated = false
+    #                 finger_states["ff"].modulation_stopped = true               # lock: do not re-activate
+    #                 @info "ff radius modulation stopped at r = $(round(finger_states["ff"].radius*1000, digits=1)) mm"
+    #             end
+    #         else
+    #             finger_states["ff"].stopping_time = 0.0                        # reset if contact lost
+    #         end
+
+    #     end
+
+    #     last_t = t
+
+    # end
+
     function f_control(cache, t, args, extra)
 
-        radius_joints, root_joints, cylinder_radius_coord_dict, cylinder_position_coord_dict, virtual_object_damper_component_dict, feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID = args
+        (radius_joints, root_joints,
+        cylinder_radius_coord_dict, cylinder_position_coord_dict, damper_component_dict,
+        feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID) = args
 
-        # ── 1. VIRTUAL CONTACT: any attach point has reached virtual object ────────
-        finger_states["ff"].equilibrium = all(FINGER_CONFIGS["ff"].attracted_frames_names) do point
-            norm(configuration(cache, attraction_coordID[point])) < 0.002
+        for (finger, cfg) in FINGER_CONFIGS
+            state = finger_states[finger]
+
+            update_finger_state!(state, finger, cache, t,
+                                attraction_coordID,
+                                feedback_coordID_uncoupled,
+                                feedback_coordID_coupled)
+
+            apply_radius_modulation!(finger, state, cache, t, m, kcache,
+                                    radius_joints, root_joints,
+                                    cylinder_radius_coord_dict,
+                                    cylinder_position_coord_dict,
+                                    damper_component_dict)
+
+            state.last_t = t
         end
-
-        # ── 2. REAL CONTACT: mismatch exceeds deadzone on any relevant joint ───────
-        uncoupled_contact = any(FINGER_CONFIGS["ff"].uncoupled_joints) do joint
-            abs(only(configuration(cache, feedback_coordID_uncoupled[joint]))) > mismatch_deadzone
-        end
-
-        coupled_contact = any(FINGER_CONFIGS["ff"].coupled_joints) do joint
-            abs(only(configuration(cache, feedback_coordID_coupled[joint]))) > 2 * mismatch_deadzone
-        end
-
-        finger_states["ff"].contact_detected = uncoupled_contact || coupled_contact
-
-        # ── 3. ACTIVATION: sustained virtual contact without real contact ──────────
-        if !finger_states["ff"].modulation_activated && !finger_states["ff"].modulation_stopped
-            if finger_states["ff"].equilibrium && !finger_states["ff"].contact_detected
-                if finger_states["ff"].activation_time == 0.0
-                    finger_states["ff"].activation_time = t          # start timing
-                elseif t - finger_states["ff"].activation_time > 0.2 # sustained 0.2s
-                    finger_states["ff"].modulation_activated = true
-                    @info "ff radius modulation activated"
-                end
-            else
-                finger_states["ff"].activation_time = 0.0            # reset if condition lost
-            end
-        end
-
-        # ── 4. RADIUS MODULATION ───────────────────────────────────────────────────
-        if finger_states["ff"].modulation_activated && !finger_states["ff"].modulation_stopped
-
-            # Decrement radius at each control step
-            finger_states["ff"].radius = max(finger_states["ff"].radius - 0.002 * (t - last_t), 0.005)    # rate: 2 mm/s, floor: 5mm
-            @info "ff current radius: $(round(finger_states["ff"].radius*1000, digits=2)) mm"
-
-            update_cylinder_radius("ff", cache, finger_states["ff"].radius, radius_joints, cylinder_radius_coord_dict, virtual_object_damper_component_dict)
-            update_cylinder_position("ff", m, cache, kcache, finger_states["ff"].radius, root_joints, cylinder_position_coord_dict)
-
-            # ── 5. STOPPING: sustained real contact detected ───────────────────────
-            if finger_states["ff"].contact_detected
-                if finger_states["ff"].stopping_time == 0.0
-                    finger_states["ff"].stopping_time = t                      # start stop timer
-                elseif t - finger_states["ff"].stopping_time > 0.2            # sustained 0.2s
-                    finger_states["ff"].modulation_activated = false
-                    finger_states["ff"].modulation_stopped = true               # lock: do not re-activate
-                    @info "ff radius modulation stopped at r = $(round(finger_states["ff"].radius*1000, digits=1)) mm"
-                end
-            else
-                finger_states["ff"].stopping_time = 0.0                        # reset if contact lost
-            end
-
-        end
-
-        last_t = t
-
     end
 
     
@@ -544,22 +571,83 @@ end
 function update_cylinder_radius(finger, cache, new_radius, radius_joints, cylinder_radius_coord_dict, virtual_object_damper_component_dict)
 
     for frame in FINGER_CONFIGS[finger].attracted_frames_names 
-        cache[radius_joints[frame]] = remake(
-            cache[radius_joints[frame]];
-            jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius)))
-        )
+        cache[radius_joints[frame]] = remake(cache[radius_joints[frame]];
+            jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius))))
     end
-
 
     for frame in FINGER_CONFIGS[finger].repulsed_frames_names
-        cache[cylinder_radius_coord_dict[frame]] = remake(
-            cache[cylinder_radius_coord_dict[frame]];
-            coord_data = ConstCoord(new_radius)
-        )
-
-        cache[virtual_object_damper_component_dict[frame]] = remake(
-            cache[virtual_object_damper_component_dict[frame]];
-            bounds = (0.0, 1.05*new_radius)
-        )
+        cache[cylinder_radius_coord_dict[frame]] = remake(cache[cylinder_radius_coord_dict[frame]];
+            coord_data = ConstCoord(new_radius))
+        cache[virtual_object_damper_component_dict[frame]] = remake(cache[virtual_object_damper_component_dict[frame]];
+            bounds = (0.0, 1.05*new_radius))
     end
 end
+
+function update_finger_state!(state, finger, cache, t, attraction_coordID, feedback_coordID_uncoupled, feedback_coordID_coupled)
+
+    cfg = FINGER_CONFIGS[finger]
+
+    # ── 1. Virtual contact ────────────────────────────────────────────────────
+    state.equilibrium = all(cfg.attracted_frames_names) do point
+        norm(configuration(cache, attraction_coordID[point])) < 0.002
+    end
+
+    # ── 2. Real contact ───────────────────────────────────────────────────────
+    uncoupled_contact = any(cfg.uncoupled_joints) do joint
+        abs(only(configuration(cache, feedback_coordID_uncoupled[joint]))) > MISMATCH_DEADZONE
+    end
+    coupled_contact = any(cfg.coupled_joints) do joint
+        abs(only(configuration(cache, feedback_coordID_coupled[joint]))) > 2 * MISMATCH_DEADZONE
+    end
+    state.contact_detected = uncoupled_contact || coupled_contact
+
+    # ── 3. Activation: sustained virtual contact without real contact ─────────
+    if !state.modulation_activated && !state.modulation_stopped
+        if state.equilibrium && !state.contact_detected
+            if state.activation_time == 0.0
+                state.activation_time = t
+            elseif t - state.activation_time > 0.2
+                state.modulation_activated = true
+                @info "Radius modulation activated for finger $(finger)"
+            end
+        else
+            state.activation_time = 0.0
+        end
+    end
+end
+
+function apply_radius_modulation!(finger, state, cache, t, m, kcache,
+                                   radius_joints, root_joints,
+                                   cylinder_radius_coord_dict,
+                                   cylinder_position_coord_dict,
+                                   damper_component_dict)
+
+    !state.modulation_activated || state.modulation_stopped && return
+
+    # ── 4. Decrement radius ───────────────────────────────────────────────────
+    dt = t - state.last_t
+    state.radius = max(state.radius - 0.002 * dt, 0.005)
+
+    update_cylinder_radius(finger, cache, state.radius,
+                           radius_joints[finger],
+                           cylinder_radius_coord_dict[finger],
+                           damper_component_dict[finger])
+
+    update_cylinder_position(finger, m, cache, kcache, state.radius,
+                             root_joints[finger],
+                             cylinder_position_coord_dict[finger])
+
+    # ── 5. Stopping: sustained real contact ───────────────────────────────────
+    if state.contact_detected
+        if state.stopping_time == 0.0
+            state.stopping_time = t
+        elseif t - state.stopping_time > 0.2
+            state.modulation_activated = false
+            state.modulation_stopped   = true
+            @info "$(finger) modulation stopped at r = $(round(state.radius*1000, digits=1)) mm"
+        end
+    else
+        state.stopping_time = 0.0
+    end
+end
+
