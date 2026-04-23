@@ -489,10 +489,10 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
                                     radius_joints, root_joints,
                                     cylinder_radius_coord_dict,
                                     cylinder_position_coord_dict,
-                                    damper_component_dict)
-
-            state.last_t = t
+                                    damper_component_dict, last_t)
         end
+
+        last_t = t
     end
 
     
@@ -620,12 +620,12 @@ function apply_radius_modulation!(finger, state, cache, t, m, kcache,
                                    radius_joints, root_joints,
                                    cylinder_radius_coord_dict,
                                    cylinder_position_coord_dict,
-                                   damper_component_dict)
+                                   damper_component_dict, last_t)
 
     !state.modulation_activated || state.modulation_stopped && return
 
     # ── 4. Decrement radius ───────────────────────────────────────────────────
-    dt = t - state.last_t
+    dt = t - last_t
     state.radius = max(state.radius - 0.002 * dt, 0.005)
 
     update_cylinder_radius(finger, cache, state.radius,
