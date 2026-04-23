@@ -39,6 +39,8 @@ mutable struct FingerModulationState
     stopping_time::Float64
 end
 
+FingerModulationState(initial_radius::Float64) = FingerModulationState(initial_radius, false, false, false, false, 0.0, 0.0)
+
 const FINGER_CONFIGS = Dict{String, FingerConfig}(
 
     "ff" => FingerConfig(
@@ -398,9 +400,6 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
                 feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID)
     end
 
-    FingerModulationState(initial_radius::Float64) = FingerModulationState(
-        initial_radius, false, false, false, false, 0.0, 0.0
-    )
 
     finger_states = Dict(name => FingerModulationState(cylinder_radius) for name in keys(FINGER_CONFIGS))
 
