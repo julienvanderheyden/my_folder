@@ -622,7 +622,7 @@ function apply_radius_modulation!(finger, state, cache, t, m, kcache,
                                    cylinder_position_coord_dict,
                                    damper_component_dict, last_t)
 
-    !state.modulation_activated || state.modulation_stopped && return
+    (!state.modulation_activated || state.modulation_stopped) && return
 
     # ── 4. Decrement radius ───────────────────────────────────────────────────
     dt = t - last_t
