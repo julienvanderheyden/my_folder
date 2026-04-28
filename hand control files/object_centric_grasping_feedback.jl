@@ -254,9 +254,10 @@ function object_centric_medium_wrap_feedback(cylinder_radius, feedback_stiffness
         # use deadzone springs instead of linear springs to take the mismatches into account
         add_deadzone_springs!(vms, feedback_stiffness, (-mismatch_deadzone, mismatch_deadzone), "$(joint_id) coord diff") 
 
+        add_component!(vms, LinearDamper(feedback_damping, "$(joint_id) coord diff"); id = "$(joint_id) feedback damper")
         # implement "deadzone" damping using two rectified dampers (transition is linear, not sharp)
-        add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (0.9*mismatch_deadzone, 1.1*mismatch_deadzone), false, false); id = "$(joint_id) feedback damper 1")
-        add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (-1.1*mismatch_deadzone, -0.9*mismatch_deadzone), true, false); id = "$(joint_id) feedback damper 2")
+        # add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (0.9*mismatch_deadzone, 1.1*mismatch_deadzone), false, false); id = "$(joint_id) feedback damper 1")
+        # add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (-1.1*mismatch_deadzone, -0.9*mismatch_deadzone), true, false); id = "$(joint_id) feedback damper 2")
     end
 
     # LINKING COUPLED JOINTS
@@ -265,9 +266,11 @@ function object_centric_medium_wrap_feedback(cylinder_radius, feedback_stiffness
 
     for joint_id in coupled_joints
         add_coordinate!(vms, CoordDifference(".robot.$(joint_id)_coord", ".virtual_mechanism.$(joint_id)_coord");id="$(joint_id) coord diff")
-        add_deadzone_springs!(vms, feedback_stiffness, (-mismatch_deadzone, mismatch_deadzone), "$(joint_id) coord diff")
-        add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (1.8*mismatch_deadzone, 2.2*mismatch_deadzone), false, false); id = "$(joint_id) feedback damper 1")
-        add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (-2.2*mismatch_deadzone, -1.8*mismatch_deadzone), true, false); id = "$(joint_id) feedback damper 2")
+        #stiffness and damping are halved for coupled joints
+        add_deadzone_springs!(vms, feedback_stiffness/2 , (-2*mismatch_deadzone, 2*mismatch_deadzone), "$(joint_id) coord diff") 
+        add_component!(vms, LinearDamper(feedback_damping/2 , "$(joint_id) coord diff"); id = "$(joint_id) feedback damper")
+        # add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (1.8*mismatch_deadzone, 2.2*mismatch_deadzone), false, false); id = "$(joint_id) feedback damper 1")
+        # add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (-2.2*mismatch_deadzone, -1.8*mismatch_deadzone), true, false); id = "$(joint_id) feedback damper 2")
     end
 
     println("Linked !")
