@@ -20,7 +20,7 @@ try
 catch
 end
 
-const MISMATCH_DEADZONE = 0.05
+const MISMATCH_DEADZONE = 0.07
 
 mutable struct FingerModulationState
     radius::Float64
@@ -589,7 +589,7 @@ function update_finger_state!(state, finger, cache, t, attraction_coordID, feedb
 
     # ── 1. Virtual contact ────────────────────────────────────────────────────
     state.equilibrium = any(cfg.attracted_frames_names) do point
-        norm(configuration(cache, attraction_coordID[point])) < 0.01 # this will depend on the PD gains
+        norm(configuration(cache, attraction_coordID[point])) < 0.005
     end
 
     # ── 2. Real contact ───────────────────────────────────────────────────────
@@ -600,8 +600,6 @@ function update_finger_state!(state, finger, cache, t, attraction_coordID, feedb
         abs(only(configuration(cache, feedback_coordID_coupled[joint]))) > 2 * MISMATCH_DEADZONE
     end
     state.contact_detected = uncoupled_contact || coupled_contact
-
-    @info "$(state)"
 
     # ── 3. Activation: sustained virtual contact without real contact ─────────
     if !state.modulation_activated && !state.modulation_stopped
