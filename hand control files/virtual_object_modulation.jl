@@ -592,10 +592,6 @@ function update_finger_state!(state, finger, cache, t, attraction_coordID, feedb
         norm(configuration(cache, attraction_coordID[point])) < 0.01 # this will depend on the PD gains
     end
 
-    for frame in cfg.attracted_frames_names
-        @info "Attraction error for $(frame): $(norm(configuration(cache, attraction_coordID[frame])))"
-    end
-
     # ── 2. Real contact ───────────────────────────────────────────────────────
     uncoupled_contact = any(cfg.uncoupled_joints) do joint
         abs(only(configuration(cache, feedback_coordID_uncoupled[joint]))) > MISMATCH_DEADZONE
@@ -604,6 +600,8 @@ function update_finger_state!(state, finger, cache, t, attraction_coordID, feedb
         abs(only(configuration(cache, feedback_coordID_coupled[joint]))) > 2 * MISMATCH_DEADZONE
     end
     state.contact_detected = uncoupled_contact || coupled_contact
+
+    @info "$(state)"
 
     # ── 3. Activation: sustained virtual contact without real contact ─────────
     if !state.modulation_activated && !state.modulation_stopped
