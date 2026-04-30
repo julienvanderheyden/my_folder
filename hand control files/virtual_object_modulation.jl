@@ -20,7 +20,7 @@ try
 catch
 end
 
-const MISMATCH_DEADZONE = 0.07
+const MISMATCH_DEADZONE = 0.15
 
 mutable struct FingerModulationState
     radius::Float64
