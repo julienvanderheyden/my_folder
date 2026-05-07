@@ -3,9 +3,9 @@ using RobotOS
 rostypegen()
 using .std_msgs.msg
 
-#include("object_centric_grasping.jl")
+include("object_centric_grasping.jl")
 #include("object_centric_grasping_sensitivity_analysis.jl")
-include("object_centric_grasping_stiffer.jl")
+# include("object_centric_grasping_stiffer.jl")
 
 # Publisher to send completion status back
 const status_pub = Ref{Publisher}()
