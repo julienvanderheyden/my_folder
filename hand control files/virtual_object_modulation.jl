@@ -20,7 +20,7 @@ try
 catch
 end
 
-const MISMATCH_DEADZONE = 0.25
+const MISMATCH_DEADZONE = 0.05
 
 mutable struct FingerModulationState
     radius::Float64
@@ -205,12 +205,8 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
     "rh_mfproximal_mass_coord", "rh_ffdistal_mass_coord", "rh_ffmiddle_mass_coord", "rh_ffproximal_mass_coord",
     "rh_thdistal_mass_coord", "rh_thmiddle_mass_coord") #, "rh_thproximal_mass_coord" , "rh_palm_mass_coord")
 
-    #attracted_frames = ("rh_ffdistal_mass_coord", "rh_ffmiddle_mass_coord", "rh_ffproximal_mass_coord") #, "rh_thproximal_mass_coord" , "rh_palm_mass_coord")
-
     attracted_frames_names = ("lfdistal", "lfmiddle", "lfprox", "rfdistal", "rfmiddle", "rfprox", "mfdistal", "mfmiddle", "mfprox", "ffdistal", "ffmiddle", 
     "ffprox", "thdistal", "thmiddle") #, "thprox", "palm")
-
-    # attracted_frames_names = ("ffdistal", "ffmiddle", "ffprox") #, "thprox", "palm")
     
     # CYLINDER PRISMATIC JOINTS
     
@@ -257,13 +253,11 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
     # phalanx_scaling_factor = - 0.5
     # finger_scaling_factor = 1.0
 
-
     # for geometric scaling :
     # > 1 means that the proximal stiffness is higher than the distal stiffness
     # < 1 means that the distal stiffness is higher than the proximal stiffness
     phalanx_scaling_factor = 0.5
     finger_scaling_factor = 1.5
-    
     
     stiffnesses = generate_stiffnesses_geometric_scaling(base_stiffness, phalanx_scaling_factor, finger_scaling_factor)
     
@@ -273,7 +267,6 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
     
     for i in 1:length(attracted_frames)
         K = SMatrix{3, 3}(stiffnesses[i], 0., 0., 0., stiffnesses[i], 0., 0., 0., stiffnesses[i])
-        #K = SMatrix{3, 3}(base_stiffness, 0., 0., 0., base_stiffness, 0., 0., 0., base_stiffness)
         add_coordinate!(vms, CoordDifference(".virtual_mechanism.$(attracted_frames_names[i]) ee position", ".virtual_mechanism.$(attracted_frames[i])"); id = "ee $(attracted_frames_names[i]) diff")
         add_component!(vms, LinearSpring(K, "ee $(attracted_frames_names[i]) diff"); id = "ee $(attracted_frames_names[i]) spring")
         add_component!(vms, LinearDamper(D, "ee $(attracted_frames_names[i]) diff"); id = "ee $(attracted_frames_names[i]) damper")
@@ -332,7 +325,6 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
     # feedback_stiffness = 0.1
     # feedback_damping = 0.000
-    mismatch_deadzone = 0.05
 
     # START BY LINKING UNCOUPLED JOINTS
     joint_limits = shadow_cfg.joint_limits
@@ -343,11 +335,11 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
     for joint_id in uncoupled_joints
         add_coordinate!(vms, CoordDifference(".robot.$(joint_id)_coord", ".virtual_mechanism.$(joint_id)_coord");id="$(joint_id) coord diff")
         # use deadzone springs instead of linear springs to take the natural mismatch into account
-        add_deadzone_springs!(vms, feedback_stiffness, (-mismatch_deadzone, mismatch_deadzone), "$(joint_id) coord diff") 
+        add_deadzone_springs!(vms, feedback_stiffness, (-MISMATCH_DEADZONE, MISMATCH_DEADZONE), "$(joint_id) coord diff") 
 
         # implement "deadzone" damping using two rectified dampers (transition is linear, not sharp)
-        add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (0.9*mismatch_deadzone, 1.1*mismatch_deadzone), false, false); id = "$(joint_id) feedback damper 1")
-        add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (-1.1*mismatch_deadzone, -0.9*mismatch_deadzone), true, false); id = "$(joint_id) feedback damper 2")
+        add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (0.9*MISMATCH_DEADZONE, 1.1*MISMATCH_DEADZONE), false, false); id = "$(joint_id) feedback damper 1")
+        add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (-1.1*MISMATCH_DEADZONE, -0.9*MISMATCH_DEADZONE), true, false); id = "$(joint_id) feedback damper 2")
     end
 
     # LINKING COUPLED JOINTS
@@ -356,9 +348,9 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
     for joint_id in coupled_joints
         add_coordinate!(vms, CoordDifference(".robot.$(joint_id)_coord", ".virtual_mechanism.$(joint_id)_coord");id="$(joint_id) coord diff")
-        add_deadzone_springs!(vms, feedback_stiffness, (-2*mismatch_deadzone, 2*mismatch_deadzone), "$(joint_id) coord diff")
-        add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (1.8*mismatch_deadzone, 2.2*mismatch_deadzone), false, false); id = "$(joint_id) feedback damper 1")
-        add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (-2.2*mismatch_deadzone, -1.8*mismatch_deadzone), true, false); id = "$(joint_id) feedback damper 2")
+        add_deadzone_springs!(vms, feedback_stiffness, (-2*MISMATCH_DEADZONE, 2*MISMATCH_DEADZONE), "$(joint_id) coord diff")
+        add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (1.8*MISMATCH_DEADZONE, 2.2*MISMATCH_DEADZONE), false, false); id = "$(joint_id) feedback damper 1")
+        add_component!(vms, RectifiedDamper(feedback_damping,"$(joint_id) coord diff", (-2.2*MISMATCH_DEADZONE, -1.8*MISMATCH_DEADZONE), true, false); id = "$(joint_id) feedback damper 2")
     end
 
     println("Linked !")
@@ -494,8 +486,6 @@ function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback
 
         last_t = t
     end
-
-    
 
 
     # Compile the virtual mechanism system, and run the controller via ROS
