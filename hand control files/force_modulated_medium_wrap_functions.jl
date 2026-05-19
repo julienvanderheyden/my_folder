@@ -144,7 +144,7 @@ function connect_virtual_hand_object(vms, finger_cfg, base_stiffness, phalanx_sc
 
 end
 
-function add_repulsion!(vms, frame, name, finger)
+function add_repulsion!(vms, frame, name, finger, cylinder_radius)
 
     add_coordinate!(vms, CoordDifference(frame, "$finger cylinder position");          id="$name cylinder diff")
     add_coordinate!(vms, CoordSlice("$name cylinder diff", SVector(2, 3));           id="$name planar error")
@@ -156,23 +156,27 @@ function add_repulsion!(vms, frame, name, finger)
 end
 
 function build_cylinder_collision_model(vms, finger_cfg, cylinder_radius, cylinder_position)
+
+    for (finger,config) in finger_cfg
+        add_coordinate!(vms, ConstCoord(cylinder_radius);   id="$finger cylinder radius")
+        add_coordinate!(vms, ConstCoord(cylinder_position); id="$finger cylinder position")
+        for (frame_id, name) in zip(config.repulsed_frames, config.repulsed_frames_names)
+            add_repulsion!(vms, ".virtual_mechanism.$frame_id", name, finger, cylinder_radius)
+        end
+    end
+
     # Special frames not belonging to any finger
     EXTRA_REPULSED_FRAMES = [
         (".virtual_mechanism.rh_palm_mass_coord", "palm"),
         (".virtual_mechanism.rh_palm2",           "palm2"),
     ]
 
-    for (finger,config) in finger_cfg
-        add_coordinate!(vms, ConstCoord(cylinder_radius);   id="$finger cylinder radius")
-        add_coordinate!(vms, ConstCoord(cylinder_position); id="$finger cylinder position")
-        for (frame_id, name) in zip(config.repulsed_frames, config.repulsed_frames_names)
-            add_repulsion!(vms, ".virtual_mechanism.$frame_id", name, finger)
-        end
+    add_coordinate!(vms, ConstCoord(cylinder_radius);   id="initial cylinder radius")
+    add_coordinate!(vms, ConstCoord(cylinder_position); id="initial cylinder position")
+    for (frame_id, name) in EXTRA_REPULSED_FRAMES
+        add_repulsion!(vms, frame_id, name, "initial", cylinder_radius)
     end
 
-    for (frame_id, name) in EXTRA_REPULSED_FRAMES
-        add_repulsion!(vms, frame_id, name, "ff") # give any finger name since they are all the same at build time
-    end
 end
 
 function add_joint_feedback!(vms, joint_id, deadzone, feedback_stiffness, feedback_damping)
