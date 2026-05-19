@@ -7,6 +7,7 @@ include("functions.jl")
 
 module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
 include(joinpath(module_path, "ros/ROS.jl"))
+shadow_hand_urdf_path = joinpath(module_path, "URDFs/sr_description/sr_hand_vm_compatible.urdf")
 
 ###### URDF PARSING #####
 
@@ -95,30 +96,10 @@ const FINGER_CONFIGS = Dict{String, FingerConfig}(
 
 
 
-function virtual_object_modulation(cylinder_radius, feedback_stiffness, feedback_damping)
-    print("parsing robot URDF... ")
+function force_modulation(cylinder_radius, penetration_depth,  feedback_stiffness, feedback_damping)
 
-    module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
-
-    shadow_cfg = URDFParserConfig(;suppress_warnings=true) # This is just to hide warnings about unsupported URDF features
-    shadow_robot = parseURDF(joinpath(module_path, "URDFs/sr_description/sr_hand_vm_compatible.urdf"), shadow_cfg)
-
-    joint_limits = shadow_cfg.joint_limits
-
-    for joint_id in keys(joints(shadow_robot))
-        # "limits" are here used simply to identify the joints that actually move with respect to the fixed joints
-        limits = joint_limits[joint_id]
-        isnothing(limits) && continue
-
-        add_coordinate!(shadow_robot, JointSubspace(joint_id);  id="$(joint_id)_coord")
-    end
-
-    add_coordinate!(shadow_robot, CoordSum("rh_FFJ1_coord", "rh_FFJ2_coord"); id="rh_FFJ0_coord")
-    add_coordinate!(shadow_robot, CoordSum("rh_MFJ1_coord", "rh_MFJ2_coord"); id="rh_MFJ0_coord")
-    add_coordinate!(shadow_robot, CoordSum("rh_RFJ1_coord", "rh_RFJ2_coord"); id="rh_RFJ0_coord")
-    add_coordinate!(shadow_robot, CoordSum("rh_LFJ1_coord", "rh_LFJ2_coord"); id="rh_LFJ0_coord")
-
-    println("URDF parsed !")
+    # ------------------ BUILD THE ROBOTS -------------------------
+    shadow_robot = build_robot(shadow_hand_urdf_path)
 
     print("parsing virtual mechanism URDF ...")
 
