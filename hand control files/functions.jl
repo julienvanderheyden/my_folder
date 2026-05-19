@@ -242,7 +242,7 @@ function build_cylinder_virtual_object(robot, finger_cfg, cylinder_position, cyl
             add_component!(robot, LinearSpring(SMatrix{3, 3}(0.1 * I), "$(name)_prismatic_error"); id="$(name)_comeback_spring")
         end
     end
-    add_gravity_compensation!(vm_robot, VMRobotControl.DEFAULT_GRAVITY)
+    add_gravity_compensation!(robot, VMRobotControl.DEFAULT_GRAVITY)
 end
 
 function frame_stiffness(base, finger_idx, n_fingers, phalanx_idx, n_phalanges, phalanx_factor, finger_factor)
