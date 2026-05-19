@@ -100,8 +100,8 @@ function force_modulation(cylinder_radius, penetration_depth,  feedback_stiffnes
 
     # ------------------ BUILD THE ROBOTS -------------------------
     shadow_robot = build_robot(shadow_hand_urdf_path)
-
-    print("parsing virtual mechanism URDF ...")
+    # For the moment the urdfs are the same but we might want to change the properties of the virtual robot
+    vm_robot = build_robot(shadow_hand_urdf_path; joint_limiting=true, gravity_compensation=true) 
 
     vm_cfg = URDFParserConfig(;suppress_warnings=true) 
     # For the moment the urdfs are the same but we might want to change the properties of the virtual robot
@@ -115,30 +115,6 @@ function force_modulation(cylinder_radius, penetration_depth,  feedback_stiffnes
     add_coordinate!(vm_robot, FrameOrigin("rh_ffproximal"); id="rh_ffproximal")
     add_coordinate!(vm_robot, FrameOrigin("rh_thmiddle"); id="rh_thmiddle")
 
-    println("URDF parsed !")
-
-    ##### COMPLEMENTING THE VIRTUAL ROBOT #####
-
-    print("Building the virtual robot...")
-
-    #joint limits/damping
-    joint_limits = vm_cfg.joint_limits
-
-    for joint_id in keys(joints(vm_robot))
-        limits = joint_limits[joint_id]
-        isnothing(limits) && continue
-        add_coordinate!(vm_robot, JointSubspace(joint_id);  id="$(joint_id)_coord")
-        @assert ~isnothing(limits.lower) && ~isnothing(limits.upper)
-        add_deadzone_springs!(vm_robot, 0.01, (limits.lower+0.0, limits.upper-0.0), "$(joint_id)_coord")
-        add_component!(vm_robot, LinearDamper(0.0001, "$(joint_id)_coord"); id="$(joint_id)_damper")
-    end
-
-    add_coordinate!(vm_robot, CoordSum("rh_FFJ1_coord", "rh_FFJ2_coord"); id="rh_FFJ0_coord")
-    add_coordinate!(vm_robot, CoordSum("rh_MFJ1_coord", "rh_MFJ2_coord"); id="rh_MFJ0_coord")
-    add_coordinate!(vm_robot, CoordSum("rh_RFJ1_coord", "rh_RFJ2_coord"); id="rh_RFJ0_coord")
-    add_coordinate!(vm_robot, CoordSum("rh_LFJ1_coord", "rh_LFJ2_coord"); id="rh_LFJ0_coord")
-
-    println("Robot built !")
 
     print("Building the virtual mechanisms...")
 
@@ -214,8 +190,6 @@ function force_modulation(cylinder_radius, penetration_depth,  feedback_stiffnes
         add_component!(vm_robot, LinearSpring(comeback_stiffness_matrix, "$(attracted_frames_names[i])_prismatic_error"); id = "$(attracted_frames_names[i])_comeback_spring")
     end
 
-    add_gravity_compensation!(vm_robot, VMRobotControl.DEFAULT_GRAVITY)
-    
     vms = VirtualMechanismSystem("myShadowVMS", shadow_robot, vm_robot)
 
     # HAND MOTION
