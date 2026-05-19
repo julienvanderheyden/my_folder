@@ -191,9 +191,9 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
     end
 
     # ---------------- TEST : CONTACT DETECTION COORDINATES ---------------------
-    for (frame, name) in zip(FINGER_CONFIGS["ff"].attracted_frames, FINGER_CONFIGS["ff"].attracted_frames_names)
-        add_coordinate!(vms, CoordDifference(frame, "$name cylinder position");          id="$name cylinder diff")
-    end
+    # for (frame, name) in zip(FINGER_CONFIGS["ff"].attracted_frames, FINGER_CONFIGS["ff"].attracted_frames_names)
+    #     add_coordinate!(vms, CoordDifference(frame, "$name cylinder position");          id="$name cylinder diff")
+    # end
 
 
     finger_states = Dict(name => FingerModulationState(cylinder_radius) for name in keys(FINGER_CONFIGS))
