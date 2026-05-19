@@ -101,7 +101,7 @@ function force_modulation(cylinder_radius, penetration_depth,  feedback_stiffnes
     # ------------------ BUILD THE ROBOTS -------------------------
     shadow_robot = build_robot(shadow_hand_urdf_path)
     # For the moment the urdfs are the same but we might want to change the properties of the virtual robot
-    vm_robot = build_robot(shadow_hand_urdf_path; joint_limiting=true, gravity_compensation=true) 
+    vm_robot = build_robot(shadow_hand_urdf_path; joint_limiting=true, gravity_compensation=false) 
 
     # add frames for the points of interest (finger tips, knuckles, palm)
     add_coordinate!(vm_robot, FrameOrigin("rh_ffdistal"); id="rh_ffdistal")
@@ -186,6 +186,8 @@ function force_modulation(cylinder_radius, penetration_depth,  feedback_stiffnes
         comeback_stiffness_matrix = SMatrix{3, 3}(comeback_stiffness, 0., 0., 0., comeback_stiffness, 0., 0., 0., comeback_stiffness)
         add_component!(vm_robot, LinearSpring(comeback_stiffness_matrix, "$(attracted_frames_names[i])_prismatic_error"); id = "$(attracted_frames_names[i])_comeback_spring")
     end
+
+    add_gravity_compensation!(vm_robot, VMRobotControl.DEFAULT_GRAVITY)
 
     vms = VirtualMechanismSystem("myShadowVMS", shadow_robot, vm_robot)
 
