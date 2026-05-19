@@ -1,13 +1,9 @@
-using Revise
 using GeometryBasics: Vec3f, Point3f
 using LinearAlgebra
 using StaticArrays
 using VMRobotControl
 using VMRobotControl: remake
-using VMRobotControl.Splines: CubicSpline
-using DifferentialEquations
 include("functions.jl")
-#using MeshIO
 
 module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
 include(joinpath(module_path, "ros/ROS.jl"))
