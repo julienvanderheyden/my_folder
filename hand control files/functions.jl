@@ -213,6 +213,8 @@ function compute_cylinder_position(robot, cylinder_radius)
 end
 
 function build_cylinder_virtual_object(robot, finger_cfg, cylinder_position, cylinder_radius)
+    m = compile(robot)
+    kcache = new_kinematics_cache(m)  
     for (finger, config) in finger_cfg
         for (frame_id, name) in zip(config.attracted_frames, config.attracted_frames_names)
 
