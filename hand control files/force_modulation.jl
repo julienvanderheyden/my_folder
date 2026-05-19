@@ -4,6 +4,7 @@ using StaticArrays
 using VMRobotControl
 using VMRobotControl: remake
 include("functions.jl")
+include("force_modulated_medium_wrap_functions.jl")
 
 module_path = joinpath(splitpath(splitdir(pathof(VMRobotControl))[1])[1:end-1])
 include(joinpath(module_path, "ros/ROS.jl"))
@@ -117,6 +118,8 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
     vms = VirtualMechanismSystem("myShadowVMS", shadow_robot, vm_robot)
 
     # -------------------- HAND MOTION --------------------------------
+
+    # CYLINDER ATTRACTION CONNECTION
     base_stiffness = 0.05
     phalanx_scaling_factor = 0.5
     finger_scaling_factor  = 1.5
@@ -128,30 +131,9 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
     connect_virtual_hand_object(vms, FINGER_CONFIGS, base_stiffness, phalanx_scaling_factor, finger_scaling_factor,
                                 base_damping, damping_decay_rate, exponential_damping_coeff)
 
-    add_component!(vms, LinearDamper(SMatrix{3, 3}(10.0*I), "ee thmiddle diff"); id = "thmiddle massive damper")  
-    #lightly constraint some joints to avoid unwanted motions 
-    add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_WRJ1_coord"); id = "wr j1 angular spring")
-    add_component!(vms, LinearSpring(0.01, ".virtual_mechanism.rh_WRJ2_coord"); id = "wr j2 angular spring")
-
     # CYLINDER COLLISION MODEL  
+    build_cylinder_collision_model(vms, FINGER_CONFIGS, cylinder_radius, cylinder_position)
     
-    add_coordinate!(vms, FramePoint(".virtual_mechanism.rh_palm", SVector(0. , 0., 0.07)); id="second palm point")
-    
-    # Special frames not belonging to any finger
-    EXTRA_REPULSED_FRAMES = [
-        (".virtual_mechanism.rh_palm_mass_coord", "palm"),
-        ("second palm point",                     "palm2"),
-    ]
-
-    for config in values(FINGER_CONFIGS)
-        for (frame_id, name) in zip(config.repulsed_frames, config.repulsed_frames_names)
-            add_repulsion!(vms, ".virtual_mechanism.$frame_id", name, cylinder_radius, cylinder_position)
-        end
-    end
-
-    for (frame_id, name) in EXTRA_REPULSED_FRAMES
-        add_repulsion!(vms, frame_id, name, cylinder_radius, cylinder_position)
-    end
 
     # --------------- REAL/VIRTUAL HAND INTERCONNECTION -----------------
 
