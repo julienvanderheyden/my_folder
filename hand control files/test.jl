@@ -113,6 +113,12 @@ function force_modulation(cylinder_radius, penetration_depth,  feedback_stiffnes
 
     # ------------------ BUILD THE VIRTUAL MECHANISM ------------------
     cylinder_position = compute_cylinder_position(vm_robot, cylinder_radius)
+
+    m = compile(vm_robot)
+    kcache = new_kinematics_cache(m)  
+    medium_wrap_preshape = zeros(24)
+    medium_wrap_preshape[21] = 1.2 # thumb extended
+    kinematics!(kcache, 0.0, medium_wrap_preshape)
     
     attracted_frames = ("rh_lfdistal_mass_coord", "rh_lfmiddle_mass_coord", "rh_lfproximal_mass_coord", "rh_rfdistal_mass_coord", 
     "rh_rfmiddle_mass_coord", "rh_rfproximal_mass_coord", "rh_mfdistal_mass_coord", "rh_mfmiddle_mass_coord",
