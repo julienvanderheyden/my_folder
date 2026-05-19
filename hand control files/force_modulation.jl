@@ -120,12 +120,12 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
     # -------------------- HAND MOTION --------------------------------
 
     # CYLINDER ATTRACTION CONNECTION
-    base_stiffness = 0.05
+    base_stiffness         = 0.05
     phalanx_scaling_factor = 0.5
     finger_scaling_factor  = 1.5
 
-    base_damping           = 0.05
-    damping_decay_rate     = 161
+    base_damping              = 0.05
+    damping_decay_rate        = 161
     exponential_damping_coeff = 0.1
 
     connect_virtual_hand_object(vms, FINGER_CONFIGS, base_stiffness, phalanx_scaling_factor, finger_scaling_factor,
@@ -134,7 +134,6 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
     # CYLINDER COLLISION MODEL  
     build_cylinder_collision_model(vms, FINGER_CONFIGS, cylinder_radius, cylinder_position)
     
-
     # --------------- REAL/VIRTUAL HAND INTERCONNECTION -----------------
 
     WRIST_JOINTS = ["rh_WRJ1", "rh_WRJ2"]
@@ -189,6 +188,11 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
         return (radius_joints, root_joints,
                 cylinder_radius_coord_dict, cylinder_position_coord_dict, damper_component_dict,
                 feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID)
+    end
+
+    # ---------------- TEST : CONTACT DETECTION COORDINATES ---------------------
+    for (frame, name) in zip(FINGER_CONFIGS["ff"].attracted_frames, FINGER_CONFIGS["ff"].attracted_frames_names)
+        add_coordinate!(vms, CoordDifference(frame, "$name cylinder position");          id="$name cylinder diff")
     end
 
 
