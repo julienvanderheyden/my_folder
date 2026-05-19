@@ -155,7 +155,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
     # ---------------- TEST : CONTACT DETECTION COORDINATES ---------------------
     for (frame, name) in zip(FINGER_CONFIGS["ff"].attracted_frames, FINGER_CONFIGS["ff"].attracted_frames_names)
-        add_coordinate!(vms, CoordDifference(frame, "ff cylinder position");          id="robot $name cylinder diff ")
+        add_coordinate!(vms, CoordDifference(frame, "ff cylinder position");          id="robot $name cylinder diff")
         add_coordinate!(vms, CoordSlice("robot $name cylinder diff", SVector(2, 3));           id="robot $name planar error")
         add_coordinate!(vms, CoordNorm("robot $name planar error");                            id="robot $name planar error norm")
         add_coordinate!(vms, CoordDifference("$name planar error norm", "robot $name planar error norm"); id="$name radial penetration")
