@@ -154,29 +154,29 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
 
     # ---------------- TEST : CONTACT DETECTION COORDINATES ---------------------
-    for (frame, name) in zip(FINGER_CONFIGS["ff"].attracted_frames, FINGER_CONFIGS["ff"].attracted_frames_names)
-        add_coordinate!(vms, CoordDifference(frame, "ff cylinder position");          id="robot $name cylinder diff")
-        add_coordinate!(vms, CoordSlice("robot $name cylinder diff", SVector(2, 3));           id="robot $name planar error")
-        add_coordinate!(vms, CoordNorm("robot $name planar error");                            id="robot $name planar error norm")
-        add_coordinate!(vms, CoordDifference("$name planar error norm", "robot $name planar error norm"); id="$name radial penetration")
-    end
+    # for (frame, name) in zip(FINGER_CONFIGS["ff"].attracted_frames, FINGER_CONFIGS["ff"].attracted_frames_names)
+    #     add_coordinate!(vms, CoordDifference(frame, "ff cylinder position");          id="robot $name cylinder diff")
+    #     add_coordinate!(vms, CoordSlice("robot $name cylinder diff", SVector(2, 3));           id="robot $name planar error")
+    #     add_coordinate!(vms, CoordNorm("robot $name planar error");                            id="robot $name planar error norm")
+    #     add_coordinate!(vms, CoordDifference("$name planar error norm", "robot $name planar error norm"); id="$name radial penetration")
+    # end
 
-    function f_setup(cache)
-        penetration_dict = Dict{String, Any}()
-        for name in FINGER_CONFIGS["ff"].attracted_frames_names
-            penetration_ID = get_compiled_coordID(cache, "$name radial penetration")
-            penetration_dict[name] = penetration_ID
-        end
-        return penetration_dict
-    end
+    # function f_setup(cache)
+    #     penetration_dict = Dict{String, Any}()
+    #     for name in FINGER_CONFIGS["ff"].attracted_frames_names
+    #         penetration_ID = get_compiled_coordID(cache, "$name radial penetration")
+    #         penetration_dict[name] = penetration_ID
+    #     end
+    #     return penetration_dict
+    # end
 
-    function f_control(cache, t, args, extra)
-        penetration_dict = args
-        for name in FINGER_CONFIGS["ff"].attracted_frames_names
-            penetration = only(configuration(cache, penetration_dict[name]))
-            @info "Penetration for $name: $(round(penetration*1000, digits=1)) mm"
-        end
-    end
+    # function f_control(cache, t, args, extra)
+    #     penetration_dict = args
+    #     for name in FINGER_CONFIGS["ff"].attracted_frames_names
+    #         penetration = only(configuration(cache, penetration_dict[name]))
+    #         @info "Penetration for $name: $(round(penetration*1000, digits=1)) mm"
+    #     end
+    # end
 
 
     # finger_states = Dict(name => FingerModulationState(cylinder_radius) for name in keys(FINGER_CONFIGS))
@@ -197,8 +197,8 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
 
     with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=10.0)
-        # ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0)
+        # ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=10.0)
+        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0)
     end
 
 end
