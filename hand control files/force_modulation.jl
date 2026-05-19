@@ -197,8 +197,8 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
 
     with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-        #ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=10.0)
-        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0)
+        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=10.0)
+        # ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0)
     end
 
 end
