@@ -103,6 +103,7 @@ function force_modulation(cylinder_radius, penetration_depth,  feedback_stiffnes
     # For the moment the urdfs are the same but we might want to change the properties of the virtual robot
     vm_robot = build_robot(shadow_hand_urdf_path; joint_limiting=true, gravity_compensation=true) 
 
+    # add frames for the points of interest (finger tips, knuckles, palm)
     add_coordinate!(vm_robot, FrameOrigin("rh_ffdistal"); id="rh_ffdistal")
     add_coordinate!(vm_robot, FrameOrigin("rh_mfdistal"); id="rh_mfdistal")
     add_coordinate!(vm_robot, FrameOrigin("rh_rfdistal"); id="rh_rfdistal")

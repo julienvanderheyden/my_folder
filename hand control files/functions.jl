@@ -154,8 +154,7 @@ function build_robot(urdf_path; joint_limiting = false, gravity_compensation = f
         add_coordinate!(robot, JointSubspace(joint_id);  id="$(joint_id)_coord")
 
         # JOINT LIMITS AND DAMPING
-        if joint_limiting
-            @assert ~isnothing(limits.lower) && ~isnothing(limits.upper)
+        if joint_limiting && !isnothing(limits.lower) && !isnothing(limits.upper)
             add_deadzone_springs!(robot, 0.01, (limits.lower+0.0, limits.upper-0.0), "$(joint_id)_coord")
             add_component!(robot, LinearDamper(0.0001, "$(joint_id)_coord"); id="$(joint_id)_damper")
         end
