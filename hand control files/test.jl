@@ -111,40 +111,8 @@ function force_modulation(cylinder_radius, penetration_depth,  feedback_stiffnes
     add_coordinate!(vm_robot, FrameOrigin("rh_thdistal"); id="rh_thdistal")
     add_coordinate!(vm_robot, FrameOrigin("rh_thmiddle"); id="rh_thmiddle")
 
-    m = compile(vm_robot)
-    kcache = new_kinematics_cache(m)  
-    medium_wrap_preshape = zeros(24)
-    medium_wrap_preshape[21] = 1.2 # thumb extended
-    kinematics!(kcache, 0.0, medium_wrap_preshape)
-
-    if cylinder_radius < 0.015
-        # add one centimeter to the radius to avoid intersection with the fingers 
-        rh_ffknuckle_frame_id = get_compiled_frameID(m, "rh_ffknuckle")
-        ffknuckle_transform = get_transform(kcache, rh_ffknuckle_frame_id)
-    
-        cylinder_position = SVector(0.0, -0.03, ffknuckle_transform.origin[3] - cylinder_radius - 0.007)
-    else
-        # Get the positions of the finger tips
-        rh_fftip_frame_id = get_compiled_frameID(m, "rh_fftip")
-        fftip_transform = get_transform(kcache, rh_fftip_frame_id)
-        p11 = [fftip_transform.origin[2], fftip_transform.origin[3]]  
-
-        rh_ffmiddle_frame_id = get_compiled_frameID(m, "rh_ffmiddle")
-        ffmiddle_transform = get_transform(kcache, rh_ffmiddle_frame_id)
-        p12 = [ffmiddle_transform.origin[2], ffmiddle_transform.origin[3]]
-
-        rh_thtip_frame_id = get_compiled_frameID(m, "rh_thtip")
-        thtip_transform = get_transform(kcache, rh_thtip_frame_id)
-        p21 = [thtip_transform.origin[2], thtip_transform.origin[3]]
-
-        rh_thmiddle_frame_id = get_compiled_frameID(m, "rh_thmiddle")
-        thmiddle_transform = get_transform(kcache, rh_thmiddle_frame_id)
-        p22 = [thmiddle_transform.origin[2], thmiddle_transform.origin[3]]
-
-        # add one centimeter to the radius to avoid intersection with the fingers
-        cylinder_position = circle_center_tangent_to_lines(p11, p12, p21, p22, cylinder_radius + 0.01)
-        cylinder_position = SVector(0.0, cylinder_position[1], cylinder_position[2])  # Convert to SVector
-    end
+    # ------------------ BUILD THE VIRTUAL MECHANISM ------------------
+    cylinder_position = compute_cylinder_position(vm_robot, cylinder_radius)
     
     attracted_frames = ("rh_lfdistal_mass_coord", "rh_lfmiddle_mass_coord", "rh_lfproximal_mass_coord", "rh_rfdistal_mass_coord", 
     "rh_rfmiddle_mass_coord", "rh_rfproximal_mass_coord", "rh_mfdistal_mass_coord", "rh_mfmiddle_mass_coord",
@@ -182,6 +150,8 @@ function force_modulation(cylinder_radius, penetration_depth,  feedback_stiffnes
         comeback_stiffness_matrix = SMatrix{3, 3}(comeback_stiffness, 0., 0., 0., comeback_stiffness, 0., 0., 0., comeback_stiffness)
         add_component!(vm_robot, LinearSpring(comeback_stiffness_matrix, "$(attracted_frames_names[i])_prismatic_error"); id = "$(attracted_frames_names[i])_comeback_spring")
     end
+
+    add_gravity_compensation!(vm_robot, VMRobotControl.DEFAULT_GRAVITY)
 
     vms = VirtualMechanismSystem("myShadowVMS", shadow_robot, vm_robot)
 
