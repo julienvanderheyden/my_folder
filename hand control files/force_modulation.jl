@@ -161,9 +161,20 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
         add_coordinate!(vms, CoordDifference("$name planar error norm", "robot $name planar error norm"); id="$name radial penetration")
     end
 
+    for (frame_id, name) in zip(FINGER_CONFIGS["mf"].attracted_frames, FINGER_CONFIGS["mf"].attracted_frames_names)
+        add_coordinate!(vms, CoordDifference(".robot.$frame_id", "mf cylinder position");          id="robot $name cylinder diff")
+        add_coordinate!(vms, CoordSlice("robot $name cylinder diff", SVector(2, 3));           id="robot $name planar error")
+        add_coordinate!(vms, CoordNorm("robot $name planar error");                            id="robot $name planar error norm")
+        add_coordinate!(vms, CoordDifference("$name planar error norm", "robot $name planar error norm"); id="$name radial penetration")
+    end
+
     function f_setup(cache)
         penetration_dict = Dict{String, Any}()
         for name in FINGER_CONFIGS["ff"].attracted_frames_names
+            penetration_ID = get_compiled_coordID(cache, "$name radial penetration")
+            penetration_dict[name] = penetration_ID
+        end
+        for name in FINGER_CONFIGS["mf"].attracted_frames_names
             penetration_ID = get_compiled_coordID(cache, "$name radial penetration")
             penetration_dict[name] = penetration_ID
         end
@@ -173,6 +184,10 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
     function f_control(cache, t, args, extra)
         penetration_dict = args
         for name in FINGER_CONFIGS["ff"].attracted_frames_names
+            penetration = only(configuration(cache, penetration_dict[name]))
+            @info "Penetration for $name: $(round(penetration*1000, digits=1)) mm"
+        end
+        for name in FINGER_CONFIGS["mf"].attracted_frames_names
             penetration = only(configuration(cache, penetration_dict[name]))
             @info "Penetration for $name: $(round(penetration*1000, digits=1)) mm"
         end
