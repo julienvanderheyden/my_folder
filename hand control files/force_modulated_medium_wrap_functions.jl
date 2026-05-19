@@ -25,7 +25,7 @@ function build_robot(urdf_path; joint_limiting = false)
     add_coordinate!(robot, CoordSum("rh_LFJ1_coord", "rh_LFJ2_coord"); id="rh_LFJ0_coord") 
     
     # ADD PALM COORDINATE
-    add_coordinate!(robot, FramePoint(".rh_palm", SVector(0. , 0., 0.07)); id="rh_palm2")
+    add_coordinate!(robot, FramePoint("rh_palm", SVector(0. , 0., 0.07)); id="rh_palm2")
 
     return robot
 end
