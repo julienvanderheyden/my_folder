@@ -304,7 +304,6 @@ function force_modulation(cylinder_radius, penetration_depth,  feedback_stiffnes
     # feedback_damping = 0.000
 
     # START BY LINKING UNCOUPLED JOINTS
-    joint_limits = shadow_cfg.joint_limits
     uncoupled_joints = ["rh_WRJ1", "rh_WRJ2", "rh_FFJ3", "rh_FFJ4", "rh_MFJ3", "rh_MFJ4", "rh_RFJ3", "rh_RFJ4", 
                         "rh_LFJ3", "rh_LFJ4", "rh_LFJ5", "rh_THJ1", "rh_THJ2", "rh_THJ3", "rh_THJ4","rh_THJ5"]
 
