@@ -138,7 +138,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
     add_coordinate!(vms, FramePoint(".virtual_mechanism.rh_palm", SVector(0. , 0., 0.07)); id="second palm point")
     
     # Special frames not belonging to any finger
-    const EXTRA_REPULSED_FRAMES = [
+    EXTRA_REPULSED_FRAMES = [
         (".virtual_mechanism.rh_palm_mass_coord", "palm"),
         ("second palm point",                     "palm2"),
     ]
@@ -155,7 +155,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
     # --------------- REAL/VIRTUAL HAND INTERCONNECTION -----------------
 
-    const WRIST_JOINTS = ["rh_WRJ1", "rh_WRJ2"]
+    WRIST_JOINTS = ["rh_WRJ1", "rh_WRJ2"]
 
     for joint_id in WRIST_JOINTS
         add_joint_feedback!(vms, joint_id, MISMATCH_DEADZONE, feedback_stiffness, feedback_damping)
