@@ -151,78 +151,38 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
         end
     end
 
-    function f_setup(cache)
 
-        radius_joints                = Dict{String, Any}() # joint IDs of the rigid joints controlling the attracting cylinder radius for each finger
-        root_joints                  = Dict{String, Any}() # joint IDs of the root joints controlling the attracting cylinder position for each finger
-        attraction_coordID           = Dict{String, Any}() # coord IDs of the attraction spring between each attach point and the corresponding cylinder center (used to detect virtual contact)
-        cylinder_radius_coord_dict   = Dict{String, Any}() # coord IDs of the spring rest length controlling the repulsive cylinder radius f
-        cylinder_position_coord_dict = Dict{String, Any}() # coord IDs of the fixed point controlling the repulsive cylinder position
-        damper_component_dict        = Dict{String, Any}() # component ID of the damper of the repulsive cylinder (cannot be modulated with coord)
-        feedback_coordID_uncoupled   = Dict{String, Any}() # coord IDs of the feedback springs for uncoupled joints (used to detect real contact)
-        feedback_coordID_coupled     = Dict{String, Any}() # coord IDs of the feedback springs for coupled joints (used to detect real contact, higher deadzone)
-
-        for (finger, cfg) in FINGER_CONFIGS
-
-            for frame in cfg.attracted_frames_names
-                radius_joints[frame]      = get_compiled_jointID(cache, ".virtual_mechanism.fixed_joint_$(frame)")
-                root_joints[frame]        = get_compiled_jointID(cache, ".virtual_mechanism.root_joint_$(frame)")
-                attraction_coordID[frame] = get_compiled_coordID(cache, "ee $(frame) diff")
-            end
-
-            for frame in cfg.repulsed_frames_names
-                cylinder_radius_coord_dict[frame]   = get_compiled_coordID(cache, "$(frame) cylinder radius")
-                cylinder_position_coord_dict[frame] = get_compiled_coordID(cache, "$(frame) cylinder position")
-                damper_component_dict[frame]        = get_compiled_componentID(cache, "$(frame) cylinder damper")
-            end
-
-            for joint in cfg.uncoupled_joints
-                feedback_coordID_uncoupled[joint] = get_compiled_coordID(cache, "$(joint) coord diff")
-            end
-
-            for joint in cfg.coupled_joints
-                feedback_coordID_coupled[joint] = get_compiled_coordID(cache, "$(joint) coord diff")
-            end
-        end
-
-        return (radius_joints, root_joints,
-                cylinder_radius_coord_dict, cylinder_position_coord_dict, damper_component_dict,
-                feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID)
-    end
 
     # ---------------- TEST : CONTACT DETECTION COORDINATES ---------------------
-    # for (frame, name) in zip(FINGER_CONFIGS["ff"].attracted_frames, FINGER_CONFIGS["ff"].attracted_frames_names)
-    #     add_coordinate!(vms, CoordDifference(frame, "$name cylinder position");          id="$name cylinder diff")
-    # end
+    for (frame, name) in zip(FINGER_CONFIGS["ff"].attracted_frames, FINGER_CONFIGS["ff"].attracted_frames_names)
+        add_coordinate!(vms, CoordDifference(frame, "ff cylinder position");          id="robot $name cylinder diff ")
+        add_coordinate!(vms, CoordSlice("robot $name cylinder diff", SVector(2, 3));           id="robot $name planar error")
+        add_coordinate!(vms, CoordNorm("robot $name planar error");                            id="robot $name planar error norm")
+        add_coordinate!(vms, CoordDifference("$name planar error norm", "robot $name planar error norm"); id="$name radial penetration")
+    end
 
-
-    finger_states = Dict(name => FingerModulationState(cylinder_radius) for name in keys(FINGER_CONFIGS))
-
-    last_t = 0.0
+    function f_setup(cache)
+        penetration_dict = Dict{String, Any}()
+        for name in FINGER_CONFIGS["ff"].attracted_frames_names
+            penetration_ID = get_compiled_coordID(cache, "$name radial penetration")
+            penetration_dict[name] = penetration_ID
+        end
+        return penetration_dict
+    end
 
     function f_control(cache, t, args, extra)
-
-        (radius_joints, root_joints,
-        cylinder_radius_coord_dict, cylinder_position_coord_dict, damper_component_dict,
-        feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID) = args
-
-        for (finger, cfg) in FINGER_CONFIGS
-            state = finger_states[finger]
-
-            update_finger_state!(state, finger, cache, t,
-                                attraction_coordID,
-                                feedback_coordID_uncoupled,
-                                feedback_coordID_coupled)
-
-            apply_radius_modulation!(finger, state, cache, t, m, kcache,
-                                    radius_joints, root_joints,
-                                    cylinder_radius_coord_dict,
-                                    cylinder_position_coord_dict,
-                                    damper_component_dict, last_t)
+        penetration_dict = args
+        for name in FINGER_CONFIGS["ff"].attracted_frames_names
+            penetration = only(configuration(cache, penetration_dict[name]))
+            @info "Penetration for $name: $(round(penetration*1000, digits=1)) mm"
         end
-
-        last_t = t
     end
+
+
+    # finger_states = Dict(name => FingerModulationState(cylinder_radius) for name in keys(FINGER_CONFIGS))
+
+    # last_t = 0.0
+
 
     println("Connecting to ROS client...")
     cvms = compile(vms)
@@ -242,6 +202,72 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
     end
 
 end
+
+
+# function f_control(cache, t, args, extra)
+
+#     (radius_joints, root_joints,
+#     cylinder_radius_coord_dict, cylinder_position_coord_dict, damper_component_dict,
+#     feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID) = args
+
+#     for (finger, cfg) in FINGER_CONFIGS
+#         state = finger_states[finger]
+
+#         update_finger_state!(state, finger, cache, t,
+#                             attraction_coordID,
+#                             feedback_coordID_uncoupled,
+#                             feedback_coordID_coupled)
+
+#         apply_radius_modulation!(finger, state, cache, t, m, kcache,
+#                                 radius_joints, root_joints,
+#                                 cylinder_radius_coord_dict,
+#                                 cylinder_position_coord_dict,
+#                                 damper_component_dict, last_t)
+#     end
+
+#     last_t = t
+# end
+
+
+
+# function f_setup(cache)
+
+#     radius_joints                = Dict{String, Any}() # joint IDs of the rigid joints controlling the attracting cylinder radius for each finger
+#     root_joints                  = Dict{String, Any}() # joint IDs of the root joints controlling the attracting cylinder position for each finger
+#     attraction_coordID           = Dict{String, Any}() # coord IDs of the attraction spring between each attach point and the corresponding cylinder center (used to detect virtual contact)
+#     cylinder_radius_coord_dict   = Dict{String, Any}() # coord IDs of the spring rest length controlling the repulsive cylinder radius f
+#     cylinder_position_coord_dict = Dict{String, Any}() # coord IDs of the fixed point controlling the repulsive cylinder position
+#     damper_component_dict        = Dict{String, Any}() # component ID of the damper of the repulsive cylinder (cannot be modulated with coord)
+#     feedback_coordID_uncoupled   = Dict{String, Any}() # coord IDs of the feedback springs for uncoupled joints (used to detect real contact)
+#     feedback_coordID_coupled     = Dict{String, Any}() # coord IDs of the feedback springs for coupled joints (used to detect real contact, higher deadzone)
+
+#     for (finger, cfg) in FINGER_CONFIGS
+
+#         for frame in cfg.attracted_frames_names
+#             radius_joints[frame]      = get_compiled_jointID(cache, ".virtual_mechanism.fixed_joint_$(frame)")
+#             root_joints[frame]        = get_compiled_jointID(cache, ".virtual_mechanism.root_joint_$(frame)")
+#             attraction_coordID[frame] = get_compiled_coordID(cache, "ee $(frame) diff")
+#         end
+
+#         for frame in cfg.repulsed_frames_names
+#             cylinder_radius_coord_dict[frame]   = get_compiled_coordID(cache, "$(frame) cylinder radius")
+#             cylinder_position_coord_dict[frame] = get_compiled_coordID(cache, "$(frame) cylinder position")
+#             damper_component_dict[frame]        = get_compiled_componentID(cache, "$(frame) cylinder damper")
+#         end
+
+#         for joint in cfg.uncoupled_joints
+#             feedback_coordID_uncoupled[joint] = get_compiled_coordID(cache, "$(joint) coord diff")
+#         end
+
+#         for joint in cfg.coupled_joints
+#             feedback_coordID_coupled[joint] = get_compiled_coordID(cache, "$(joint) coord diff")
+#         end
+#     end
+
+#     return (radius_joints, root_joints,
+#             cylinder_radius_coord_dict, cylinder_position_coord_dict, damper_component_dict,
+#             feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID)
+# end
 
 function update_cylinder_position(finger, m, cache, kcache, new_radius, root_jointID, cylinder_position_coord_dict)
     medium_wrap_preshape = zeros(24)
