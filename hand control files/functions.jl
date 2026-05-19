@@ -140,7 +140,7 @@ function circle_center_tangent_to_lines(p11, p12, p21, p22, r)
     return C
 end
 
-function build_robot(urdf_path; joint_limiting = false, gravity_compensation = false)
+function build_robot(urdf_path; joint_limiting = false)
     # PARSE URDF
     cfg = URDFParserConfig(;suppress_warnings=true) # This is just to hide warnings about unsupported URDF features
     robot = parseURDF(urdf_path, cfg)
@@ -164,11 +164,7 @@ function build_robot(urdf_path; joint_limiting = false, gravity_compensation = f
     add_coordinate!(robot, CoordSum("rh_FFJ1_coord", "rh_FFJ2_coord"); id="rh_FFJ0_coord")
     add_coordinate!(robot, CoordSum("rh_MFJ1_coord", "rh_MFJ2_coord"); id="rh_MFJ0_coord")
     add_coordinate!(robot, CoordSum("rh_RFJ1_coord", "rh_RFJ2_coord"); id="rh_RFJ0_coord")
-    add_coordinate!(robot, CoordSum("rh_LFJ1_coord", "rh_LFJ2_coord"); id="rh_LFJ0_coord")
-
-    if gravity_compensation
-        add_gravity_compensation!(robot, VMRobotControl.DEFAULT_GRAVITY)
-    end   
+    add_coordinate!(robot, CoordSum("rh_LFJ1_coord", "rh_LFJ2_coord"); id="rh_LFJ0_coord")  
 
     return robot
 end
@@ -246,6 +242,7 @@ function build_cylinder_virtual_object(robot, finger_cfg, cylinder_position, cyl
             add_component!(robot, LinearSpring(SMatrix{3, 3}(0.1 * I), "$(name)_prismatic_error"); id="$(name)_comeback_spring")
         end
     end
+    add_gravity_compensation!(vm_robot, VMRobotControl.DEFAULT_GRAVITY)
 end
 
 function frame_stiffness(base, finger_idx, n_fingers, phalanx_idx, n_phalanges, phalanx_factor, finger_factor)
