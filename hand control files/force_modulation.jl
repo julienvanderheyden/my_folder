@@ -165,7 +165,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
         add_coordinate!(vms, CoordDifference(".robot.$frame_id", "mf cylinder position");          id="robot $name cylinder diff")
         add_coordinate!(vms, CoordSlice("robot $name cylinder diff", SVector(2, 3));           id="robot $name planar error")
         add_coordinate!(vms, CoordNorm("robot $name planar error");                            id="robot $name planar error norm")
-        add_coordinate!(vms, CoordDifference("$name planar error norm", "robot $name planar error norm"); id="$name radial penetration")
+        add_coordinate!(vms, CoordDifference("robot $name planar error norm", "$name planar error norm"); id="$name radial penetration")
     end
 
     function f_setup(cache)
