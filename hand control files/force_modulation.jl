@@ -185,17 +185,21 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
                 penetration        = only(configuration(cache, penetration_dict[name]))
                 radial_acceleration = only(acceleration(cache, real_robot_radial_pos_dict[name]))
                 if !finger_states[finger].contact_detected && radial_acceleration > 0.0000005 && penetration < -0.005
-                    #CONTACT SEEM TO BE DETECTED : SHOULD BE SUSTAINED 0.2s
-                    if finger_states[finger].activation_time == 0.0
-                        finger_states[finger].activation_time = t
-                    elseif t - finger_states[finger].activation_time > 0.2
-                        finger_states[finger].contact_detected = true
-                        @info "Contact detected for finger $(finger)"
-                    end
-                else 
-                    finger_states[finger].activation_time = 0.0
+                    finger_states[finger].contact_detected = true
+                    finger_states[finger].activation_time = t
                 end
             end
+                            
+            if finger_states[finger].contact_detected 
+                if t - finger_states[finger].activation_time > 0.2
+                    @info "Contact detected for finger $finger"
+                    finger_states[finger].modulation_activated = true
+                end
+            else
+                finger_states[finger].activation_time = 0.0
+            end
+
+            finger_states[finger].contact_detected = false # reset for next iteration, will be set to true again if contact is still detected
         end
     end
 
