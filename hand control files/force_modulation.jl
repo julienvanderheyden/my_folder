@@ -202,7 +202,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
                 # @info "$name penetration : $(round(penetration*1000, digits=2)) mm | " *
                 #     "radial velocity: $(round(radial_velocity*1000, digits=2)) mm/s" *
                 #     "radial acceleration: $(round(radial_acceleration*1000, digits=5)) mm/s²"
-                if radial_acceleration > 0.0001 && abs(radial_velocity) < 0.001 && penetration < -0.003
+                if radial_acceleration > 0.00001 && abs(radial_velocity) < 0.001 && penetration < -0.003
                     @info "Contact detected — $name | " *
                         "penetration: $(round(penetration*1000, digits=1)) mm | " *
                         "radial velocity: $(round(radial_velocity*1000, digits=1)) mm/s"
