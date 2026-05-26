@@ -188,11 +188,11 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
                     radial_acceleration = only(acceleration(cache, real_robot_radial_pos_dict[name]))
 
-                    if finger_states[finger].acceleration[i] == 0 && radial_acceleration < -0.0000005
+                    if finger_states[finger].acceleration[i] == 0 && radial_acceleration < -0.00005
                         finger_states[finger].acceleration[i] = -1
                     elseif finger_states[finger].acceleration[i] == -1 && radial_acceleration > 0.0000005
                         finger_states[finger].acceleration[i] = 1
-                    elseif finger_states[finger].acceleration[i] == 1 && radial_acceleration < -0.0000005
+                    elseif finger_states[finger].acceleration[i] == 1 && radial_acceleration < -0.00005
                         finger_states[finger].acceleration[i] = -1
                     end
 
