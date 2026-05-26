@@ -170,27 +170,43 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
     function f_setup(cache)
         penetration_dict = Dict{String, Any}()
+        real_robot_radial_pos_dict = Dict{String, Any}()
         for name in FINGER_CONFIGS["ff"].attracted_frames_names
             penetration_ID = get_compiled_coordID(cache, "$name radial penetration")
             penetration_dict[name] = penetration_ID
+            real_robot_radial_pos_ID = get_compiled_coordID(cache, "robot $name planar error norm")
+            real_robot_radial_pos_dict[name] = real_robot_radial_pos_ID
         end
-        for name in FINGER_CONFIGS["mf"].attracted_frames_names
-            penetration_ID = get_compiled_coordID(cache, "$name radial penetration")
-            penetration_dict[name] = penetration_ID
-        end
-        return penetration_dict
+        return penetration_dict, real_robot_radial_pos_dict
     end
 
+    # State outside f_control
+    last_t = 0.0
+    previous_radial_pos = Dict(name => nothing 
+                            for name in FINGER_CONFIGS["ff"].attracted_frames_names)
+
     function f_control(cache, t, args, extra)
-        penetration_dict = args
+        penetration_dict, real_robot_radial_pos_dict = args
+        dt = t - last_t
+
         for name in FINGER_CONFIGS["ff"].attracted_frames_names
-            penetration = only(configuration(cache, penetration_dict[name]))
-            @info "Penetration for $name: $(round(penetration*1000, digits=1)) mm"
+            penetration        = only(configuration(cache, penetration_dict[name]))
+            radial_pos         = only(configuration(cache, real_robot_radial_pos_dict[name]))
+            prev               = previous_radial_pos[name]
+
+            if !isnothing(prev) && dt > 0
+                radial_velocity = abs((radial_pos - prev) / dt)
+                if penetration > 0.002 && radial_velocity < 0.005
+                    @info "Contact detected — $name | " *
+                        "penetration: $(round(penetration*1000, digits=1)) mm | " *
+                        "radial velocity: $(round(radial_velocity*1000, digits=1)) mm/s"
+                end
+            end
+
+            previous_radial_pos[name] = radial_pos
         end
-        for name in FINGER_CONFIGS["mf"].attracted_frames_names
-            penetration = only(configuration(cache, penetration_dict[name]))
-            @info "Penetration for $name: $(round(penetration*1000, digits=1)) mm"
-        end
+
+        last_t = t
     end
 
 
