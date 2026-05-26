@@ -181,27 +181,29 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
         penetration_dict, real_robot_radial_pos_dict = args
 
         for finger in keys(FINGER_CONFIGS)
-            for name in FINGER_CONFIGS[finger].attracted_frames_names
-                penetration        = only(configuration(cache, penetration_dict[name]))
-                radial_acceleration = only(acceleration(cache, real_robot_radial_pos_dict[name]))
-                if !finger_states[finger].contact_detected && radial_acceleration > 0.0000005 && penetration < -0.005
-                    finger_states[finger].contact_detected = true
-                    if finger_states[finger].activation_time == 0.0
-                        finger_states[finger].activation_time = t
+            if !finger_states[finger].modulation_activated 
+                for name in FINGER_CONFIGS[finger].attracted_frames_names
+                    penetration        = only(configuration(cache, penetration_dict[name]))
+                    radial_acceleration = only(acceleration(cache, real_robot_radial_pos_dict[name]))
+                    if !finger_states[finger].contact_detected && radial_acceleration > 0.0000005 && penetration < -0.005
+                        finger_states[finger].contact_detected = true
+                        if finger_states[finger].activation_time == 0.0
+                            finger_states[finger].activation_time = t
+                        end
                     end
                 end
-            end
-                            
-            if finger_states[finger].contact_detected 
-                if t - finger_states[finger].activation_time > 0.2
-                    @info "Contact detected for finger $finger"
-                    finger_states[finger].modulation_activated = true
+                                
+                if finger_states[finger].contact_detected 
+                    if t - finger_states[finger].activation_time > 0.2
+                        @info "Contact detected for finger $finger"
+                        finger_states[finger].modulation_activated = true
+                    end
+                else
+                    finger_states[finger].activation_time = 0.0
                 end
-            else
-                finger_states[finger].activation_time = 0.0
-            end
 
-            finger_states[finger].contact_detected = false # reset for next iteration, will be set to true again if contact is still detected
+                finger_states[finger].contact_detected = false # reset for next iteration, will be set to true again if contact is still detected
+            end
         end
     end
 
