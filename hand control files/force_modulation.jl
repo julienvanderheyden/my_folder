@@ -182,8 +182,10 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
     # State outside f_control
     last_t = 0.0
-    previous_radial_pos = Dict(name => nothing 
-                            for name in FINGER_CONFIGS["ff"].attracted_frames_names)
+    previous_radial_pos = Dict{String, Union{Nothing, Float64}}(
+                            name => nothing 
+                            for name in FINGER_CONFIGS["ff"].attracted_frames_names
+                        )
 
     function f_control(cache, t, args, extra)
         penetration_dict, real_robot_radial_pos_dict = args
