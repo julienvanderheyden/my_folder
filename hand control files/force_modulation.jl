@@ -190,7 +190,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
                     # if finger == "lf"
                     #     @info "radial acceleration for $name: $(round(radial_acceleration, sigdigits=3))"
                     # end
-                    if !finger_states[finger].contact_detected && radial_acceleration > 0.000005 && penetration < -0.005
+                    if !finger_states[finger].contact_detected && radial_acceleration > 0.00005 && penetration < -0.005
                         finger_states[finger].contact_detected = true
                         if finger_states[finger].activation_time == 0.0
                             finger_states[finger].activation_time = t
