@@ -27,7 +27,7 @@ mutable struct FingerModulationState
     modulation_stopped::Bool
     activation_time::Float64
     stopping_time::Float64
-    penetration_dict::Vector{Integer}
+    penetration_dict::Tuple{Int64, Int64, Int64}
 end
 
 FingerModulationState(initial_radius::Float64) = FingerModulationState(initial_radius, false, false, false, false, 0.0, 0.0, (0,0,0))
