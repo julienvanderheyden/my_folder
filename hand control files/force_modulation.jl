@@ -185,9 +185,11 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
                 for name in FINGER_CONFIGS[finger].attracted_frames_names
                     penetration        = only(configuration(cache, penetration_dict[name]))
                     radial_acceleration = only(acceleration(cache, real_robot_radial_pos_dict[name]))
+                    if finger == "lf"
+                        @info "radial acceleration for $name: $(round(radial_acceleration, sigdigits=3))"
+                    end
                     if !finger_states[finger].contact_detected && radial_acceleration > 0.0000005 && penetration < -0.005
                         finger_states[finger].contact_detected = true
-                        @info "feedback_grasping_service.jl: Contact detected for finger $finger (penetration = $(round(penetration*1000, digits=1)) mm, radial acceleration = $(round(radial_acceleration, sigdigits=2)) m/s²)"
                         if finger_states[finger].activation_time == 0.0
                             finger_states[finger].activation_time = t
                         end
