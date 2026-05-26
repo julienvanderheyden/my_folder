@@ -198,7 +198,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
             if !isnothing(prev) && dt > 0
                 radial_velocity = velocity(cache, real_robot_radial_pos_dict[name])
-                print("$name radial velocity : $radial_velocity ")
+                print("$name radial velocity : $(round(radial_velocity*1000, digits=1)) mm/s ")
                 # @info "$name penetration : $(round(penetration*1000, digits=1)) mm | " *
                 #     "radial velocity: $(round(radial_velocity*1000, digits=1)) mm/s"
                 # if penetration < -0.002 && radial_velocity < 0.005
