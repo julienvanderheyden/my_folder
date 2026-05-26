@@ -27,9 +27,10 @@ mutable struct FingerModulationState
     modulation_stopped::Bool
     activation_time::Float64
     stopping_time::Float64
+    acceleration::Integer
 end
 
-FingerModulationState(initial_radius::Float64) = FingerModulationState(initial_radius, false, false, false, false, 0.0, 0.0)
+FingerModulationState(initial_radius::Float64) = FingerModulationState(initial_radius, false, false, false, false, 0.0, 0.0, 0)
 
 struct FingerConfig
     attracted_frames::Vector{String}       # mass coord IDs used for attraction springs
@@ -184,12 +185,17 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
             if !finger_states[finger].modulation_activated 
                 for name in FINGER_CONFIGS[finger].attracted_frames_names
                     penetration        = only(configuration(cache, penetration_dict[name]))
+                    
                     radial_acceleration = only(acceleration(cache, real_robot_radial_pos_dict[name]))
-                    radial_velocity = only(velocity(cache, real_robot_radial_pos_dict[name]))
-                    # if finger == "lf"
-                    #     @info "radial acceleration for $name: $(round(radial_acceleration, sigdigits=3))"
-                    # end
-                    if !finger_states[finger].contact_detected && radial_acceleration > 0.0000005 && radial_velocity > 0 && penetration < -0.005
+                    if finger_states[finger].acceleration == 0 && radial_acceleration < 0.0000005
+                        finger_states[finger].acceleration = -1
+                    elseif finger_states[finger].acceleration == -1 && radial_acceleration > 0.0000005
+                        finger_states[finger].acceleration = 1
+                    elseif finger_states[finger].acceleration == 1 && radial_acceleration < 0.0000005
+                        finger_states[finger].acceleration = -1
+                    end
+
+                    if !finger_states[finger].contact_detected && finger_states[finger].acceleration == 1 &&  penetration < -0.005
                         finger_states[finger].contact_detected = true
                         if finger_states[finger].activation_time == 0.0
                             finger_states[finger].activation_time = t
