@@ -196,7 +196,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
                         finger_states[finger].acceleration[i] = -1
                     end
 
-                    if !finger_states[finger].contact_detected && finger_states[finger].acceleration == 1 &&  penetration < -0.005
+                    if !finger_states[finger].contact_detected && finger_states[finger].acceleration[i] == 1 &&  penetration < -0.005
                         finger_states[finger].contact_detected = true
                         if finger_states[finger].activation_time == 0.0
                             finger_states[finger].activation_time = t
