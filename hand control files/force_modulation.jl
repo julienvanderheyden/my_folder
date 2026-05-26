@@ -154,69 +154,53 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
 
     # ---------------- TEST : CONTACT DETECTION COORDINATES ---------------------
-    for (frame_id, name) in zip(FINGER_CONFIGS["ff"].attracted_frames, FINGER_CONFIGS["ff"].attracted_frames_names)
-        add_coordinate!(vms, CoordDifference(".robot.$frame_id", "ff cylinder position");          id="robot $name cylinder diff")
-        add_coordinate!(vms, CoordSlice("robot $name cylinder diff", SVector(2, 3));           id="robot $name planar error")
-        add_coordinate!(vms, CoordNorm("robot $name planar error");                            id="robot $name planar error norm")
-        add_coordinate!(vms, CoordDifference("$name planar error norm", "robot $name planar error norm"); id="$name radial penetration")
-    end
-
-    for (frame_id, name) in zip(FINGER_CONFIGS["mf"].attracted_frames, FINGER_CONFIGS["mf"].attracted_frames_names)
-        add_coordinate!(vms, CoordDifference(".robot.$frame_id", "mf cylinder position");          id="robot $name cylinder diff")
-        add_coordinate!(vms, CoordSlice("robot $name cylinder diff", SVector(2, 3));           id="robot $name planar error")
-        add_coordinate!(vms, CoordNorm("robot $name planar error");                            id="robot $name planar error norm")
-        add_coordinate!(vms, CoordDifference("$name planar error norm", "robot $name planar error norm"); id="$name radial penetration")
+    for finger in keys(FINGER_CONFIGS)
+        for (frame_id, name) in zip(FINGER_CONFIGS[finger].attracted_frames, FINGER_CONFIGS[finger].attracted_frames_names)
+            add_coordinate!(vms, CoordDifference(".robot.$frame_id", "$finger cylinder position");          id="robot $name cylinder diff")
+            add_coordinate!(vms, CoordSlice("robot $name cylinder diff", SVector(2, 3));           id="robot $name planar error")
+            add_coordinate!(vms, CoordNorm("robot $name planar error");                            id="robot $name planar error norm")
+            add_coordinate!(vms, CoordDifference("$name planar error norm", "robot $name planar error norm"); id="$name radial penetration")
+        end
     end
 
     function f_setup(cache)
         penetration_dict = Dict{String, Any}()
         real_robot_radial_pos_dict = Dict{String, Any}()
-        for name in FINGER_CONFIGS["ff"].attracted_frames_names
-            penetration_ID = get_compiled_coordID(cache, "$name radial penetration")
-            penetration_dict[name] = penetration_ID
-            real_robot_radial_pos_ID = get_compiled_coordID(cache, "robot $name planar error norm")
-            real_robot_radial_pos_dict[name] = real_robot_radial_pos_ID
+        for finger in keys(FINGER_CONFIGS)
+            for name in FINGER_CONFIGS[finger].attracted_frames_names
+                penetration_dict[name] = get_compiled_coordID(cache, "$name radial penetration")
+                real_robot_radial_pos_dict[name] = get_compiled_coordID(cache, "robot $name planar error norm")
+            end
         end
         return penetration_dict, real_robot_radial_pos_dict
     end
 
-    # State outside f_control
-    last_t = 0.0
-    previous_radial_pos = Dict{String, Union{Nothing, Float64}}(
-                            name => nothing 
-                            for name in FINGER_CONFIGS["ff"].attracted_frames_names
-                        )
+    finger_states = Dict(name => FingerModulationState(cylinder_radius) for name in keys(FINGER_CONFIGS))
 
     function f_control(cache, t, args, extra)
         penetration_dict, real_robot_radial_pos_dict = args
-        dt = t - last_t
 
-        for name in FINGER_CONFIGS["ff"].attracted_frames_names
-            penetration        = only(configuration(cache, penetration_dict[name]))
-            radial_pos         = only(configuration(cache, real_robot_radial_pos_dict[name]))
-            prev               = previous_radial_pos[name]
-
-            if !isnothing(prev) && dt > 0
-                radial_velocity = only(velocity(cache, real_robot_radial_pos_dict[name]))
+        for finger in keys(FINGER_CONFIGS)
+            for name in FINGER_CONFIGS[finger].attracted_frames_names
+                penetration        = only(configuration(cache, penetration_dict[name]))
                 radial_acceleration = only(acceleration(cache, real_robot_radial_pos_dict[name]))
-                # @info "$name penetration : $(round(penetration*1000, digits=2)) mm | " *
-                #     "radial velocity: $(round(radial_velocity*1000, digits=2)) mm/s" *
-                #     "radial acceleration: $(round(radial_acceleration*1000, digits=5)) mm/s²"
-                if radial_acceleration > 0.0000005 && penetration < -0.005 #&& abs(radial_velocity) < 0.005
-                    @info "Contact detected — $name | " *
-                        "penetration: $(round(penetration*1000, digits=1)) mm | " *
-                        "radial velocity: $(round(radial_velocity*1000, digits=1)) mm/s"
+                if !finger_states[finger].contact_detected && radial_acceleration > 0.0000005 && penetration < -0.005
+                    #CONTACT SEEM TO BE DETECTED : SHOULD BE SUSTAINED 0.2s
+                    if finger_states[finger].activation_time == 0.0
+                        finger_states[finger].activation_time = t
+                    elseif t - finger_states[finger].activation_time > 0.2
+                        finger_states[finger].contact_detected = true
+                        @info "Contact detected for finger $(finger)"
+                    end
+                else 
+                    finger_states[finger].activation_time = 0.0
                 end
             end
-
-            previous_radial_pos[name] = radial_pos
         end
-
-        last_t = t
     end
 
 
-    # finger_states = Dict(name => FingerModulationState(cylinder_radius) for name in keys(FINGER_CONFIGS))
+    
 
     # last_t = 0.0
 
