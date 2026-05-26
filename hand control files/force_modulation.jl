@@ -27,10 +27,10 @@ mutable struct FingerModulationState
     modulation_stopped::Bool
     activation_time::Float64
     stopping_time::Float64
-    acceleration::Tuple{Int64, Int64, Int64}
+    acceleration::Vector{Int64}
 end
 
-FingerModulationState(initial_radius::Float64) = FingerModulationState(initial_radius, false, false, false, false, 0.0, 0.0, (0,0,0))
+FingerModulationState(initial_radius::Float64) = FingerModulationState(initial_radius, false, false, false, false, 0.0, 0.0, [0, 0, 0])
 
 struct FingerConfig
     attracted_frames::Vector{String}       # mass coord IDs used for attraction springs
