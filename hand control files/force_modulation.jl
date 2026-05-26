@@ -185,13 +185,13 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
             if !finger_states[finger].modulation_activated 
                 for name in FINGER_CONFIGS[finger].attracted_frames_names
                     penetration        = only(configuration(cache, penetration_dict[name]))
-                    
+
                     radial_acceleration = only(acceleration(cache, real_robot_radial_pos_dict[name]))
-                    if finger_states[finger].acceleration == 0 && radial_acceleration < 0.0000005
+                    if finger_states[finger].acceleration == 0 && radial_acceleration < -0.0000005
                         finger_states[finger].acceleration = -1
                     elseif finger_states[finger].acceleration == -1 && radial_acceleration > 0.0000005
                         finger_states[finger].acceleration = 1
-                    elseif finger_states[finger].acceleration == 1 && radial_acceleration < 0.0000005
+                    elseif finger_states[finger].acceleration == 1 && radial_acceleration < -0.0000005
                         finger_states[finger].acceleration = -1
                     end
 
