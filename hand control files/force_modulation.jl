@@ -198,8 +198,8 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
             if !isnothing(prev) && dt > 0
                 radial_velocity = only(velocity(cache, real_robot_radial_pos_dict[name]))
-                @info "$name penetration : $(round(penetration*1000, digits=1)) mm | " *
-                    "radial velocity: $(round(radial_velocity*1000, digits=1)) mm/s"
+                @info "$name penetration : $(round(penetration*1000, digits=2)) mm | " *
+                    "radial velocity: $(round(radial_velocity*1000, digits=2)) mm/s"
                 # if penetration < -0.002 && radial_velocity < 0.005
                 #     @info "Contact detected — $name | " *
                 #         "penetration: $(round(penetration*1000, digits=1)) mm | " *
