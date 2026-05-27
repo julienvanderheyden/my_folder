@@ -204,7 +204,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
             end
 
             # Contact requires: deceleration event confirmed AND virtual penetration present
-            if state.accel_hysteresis[i] == 1 && penetration > 0.005
+            if state.accel_hysteresis[i] == 1 && penetration < -0.005
                 contact_this_frame = true
             end
         end
