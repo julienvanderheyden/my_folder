@@ -184,6 +184,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
     function f_setup(cache)
         penetration_dict = Dict{String, Any}()
         real_robot_radial_pos_dict = Dict{String, Any}()
+        feedback_coordID_dict = Dict{String, Any}()
         for finger in keys(FINGER_CONFIGS)
             for name in FINGER_CONFIGS[finger].attracted_frames_names
                 penetration_dict[name] = get_compiled_coordID(cache, "$name radial penetration")
