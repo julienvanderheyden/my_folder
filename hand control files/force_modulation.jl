@@ -220,7 +220,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
         for finger in keys(FINGER_CONFIGS)
             state = finger_states[finger]
-            @info "$state.frames_in_contact"
+            @info "$(state.frames_in_contact)"
             state.contact_detected && continue
 
             contact = detect_contact_task_space(finger, cache, 
