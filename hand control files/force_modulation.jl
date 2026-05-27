@@ -190,8 +190,6 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
     function detect_contact_task_space(finger, cache, penetration_dict, real_robot_radial_pos_dict)
         state = finger_states[finger]
         cfg   = FINGER_CONFIGS[finger]
-        
-        contact_this_frame = false
 
         for (i, name) in enumerate(cfg.attracted_frames_names)
             penetration       = only(configuration(cache, penetration_dict[name]))
@@ -222,6 +220,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
         for finger in keys(FINGER_CONFIGS)
             state = finger_states[finger]
+            @info "$state.frames_in_contact"
             state.contact_detected && continue
 
             contact = detect_contact_task_space(finger, cache, 
@@ -231,7 +230,6 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
                 if state.contact_detection_time == 0.0
                     state.contact_detection_time = t
                     state.measured_radius_at_contact = state.frames_in_contact[state.frames_in_contact .> 0.0][1]  
-                    print(state)
 
                 elseif t - state.contact_detection_time > 0.2
                     @info "Contact detected for finger $finger. Radius at contact: $(round(state.measured_radius_at_contact*1000, digits=1)) mm"
