@@ -233,12 +233,18 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
         return any(state.frames_in_contact .> 0.0)
     end
 
-    function detect_contact_joint_space(finger, cache, feedback_coordID_dict)
+    function detect_contact_joint_space(finger, cache, feedback_coordID_dict, real_robot_radial_pos_dict)
         cfg = FINGER_CONFIGS[finger]
 
         #when using non-ideal hand, coupled and uncoupled joints should be treated separately with different deadzones
         contact = any(cfg.joints) do joint
             abs(only(configuration(cache, feedback_coordID_dict[joint]))) > MISMATCH_DEADZONE
+        end
+
+        if contact
+            state.frames_in_contact .= (only(configuration(cache, real_robot_radial_pos_dict[n])) for n in cfg.attracted_frames_names)
+        else
+            state.frames_in_contact .= 0.0
         end
 
         return contact
@@ -252,7 +258,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
             state.contact_detected && continue
 
             #contact = detect_contact_task_space(finger, cache, penetration_dict, real_robot_radial_pos_dict)
-            contact = detect_contact_joint_space(finger, cache , feedback_coordID_dict)
+            contact = detect_contact_joint_space(finger, cache , feedback_coordID_dict, real_robot_radial_pos_dict)
 
             if contact
                 if state.contact_detection_time == 0.0
