@@ -189,7 +189,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
                 penetration_dict[name] = get_compiled_coordID(cache, "$name radial penetration")
                 real_robot_radial_pos_dict[name] = get_compiled_coordID(cache, "robot $name planar error norm")
             end
-            for joint in FINGERS_CONFIGS[finger].joints
+            for joint in FINGER_CONFIGS[finger].joints
                 feedback_coordID_dict[joint] = get_compiled_coordID(cache, "$(joint) coord diff")
             end
         end
