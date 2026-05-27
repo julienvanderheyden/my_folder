@@ -194,6 +194,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
         for (i, name) in enumerate(cfg.attracted_frames_names)
             penetration       = only(configuration(cache, penetration_dict[name]))
             radial_accel      = only(acceleration(cache, real_robot_radial_pos_dict[name]))
+            radial_velocity   = only(velocity(cache, real_robot_radial_pos_dict[name]))
 
             # HYSTERESIS on acceleration : contact can be detected only if the hand is closing and gets stopped
             if state.accel_hysteresis[i] == 0 && radial_accel < -5e-5
@@ -205,7 +206,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
             end
 
             # Contact requires: deceleration event confirmed AND virtual penetration present
-            if state.accel_hysteresis[i] == 1 && penetration < -0.005
+            if state.accel_hysteresis[i] == 1 && abs(radial_velocity) < 0.002 && penetration < -0.005
                 state.frames_in_contact[i] = only(configuration(cache, real_robot_radial_pos_dict[name]))
             else
                 state.frames_in_contact[i] = 0.0
@@ -220,7 +221,6 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
         for finger in keys(FINGER_CONFIGS)
             state = finger_states[finger]
-            @info "$(state.frames_in_contact)"
             state.contact_detected && continue
 
             contact = detect_contact_task_space(finger, cache, 
