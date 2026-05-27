@@ -22,17 +22,20 @@ const MISMATCH_DEADZONE = 0.05
 mutable struct FingerModulationState
     contact_detected::Bool
     contact_detection_time::Float64
+    accel_hysteresis::Vector{Int}
+    frames_in_contact::Vector{Float64}
+    measured_radius_at_contact::Float64
 
     radius::Float64
     equilibrium::Bool
     modulation_activated::Bool
     modulation_stopped::Bool
     stopping_time::Float64
-    accel_hysteresis::Vector{Int}
 end
 
 FingerModulationState(initial_radius::Float64, n_frames::Int) = FingerModulationState(
-    false, 0.0, initial_radius, false, false, false, 0.0, zeros(Int, n_frames))
+    false, 0.0, zeros(Int, n_frames), zeros(Float64, n_frames),0.0,
+    initial_radius, false, false, false, 0.0)
 
 struct FingerConfig
     attracted_frames::Vector{String}       # mass coord IDs used for attraction springs
@@ -205,11 +208,13 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
             # Contact requires: deceleration event confirmed AND virtual penetration present
             if state.accel_hysteresis[i] == 1 && penetration < -0.005
-                contact_this_frame = true
+                state.frames_in_contact[i] = only(configuration(cache, real_robot_radial_pos_dict[name]))
+            else
+                state.frames_in_contact[i] = 0.0
             end
         end
 
-        return contact_this_frame
+        return any(state.frames_in_contact .> 0.0)
     end
 
     function f_control(cache, t, args, extra)
@@ -225,8 +230,10 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
             if contact
                 if state.contact_detection_time == 0.0
                     state.contact_detection_time = t
+                    state.measured_radius_at_contact = state.frames_in_contact[state.frames_in_contact .> 0.0][1]  
+
                 elseif t - state.contact_detection_time > 0.2
-                    @info "Contact detected for finger $finger"
+                    @info "Contact detected for finger $finger. Radius at contact: $(round(state.measured_radius_at_contact*1000, digits=1)) mm"
                     state.contact_detected = true
                 end
             else
