@@ -228,10 +228,10 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
             if contact
                 if state.contact_detection_time == 0.0
-                    state.contact_detection_time = t
-                    state.measured_radius_at_contact = state.frames_in_contact[state.frames_in_contact .> 0.0][1]  
+                    state.contact_detection_time = t 
 
                 elseif t - state.contact_detection_time > 0.2
+                    state.measured_radius_at_contact = minimum(state.frames_in_contact[state.frames_in_contact .> 0.0])
                     @info "Contact detected for finger $finger. Radius at contact: $(round(state.measured_radius_at_contact*1000, digits=1)) mm"
                     state.contact_detected = true
                 end
