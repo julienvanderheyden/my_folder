@@ -235,6 +235,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
     function detect_contact_joint_space(finger, cache, feedback_coordID_dict, real_robot_radial_pos_dict)
         cfg = FINGER_CONFIGS[finger]
+        state = finger_states[finger]
 
         #when using non-ideal hand, coupled and uncoupled joints should be treated separately with different deadzones
         contact = any(cfg.joints) do joint
