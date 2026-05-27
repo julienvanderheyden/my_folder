@@ -20,17 +20,19 @@ end
 const MISMATCH_DEADZONE = 0.05
 
 mutable struct FingerModulationState
+    contact_detected::Bool
+    contact_detection_time::Float64
+
     radius::Float64
     equilibrium::Bool
-    contact_detected::Bool
     modulation_activated::Bool
     modulation_stopped::Bool
-    activation_time::Float64
     stopping_time::Float64
-    acceleration::Vector{Int64}
+    accel_hysteresis::Vector{Int}
 end
 
-FingerModulationState(initial_radius::Float64) = FingerModulationState(initial_radius, false, false, false, false, 0.0, 0.0, [0, 0, 0])
+FingerModulationState(initial_radius::Float64, n_frames::Int) = FingerModulationState(
+    false, 0.0, initial_radius, false, false, false, 0.0, zeros(Int, n_frames))
 
 struct FingerConfig
     attracted_frames::Vector{String}       # mass coord IDs used for attraction springs
@@ -176,57 +178,62 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
         return penetration_dict, real_robot_radial_pos_dict
     end
 
-    finger_states = Dict(name => FingerModulationState(cylinder_radius) for name in keys(FINGER_CONFIGS))
+    finger_states = Dict(
+        name => FingerModulationState(cylinder_radius, 
+                                    length(FINGER_CONFIGS[name].attracted_frames_names))
+        for name in keys(FINGER_CONFIGS)
+    )
+
+    function detect_contact_task_space(finger, cache, penetration_dict, real_robot_radial_pos_dict)
+        state = finger_states[finger]
+        cfg   = FINGER_CONFIGS[finger]
+        
+        contact_this_frame = false
+
+        for (i, name) in enumerate(cfg.attracted_frames_names)
+            penetration       = only(configuration(cache, penetration_dict[name]))
+            radial_accel      = only(acceleration(cache, real_robot_radial_pos_dict[name]))
+
+            # HYSTERESIS on acceleration : contact can be detected only if the hand is closing and gets stopped
+            if state.accel_hysteresis[i] == 0 && radial_accel < -5e-5
+                state.accel_hysteresis[i] = -1
+            elseif state.accel_hysteresis[i] == -1 && radial_accel > 5e-7
+                state.accel_hysteresis[i] = 1
+            elseif state.accel_hysteresis[i] == 1 && radial_accel < -5e-5
+                state.accel_hysteresis[i] = -1
+            end
+
+            # Contact requires: deceleration event confirmed AND virtual penetration present
+            if state.accel_hysteresis[i] == 1 && penetration > 0.005
+                contact_this_frame = true
+            end
+        end
+
+        return contact_this_frame
+    end
 
     function f_control(cache, t, args, extra)
         penetration_dict, real_robot_radial_pos_dict = args
 
         for finger in keys(FINGER_CONFIGS)
-            if !finger_states[finger].modulation_activated 
-                for (i, name) in enumerate(FINGER_CONFIGS[finger].attracted_frames_names)
-                    penetration        = only(configuration(cache, penetration_dict[name]))
+            state = finger_states[finger]
+            state.contact_detected && continue
 
-                    radial_acceleration = only(acceleration(cache, real_robot_radial_pos_dict[name]))
+            contact = detect_contact_task_space(finger, cache, 
+                                    penetration_dict, real_robot_radial_pos_dict)
 
-                    if finger_states[finger].acceleration[i] == 0 && radial_acceleration < -0.00005
-                        finger_states[finger].acceleration[i] = -1
-                    elseif finger_states[finger].acceleration[i] == -1 && radial_acceleration > 0.0000005
-                        finger_states[finger].acceleration[i] = 1
-                    elseif finger_states[finger].acceleration[i] == 1 && radial_acceleration < -0.00005
-                        finger_states[finger].acceleration[i] = -1
-                    end
-
-                    # if finger == "lf"
-                    #     @info "radial acceleration for $name: $(round(radial_acceleration, sigdigits=3)), state: $(finger_states[finger].acceleration[i])"
-                    # end 
-
-                    if !finger_states[finger].contact_detected && finger_states[finger].acceleration[i] == 1 &&  penetration < -0.005
-                        finger_states[finger].contact_detected = true
-                        if finger_states[finger].activation_time == 0.0
-                            finger_states[finger].activation_time = t
-                        end
-                    end
+            if contact
+                if state.contact_detection_time == 0.0
+                    state.contact_detection_time = t
+                elseif t - state.contact_detection_time > 0.2
+                    @info "Contact detected for finger $finger"
+                    state.contact_detected = true
                 end
-                                
-                if finger_states[finger].contact_detected 
-                    if t - finger_states[finger].activation_time > 0.2
-                        @info "Contact detected for finger $finger"
-                        finger_states[finger].modulation_activated = true
-                    end
-                else
-                    finger_states[finger].activation_time = 0.0
-                end
-
-                finger_states[finger].contact_detected = false # reset for next iteration, will be set to true again if contact is still detected
+            else
+                state.contact_detection_time = 0.0   # reset timer when contact lost
             end
         end
     end
-
-
-    
-
-    # last_t = 0.0
-
 
     println("Connecting to ROS client...")
     cvms = compile(vms)
