@@ -178,7 +178,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
     # virtual/real joint connection for contact detection in joint space (decoupling coupled joints)
     for joint_id in ("rh_FFJ1", "rh_FFJ2", "rh_MFJ1", "rh_MFJ2", "rh_RFJ1", "rh_RFJ2", "rh_LFJ1", "rh_LFJ2")
-         add_coordinate!(vms, CoordDifference(".robot.$joint_id coord", ".virtual_mechanism.$joint_id coord"); id="$(joint_id) coord diff")
+         add_coordinate!(vms, CoordDifference(".robot.$(joint_id)_coord", ".virtual_mechanism.$(joint_id)_coord"); id="$(joint_id) coord diff")
     end
 
     function f_setup(cache)
