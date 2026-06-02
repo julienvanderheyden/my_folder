@@ -287,8 +287,8 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
             state = finger_states[finger]
             state.contact_detected && continue
 
-            #contact = detect_contact_task_space(finger, cache, penetration_dict, real_robot_radial_pos_dict)
-            contact = detect_contact_joint_space(finger, cache , feedback_coordID_dict, real_robot_radial_pos_dict)
+            contact = detect_contact_task_space(finger, cache, penetration_dict, real_robot_radial_pos_dict)
+            #contact = detect_contact_joint_space(finger, cache , feedback_coordID_dict, real_robot_radial_pos_dict)
 
             if contact
                 if state.contact_detection_time == 0.0
