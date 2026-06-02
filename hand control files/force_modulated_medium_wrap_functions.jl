@@ -65,7 +65,7 @@ function compute_cylinder_position(robot, cylinder_radius)
         cylinder_position = circle_center_tangent_to_lines(p11, p12, p21, p22, cylinder_radius + 0.01)
         cylinder_position = SVector(0.0, cylinder_position[1], cylinder_position[2])  # Convert to SVector
     end
-    return cylinder_position
+    return cylinder_position, kcache
 end
 
 function build_cylinder_virtual_object(robot, finger_cfg, cylinder_position, cylinder_radius)
