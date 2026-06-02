@@ -159,12 +159,20 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
         add_joint_feedback!(vms, joint_id, MISMATCH_DEADZONE, feedback_stiffness, feedback_damping)
     end
 
-    for config in values(FINGER_CONFIGS)
-        for joint_id in config.uncoupled_joints
+    # IF USING REAL HAND WITH COUPLED JOINTS 
+    # for config in values(FINGER_CONFIGS)
+    #     for joint_id in config.uncoupled_joints
+    #         add_joint_feedback!(vms, joint_id, MISMATCH_DEADZONE, feedback_stiffness, feedback_damping)
+    #     end
+    #     for joint_id in config.coupled_joints
+    #         add_joint_feedback!(vms, joint_id, 2*MISMATCH_DEADZONE, feedback_stiffness, feedback_damping)
+    #     end
+    # end
+
+    # IF USING IDEAL HAND IN SIMULATION
+    for cfg in values(FINGER_CONFIGS)
+        for joint_id in cfg.joints
             add_joint_feedback!(vms, joint_id, MISMATCH_DEADZONE, feedback_stiffness, feedback_damping)
-        end
-        for joint_id in config.coupled_joints
-            add_joint_feedback!(vms, joint_id, 2*MISMATCH_DEADZONE, feedback_stiffness, feedback_damping)
         end
     end
 
@@ -182,9 +190,11 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
     end
 
     # virtual/real joint connection for contact detection in joint space (decoupling coupled joints)
-    for joint_id in ("rh_FFJ1", "rh_FFJ2", "rh_MFJ1", "rh_MFJ2", "rh_RFJ1", "rh_RFJ2", "rh_LFJ1", "rh_LFJ2")
-         add_coordinate!(vms, CoordDifference(".robot.$(joint_id)_coord", ".virtual_mechanism.$(joint_id)_coord"); id="$(joint_id) coord diff")
-    end
+    # already done in the feedback connection section but should be done even with the real hand for contact detection
+
+    # for joint_id in ("rh_FFJ1", "rh_FFJ2", "rh_MFJ1", "rh_MFJ2", "rh_RFJ1", "rh_RFJ2", "rh_LFJ1", "rh_LFJ2")
+    #      add_coordinate!(vms, CoordDifference(".robot.$(joint_id)_coord", ".virtual_mechanism.$(joint_id)_coord"); id="$(joint_id) coord diff")
+    # end
 
     function f_setup(cache)
 
