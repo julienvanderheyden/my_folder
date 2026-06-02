@@ -300,7 +300,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
                     # CONTACT IS DETECTED : place the virtual object within the real object and adapt stiffnesses accordingly
 
                     # the position of the virtual object should be centered on the one of the real object 
-                    update_cylinder_position(finger, cache, vm_robot, state.real_object_radius, root_joints_dict, cylinder_position_coord_dict)
+                    update_cylinder_position(finger, cache, shadow_robot, state.real_object_radius, root_joints_dict, cylinder_position_coord_dict)
                     # the radius of the virtual object should be within the one of the real object
                     virtual_radius = state.real_object_radius - penetration_depth
                     update_cylinder_radius(finger, cache, virtual_radius, radius_joints_dict, cylinder_radius_coord_dict, damper_component_dict)
