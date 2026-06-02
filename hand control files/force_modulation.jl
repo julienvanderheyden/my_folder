@@ -294,7 +294,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
         penetration_dict, real_robot_radial_pos_dict, feedback_coordID_dict = contact_detection_args
         radius_joints_dict, root_joints_dict, cylinder_radius_coord_dict, cylinder_position_coord_dict, damper_component_dict = virtual_object_args
 
-        for finger in keys(FINGER_CONFIGS)
+        for (finger, cfg) in FINGER_CONFIGS
             state = finger_states[finger]
             state.contact_detected && continue
 
