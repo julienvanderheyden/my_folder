@@ -338,10 +338,10 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                     velocity_equilibrium = all(cfg.attracted_frames_names) do point
                         abs(only(velocity(cache, real_robot_radial_pos_dict[point]))) < 0.001
                     end
-                    position_equilibrium = all(cfg.attracted_frames_names) do point
-                        norm(only(configuration(cache, penetration_dict[point]))) < 0.005
-                    end
-                    if velocity_equilibrium && position_equilibrium
+                    # position_equilibrium = all(cfg.attracted_frames_names) do point
+                    #     norm(only(configuration(cache, penetration_dict[point]))) < 0.005
+                    # end
+                    if velocity_equilibrium && all(state.accel_hysteresis .== 1)
                         state.radius_modulation = true
                         @info "Equilibrium reached for $(finger) without contact, starting radius modulation"
                     end
