@@ -344,7 +344,7 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                     if velocity_equilibrium && position_equilibrium 
                         if state.stopping_time == 0.0
                             state.stopping_time = t
-                        elseif t - state.stopping_time > 0.2
+                        elseif t - state.stopping_time > 0.5
                             state.radius_modulation = true
                             @info "Equilibrium reached for $(finger) without contact, starting radius modulation"
                         end
