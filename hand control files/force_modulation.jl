@@ -239,13 +239,15 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
 
         # ATTRACTION COORDINATES : SPRING STIFFNESSES
         attraction_spring_component_dict = Dict{String, Any}()
+        attraction_coordID_dict = Dict{String, Any}()
         for cfg in values(FINGER_CONFIGS)
             for name in cfg.attracted_frames_names
                 attraction_spring_component_dict[name] = get_compiled_componentID(cache, "ee $(name) spring")
+                attraction_coordID_dict[name] = get_compiled_coordID(cache, "ee $(name) diff")
             end
         end
 
-        attraction_spring_args = attraction_spring_component_dict
+        attraction_spring_args = attraction_spring_component_dict, attraction_coordID_dict
 
         return contact_detection_args, virtual_object_args, attraction_spring_args
     end
@@ -298,7 +300,7 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
         contact_detection_args, virtual_object_args, attraction_spring_args = args
         penetration_dict, real_robot_radial_pos_dict, feedback_coordID_dict = contact_detection_args
         radius_joints_dict, root_joints_dict, cylinder_radius_coord_dict, cylinder_position_coord_dict, damper_component_dict = virtual_object_args
-        attraction_spring_component_dict = attraction_spring_args
+        attraction_spring_component_dict, attraction_coordID_dict = attraction_spring_args
 
         for (finger, cfg) in FINGER_CONFIGS
             state = finger_states[finger]
@@ -333,10 +335,13 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
 
                 if !state.radius_modulation 
                     #check if equilibrium is reached
-                    equilibrium = all(cfg.attracted_frames_names) do point
-                        norm(velocity(cache, real_robot_radial_pos_dict[point])) < 0.001
+                    velocity_equilibrium = all(cfg.attracted_frames_names) do point
+                        abs(velocity(cache, real_robot_radial_pos_dict[point])) < 0.001
                     end
-                    if equilibrium
+                    position_equilibrium = all(cfg.attracted_frames_names) do point
+                        norm(only(configuration(cache, penetration_dict[point]))) < 0.005
+                    end
+                    if velocity_equilibrium && position_equilibrium
                         state.radius_modulation = true
                         @info "Equilibrium reached for $(finger) without contact, starting radius modulation"
                     end
