@@ -24,10 +24,10 @@ mutable struct FingerModulationState
     contact_detection_time::Float64
     accel_hysteresis::Vector{Int}
     real_object_radius::Float64
-
     virtual_object_radius::Float64
+
     equilibrium::Bool
-    modulation_activated::Bool
+    radius_modulation::Bool
     modulation_stopped::Bool
     stopping_time::Float64
 end
@@ -320,8 +320,8 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                     # the position of the virtual object should be centered on the one of the real object 
                     update_cylinder_position(finger, cache, shadow_robot, state.real_object_radius, root_joints_dict, cylinder_position_coord_dict)
                     # the radius of the virtual object should be within the one of the real object
-                    virtual_radius = state.real_object_radius - penetration_depth
-                    update_cylinder_radius(finger, cache, virtual_radius, radius_joints_dict, cylinder_radius_coord_dict, damper_component_dict)
+                    state.virtual_object_radius = state.real_object_radius - penetration_depth
+                    update_cylinder_radius(finger, cache, state.virtual_object_radius, radius_joints_dict, cylinder_radius_coord_dict, damper_component_dict)
                     # the attractive stiffness should be unified to a single value for all fingers 
                     for frame in FINGER_CONFIGS[finger].attracted_frames_names 
                         cache[attraction_spring_component_dict[frame]] = remake(cache[attraction_spring_component_dict[frame]];
@@ -330,6 +330,17 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                 end
             else
                 state.contact_detection_time = 0.0   # reset timer when contact lost
+
+                if !state.radius_modulation 
+                    #check if equilibrium is reached
+                    equilibrium = all(cfg.attracted_frames_names) do point
+                        norm(velocity(cache, real_robot_radial_pos_dict[point])) < 0.001
+                    end
+                    if equilibrium
+                        state.radius_modulation = true
+                        @info "Equilibrium reached for $(finger) without contact, starting radius modulation"
+                    end
+                end
             end
         end
     end
