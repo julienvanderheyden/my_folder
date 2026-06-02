@@ -206,17 +206,18 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
         cylinder_radius_coord_dict   = Dict{String, Any}() # coord IDs of the spring rest length controlling the repulsive cylinder radius
         damper_component_dict        = Dict{String, Any}() # component ID of the damper of the repulsive cylinder (cannot be modulated with coord)
 
-        for cfg in values(FINGER_CONFIGS)
+        for (finger, cfg) in FINGER_CONFIGS
             for frame in cfg.attracted_frames_names
                 radius_joints_dict[frame]      = get_compiled_jointID(cache, ".virtual_mechanism.fixed_joint_$(frame)")
                 root_joints_dict[frame]        = get_compiled_jointID(cache, ".virtual_mechanism.root_joint_$(frame)")
             end
 
             for frame in cfg.repulsed_frames_names
-                cylinder_radius_coord_dict[frame]   = get_compiled_coordID(cache, "$(frame) cylinder radius")
-                cylinder_position_coord_dict[frame] = get_compiled_coordID(cache, "$(frame) cylinder position")
                 damper_component_dict[frame]        = get_compiled_componentID(cache, "$(frame) cylinder damper")
             end
+
+            cylinder_radius_coord_dict[finger]   = get_compiled_coordID(cache, "$(finger) cylinder radius")
+            cylinder_position_coord_dict[finger] = get_compiled_coordID(cache, "$(finger) cylinder position")
         end
 
         virtual_object_args = radius_joints_dict, root_joints_dict, cylinder_radius_coord_dict, cylinder_position_coord_dict, damper_component_dict
@@ -332,6 +333,7 @@ function update_cylinder_position(finger, cache, robot, new_radius, root_jointID
 
     cylinder_pos, kcache = compute_cylinder_position(robot, new_radius)
 
+    #change the root joint position of each attracted frame
     for i in 1:length(FINGER_CONFIGS[finger].attracted_frames)
         frame_pos = configuration(kcache, get_compiled_coordID(kcache, FINGER_CONFIGS[finger].attracted_frames[i]))
         cache[root_jointID[FINGER_CONFIGS[finger].attracted_frames_names[i]]] = remake(
@@ -340,12 +342,11 @@ function update_cylinder_position(finger, cache, robot, new_radius, root_jointID
         )
     end
 
-    for frame in FINGER_CONFIGS[finger].repulsed_frames_names
-        cache[cylinder_position_coord_dict[frame]] = remake(
-            cache[cylinder_position_coord_dict[frame]];
-            coord_data = ConstCoord(cylinder_pos)
-        )
-    end
+    # update the global radius for the collision model
+    cache[cylinder_position_coord_dict[finger]] = remake(
+        cache[cylinder_position_coord_dict[finger]];
+        coord_data = ConstCoord(cylinder_pos)
+    )
 end
 
 function update_cylinder_radius(finger, cache, new_radius, radius_joints, cylinder_radius_coord_dict, virtual_object_damper_component_dict)
@@ -355,9 +356,10 @@ function update_cylinder_radius(finger, cache, new_radius, radius_joints, cylind
             jointData = Rigid(Transform(SVector(0.0, 0.0, new_radius))))
     end
 
-    for frame in FINGER_CONFIGS[finger].repulsed_frames_names
-        cache[cylinder_radius_coord_dict[frame]] = remake(cache[cylinder_radius_coord_dict[frame]];
+    cache[cylinder_radius_coord_dict[finger]] = remake(cache[cylinder_radius_coord_dict[finger]];
             coord_data = ConstCoord(new_radius))
+
+    for frame in FINGER_CONFIGS[finger].repulsed_frames_names
         cache[virtual_object_damper_component_dict[frame]] = remake(cache[virtual_object_damper_component_dict[frame]];
             bounds = (0.0, 1.05*new_radius))
     end
