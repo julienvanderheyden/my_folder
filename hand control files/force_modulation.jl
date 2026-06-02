@@ -252,6 +252,9 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
             # Contact requires: deceleration event confirmed AND virtual penetration present
             if state.accel_hysteresis[i] == 1 && abs(radial_velocity) < 0.004 && penetration < -0.005
                 state.frames_in_contact[i] = only(configuration(cache, real_robot_radial_pos_dict[name]))
+                if finger == "th"
+                    @info "thumb estimated radius = $(round(state.frames_in_contact[i]*1000, digits=1)) mm"
+                end
             else
                 state.frames_in_contact[i] = 0.0
             end
@@ -295,7 +298,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
                     state.contact_detection_time = t 
 
                 elseif t - state.contact_detection_time > 0.3
-                    state.real_object_radius = minimum(state.frames_in_contact[state.frames_in_contact .> 0.0]) - 0.005 # take the finger radius into account
+                    state.real_object_radius = minimum(state.frames_in_contact[state.frames_in_contact .> 0.0]) - 0.007 # take the finger radius into account
                     state.contact_detected = true
                     @info "Contact detected for $(finger) at r = $(round(state.real_object_radius*1000, digits=1)) mm"
                     # CONTACT IS DETECTED : place the virtual object within the real object and adapt stiffnesses accordingly
