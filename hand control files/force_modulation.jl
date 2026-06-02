@@ -25,7 +25,6 @@ mutable struct FingerModulationState
     accel_hysteresis::Vector{Int}
     real_object_radius::Float64
     virtual_object_radius::Float64
-
     radius_modulation::Bool
     equilibrium_detection_time::Float64
 end
@@ -313,6 +312,7 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                 elseif t - state.contact_detection_time > 0.2
                     state.real_object_radius = minimum((only(configuration(cache, real_robot_radial_pos_dict[n])) for n in cfg.attracted_frames_names)) - cfg.finger_width
                     state.contact_detected = true
+                    state.radius_modulation = false
                     @info "Contact detected for $(finger) at r = $(round(state.real_object_radius*1000, digits=1)) mm"
                     # CONTACT IS DETECTED : place the virtual object within the real object and adapt stiffnesses accordingly
 
@@ -349,6 +349,11 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                     else 
                         state.equilibrium_detection_time = 0.0
                     end
+                else 
+                    frequency = 125 # Hz
+                    state.virtual_object_radius = state.virtual_object_radius - 0.002 * (1/frequency)
+                    update_cylinder_position(finger, cache, shadow_robot, state.virtual_object_radius, root_joints_dict, cylinder_position_coord_dict)
+                    update_cylinder_radius(finger, cache, state.virtual_object_radius, radius_joints_dict, cylinder_radius_coord_dict, damper_component_dict)
                 end
             end
         end
