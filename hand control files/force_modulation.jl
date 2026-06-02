@@ -26,15 +26,12 @@ mutable struct FingerModulationState
     real_object_radius::Float64
     virtual_object_radius::Float64
 
-    equilibrium::Bool
     radius_modulation::Bool
-    modulation_stopped::Bool
-    stopping_time::Float64
+    equilibrium_detection_time::Float64
 end
 
 FingerModulationState(initial_radius::Float64, n_frames::Int) = FingerModulationState(
-    false, 0.0, zeros(Int, n_frames),0.0,
-    initial_radius, false, false, false, 0.0)
+    false, 0.0, zeros(Int, n_frames),0.0, initial_radius, false, 0.0)
 
 struct FingerConfig
     attracted_frames::Vector{String}       # mass coord IDs used for attraction springs
@@ -341,15 +338,16 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                     position_equilibrium = all(cfg.attracted_frames_names) do point
                         norm(only(configuration(cache, penetration_dict[point]))) < 0.005
                     end
+                    # latch for 0.5s
                     if velocity_equilibrium && position_equilibrium 
-                        if state.stopping_time == 0.0
-                            state.stopping_time = t
-                        elseif t - state.stopping_time > 0.5
+                        if state.equilibrium_detection_time == 0.0
+                            state.equilibrium_detection_time = t
+                        elseif t - state.equilibrium_detection_time > 0.5
                             state.radius_modulation = true
                             @info "Equilibrium reached for $(finger) without contact, starting radius modulation"
                         end
                     else 
-                        state.stopping_time = 0.0
+                        state.equilibrium_detection_time = 0.0
                     end
                 end
             end
