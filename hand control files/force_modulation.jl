@@ -23,7 +23,6 @@ mutable struct FingerModulationState
     contact_detected::Bool
     contact_detection_time::Float64
     accel_hysteresis::Vector{Int}
-    frames_in_contact::Vector{Float64}
     real_object_radius::Float64
 
     virtual_object_radius::Float64
@@ -34,7 +33,7 @@ mutable struct FingerModulationState
 end
 
 FingerModulationState(initial_radius::Float64, n_frames::Int) = FingerModulationState(
-    false, 0.0, zeros(Int, n_frames), zeros(Float64, n_frames),0.0,
+    false, 0.0, zeros(Int, n_frames),0.0,
     initial_radius, false, false, false, 0.0)
 
 struct FingerConfig
@@ -45,6 +44,7 @@ struct FingerConfig
     coupled_joints::Vector{String}         # joints where J0 = J1 + J2
     uncoupled_joints::Vector{String}       # standard individual joints
     joints::Vector{String}                 # all joints of the finger (for convenience)
+    finger_width::Float64                  # used for real object dimension estimation
 end
 
 
@@ -58,7 +58,8 @@ const FINGER_CONFIGS = Dict{String, FingerConfig}(
         ["fftip", "ffmiddle", "ffprox", "ffdistal"],
         ["rh_FFJ0"],
         ["rh_FFJ3", "rh_FFJ4"],
-        ["rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4"]
+        ["rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4"],
+        0.005,
     ),
 
     "mf" => FingerConfig(
@@ -69,7 +70,8 @@ const FINGER_CONFIGS = Dict{String, FingerConfig}(
         ["mftip", "mfmiddle", "mfprox", "mfdistal"],
         ["rh_MFJ0"],
         ["rh_MFJ3", "rh_MFJ4"],
-        ["rh_MFJ1", "rh_MFJ2", "rh_MFJ3", "rh_MFJ4"]
+        ["rh_MFJ1", "rh_MFJ2", "rh_MFJ3", "rh_MFJ4"],
+        0.005,
     ),
 
     "rf" => FingerConfig(
@@ -80,7 +82,8 @@ const FINGER_CONFIGS = Dict{String, FingerConfig}(
         ["rftip", "rfmiddle", "rfprox", "rfdistal"],
         ["rh_RFJ0"],
         ["rh_RFJ3", "rh_RFJ4"],
-        ["rh_RFJ1", "rh_RFJ2", "rh_RFJ3", "rh_RFJ4"]
+        ["rh_RFJ1", "rh_RFJ2", "rh_RFJ3", "rh_RFJ4"],
+        0.005,
     ),
 
     "lf" => FingerConfig(
@@ -91,7 +94,8 @@ const FINGER_CONFIGS = Dict{String, FingerConfig}(
         ["lftip", "lfmiddle", "lfprox", "lfdistal"],
         ["rh_LFJ0"],
         ["rh_LFJ3", "rh_LFJ4", "rh_LFJ5"],
-        ["rh_LFJ1", "rh_LFJ2", "rh_LFJ3", "rh_LFJ4", "rh_LFJ5"]
+        ["rh_LFJ1", "rh_LFJ2", "rh_LFJ3", "rh_LFJ4", "rh_LFJ5"],
+        0.005,
     ),
 
     "th" => FingerConfig(
@@ -101,7 +105,8 @@ const FINGER_CONFIGS = Dict{String, FingerConfig}(
         ["thtip", "thmiddle", "thdistal", "thmiddle2"],
         [],                                          # thumb has no coupled J0
         ["rh_THJ1", "rh_THJ2", "rh_THJ3", "rh_THJ4", "rh_THJ5"],
-        ["rh_THJ1", "rh_THJ2", "rh_THJ3", "rh_THJ4", "rh_THJ5"]
+        ["rh_THJ1", "rh_THJ2", "rh_THJ3", "rh_THJ4", "rh_THJ5"],
+        0.007
     ),
 )
 
@@ -253,19 +258,6 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
             if state.accel_hysteresis[i] == 1 && abs(radial_velocity) < 0.004 && penetration < -0.005
                 contact = true
             end
-            # Contact requires: deceleration event confirmed AND virtual penetration present
-            # if state.accel_hysteresis[i] == 1 && abs(radial_velocity) < 0.004 && penetration < -0.005
-            #     state.frames_in_contact[i] = only(configuration(cache, real_robot_radial_pos_dict[name]))
-            # else
-            #     state.frames_in_contact[i] = 0.0
-            # end
-            #return any(state.frames_in_contact .> 0.0)
-        end
-
-        if contact
-            state.frames_in_contact .= (only(configuration(cache, real_robot_radial_pos_dict[n])) for n in cfg.attracted_frames_names)
-        else
-            state.frames_in_contact .= 0.0
         end
 
         return contact
@@ -278,12 +270,6 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
         #when using non-ideal hand, coupled and uncoupled joints should be treated separately with different deadzones
         contact = any(cfg.joints) do joint
             abs(only(configuration(cache, feedback_coordID_dict[joint]))) > MISMATCH_DEADZONE
-        end
-
-        if contact
-            state.frames_in_contact .= (only(configuration(cache, real_robot_radial_pos_dict[n])) for n in cfg.attracted_frames_names)
-        else
-            state.frames_in_contact .= 0.0
         end
 
         return contact
@@ -305,9 +291,8 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
                 if state.contact_detection_time == 0.0
                     state.contact_detection_time = t 
 
-                elseif t - state.contact_detection_time > 0.3
-                    #state.real_object_radius = minimum(state.frames_in_contact[state.frames_in_contact .> 0.0]) - 0.007 # take the finger radius into account
-                    state.real_object_radius = minimum((only(configuration(cache, real_robot_radial_pos_dict[n])) for n in cfg.attracted_frames_names)) - 0.007 # take the finger radius into account
+                elseif t - state.contact_detection_time > 0.2
+                    state.real_object_radius = minimum((only(configuration(cache, real_robot_radial_pos_dict[n])) for n in cfg.attracted_frames_names)) - cfg.finger_width
                     state.contact_detected = true
                     @info "Contact detected for $(finger) at r = $(round(state.real_object_radius*1000, digits=1)) mm"
                     # CONTACT IS DETECTED : place the virtual object within the real object and adapt stiffnesses accordingly
