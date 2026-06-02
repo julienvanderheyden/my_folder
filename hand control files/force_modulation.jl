@@ -235,6 +235,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
         state = finger_states[finger]
         cfg   = FINGER_CONFIGS[finger]
 
+        contact = false
         for (i, name) in enumerate(cfg.attracted_frames_names)
             penetration       = only(configuration(cache, penetration_dict[name]))
             radial_accel      = only(acceleration(cache, real_robot_radial_pos_dict[name]))
@@ -249,19 +250,25 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
                 state.accel_hysteresis[i] = -1
             end
 
-            if finger == "th"
-                @info "thumb dist for frame $(name) = $(round(only(configuration(cache, real_robot_radial_pos_dict[name]))*1000, digits=1)) mm"
-            end
-
-            # Contact requires: deceleration event confirmed AND virtual penetration present
             if state.accel_hysteresis[i] == 1 && abs(radial_velocity) < 0.004 && penetration < -0.005
-                state.frames_in_contact[i] = only(configuration(cache, real_robot_radial_pos_dict[name]))
-            else
-                state.frames_in_contact[i] = 0.0
+                contact = true
             end
+            # Contact requires: deceleration event confirmed AND virtual penetration present
+            # if state.accel_hysteresis[i] == 1 && abs(radial_velocity) < 0.004 && penetration < -0.005
+            #     state.frames_in_contact[i] = only(configuration(cache, real_robot_radial_pos_dict[name]))
+            # else
+            #     state.frames_in_contact[i] = 0.0
+            # end
+            #return any(state.frames_in_contact .> 0.0)
         end
 
-        return any(state.frames_in_contact .> 0.0)
+        if contact
+            state.frames_in_contact .= (only(configuration(cache, real_robot_radial_pos_dict[n])) for n in cfg.attracted_frames_names)
+        else
+            state.frames_in_contact .= 0.0
+        end
+
+        return contact
     end
 
     function detect_contact_joint_space(finger, cache, feedback_coordID_dict, real_robot_radial_pos_dict)
