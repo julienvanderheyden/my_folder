@@ -353,7 +353,7 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                     end
                 else 
                     state.virtual_object_radius = state.virtual_object_radius - 0.0 * (t - last_t)
-                    update_cylinder_position(finger, cache, shadow_robot, state.virtual_object_radius, root_joints_dict, cylinder_position_coord_dict)
+                    #update_cylinder_position(finger, cache, shadow_robot, state.virtual_object_radius, root_joints_dict, cylinder_position_coord_dict)
                     update_cylinder_radius(finger, cache, state.virtual_object_radius, radius_joints_dict, cylinder_radius_coord_dict, damper_component_dict)
                 end
             end
