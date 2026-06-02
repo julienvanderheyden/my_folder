@@ -297,6 +297,7 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
                 elseif t - state.contact_detection_time > 0.2
                     state.real_object_radius = minimum(state.frames_in_contact[state.frames_in_contact .> 0.0]) 
                     state.contact_detected = true
+                    @info "Contact detected for $(finger) at r = $(round(state.real_object_radius*1000, digits=1)) mm"
                     # CONTACT IS DETECTED : place the virtual object within the real object and adapt stiffnesses accordingly
 
                     # the position of the virtual object should be centered on the one of the real object 
