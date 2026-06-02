@@ -292,6 +292,8 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
         return contact
     end
 
+    last_t = 0.0
+
     function f_control(cache, t, args, extra)
         contact_detection_args, virtual_object_args, attraction_spring_args = args
         penetration_dict, real_robot_radial_pos_dict, feedback_coordID_dict = contact_detection_args
@@ -350,13 +352,14 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                         state.equilibrium_detection_time = 0.0
                     end
                 else 
-                    frequency = 125 # Hz
-                    state.virtual_object_radius = state.virtual_object_radius - 0.002 * (1/frequency)
+                    state.virtual_object_radius = state.virtual_object_radius - 0.002 * (t - last_t)
                     update_cylinder_position(finger, cache, shadow_robot, state.virtual_object_radius, root_joints_dict, cylinder_position_coord_dict)
                     update_cylinder_radius(finger, cache, state.virtual_object_radius, radius_joints_dict, cylinder_radius_coord_dict, damper_component_dict)
                 end
             end
         end
+
+        last_t = t
     end
 
     println("Connecting to ROS client...")
