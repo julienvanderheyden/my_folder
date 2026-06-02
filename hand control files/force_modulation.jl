@@ -112,7 +112,7 @@ const FINGER_CONFIGS = Dict{String, FingerConfig}(
 
 
 
-function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness, feedback_damping)
+function force_modulation(cylinder_radius, penetration_depth, attraction_stiffness, feedback_stiffness, feedback_damping)
 
     # ------------------ BUILD THE ROBOTS -------------------------
     shadow_robot = build_robot(shadow_hand_urdf_path)
@@ -237,7 +237,17 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
         virtual_object_args = radius_joints_dict, root_joints_dict, cylinder_radius_coord_dict, cylinder_position_coord_dict, damper_component_dict
 
-        return contact_detection_args, virtual_object_args
+        # ATTRACTION COORDINATES : SPRING STIFFNESSES
+        attraction_spring_component_dict = Dict{String, Any}()
+        for cfg in values(FINGER_CONFIGS)
+            for name in cfg.attracted_frames_names
+                attraction_spring_component_dict[name] = get_compiled_componentID(cache, "ee $(name) spring")
+            end
+        end
+
+        attraction_spring_args = attraction_spring_component_dict
+
+        return contact_detection_args, virtual_object_args, attraction_spring_args
     end
 
     finger_states = Dict(
@@ -275,7 +285,6 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
 
     function detect_contact_joint_space(finger, cache, feedback_coordID_dict, real_robot_radial_pos_dict)
         cfg = FINGER_CONFIGS[finger]
-        state = finger_states[finger]
 
         #when using non-ideal hand, coupled and uncoupled joints should be treated separately with different deadzones
         contact = any(cfg.joints) do joint
@@ -286,9 +295,10 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
     end
 
     function f_control(cache, t, args, extra)
-        contact_detection_args, virtual_object_args = args
+        contact_detection_args, virtual_object_args, attraction_spring_args = args
         penetration_dict, real_robot_radial_pos_dict, feedback_coordID_dict = contact_detection_args
         radius_joints_dict, root_joints_dict, cylinder_radius_coord_dict, cylinder_position_coord_dict, damper_component_dict = virtual_object_args
+        attraction_spring_component_dict = attraction_spring_args
 
         for (finger, cfg) in FINGER_CONFIGS
             state = finger_states[finger]
@@ -312,6 +322,11 @@ function force_modulation(cylinder_radius, penetration_depth, feedback_stiffness
                     # the radius of the virtual object should be within the one of the real object
                     virtual_radius = state.real_object_radius - penetration_depth
                     update_cylinder_radius(finger, cache, virtual_radius, radius_joints_dict, cylinder_radius_coord_dict, damper_component_dict)
+                    # the attractive stiffness should be unified to a single value for all fingers 
+                    for frame in FINGER_CONFIGS[finger].attracted_frames_names 
+                        cache[attraction_spring_component_dict[frame]] = remake(cache[attraction_spring_component_dict[frame]];
+                            stiffness = SMatrix{3,3}(attraction_stiffness * I))
+                    end
                 end
             else
                 state.contact_detection_time = 0.0   # reset timer when contact lost
