@@ -551,4 +551,3 @@ end
 #         state.stopping_time = 0.0
 #     end
 # end
-
