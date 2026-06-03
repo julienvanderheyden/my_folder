@@ -383,6 +383,7 @@ end
 function update_cylinder_position(finger, cache, robot, new_radius, root_jointID, cylinder_position_coord_dict)
 
     cylinder_pos, kcache = compute_cylinder_position(robot, new_radius)
+    @info "computed cylinder position : $(cylinder_pos)"
 
     #change the root joint position of each attracted frame
     # for i in 1:length(FINGER_CONFIGS[finger].attracted_frames)
