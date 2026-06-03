@@ -337,11 +337,11 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                     velocity_equilibrium = all(cfg.attracted_frames_names) do point
                         abs(only(velocity(cache, real_robot_radial_pos_dict[point]))) < 0.001
                     end
-                    position_equilibrium = all(cfg.attracted_frames_names) do point
-                        norm(only(configuration(cache, penetration_dict[point]))) < 0.005
-                    end
+                    # position_equilibrium = all(cfg.attracted_frames_names) do point
+                    #     norm(only(configuration(cache, penetration_dict[point]))) < 0.005
+                    # end
                     # latch for 0.5s
-                    if velocity_equilibrium && position_equilibrium 
+                    if velocity_equilibrium # && position_equilibrium 
                         if state.equilibrium_detection_time == 0.0
                             state.equilibrium_detection_time = t
                         elseif t - state.equilibrium_detection_time > 0.5
