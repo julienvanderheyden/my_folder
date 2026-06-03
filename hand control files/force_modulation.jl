@@ -391,7 +391,7 @@ function update_cylinder_position(finger, cache, cylinder_pos_params, new_radius
     if new_radius < 0.015
         cylinder_position = SVector(0.0, -0.03, knuckle_z_coord - new_radius - 0.007)
     else
-        cylinder_position = circle_center_tangent_to_lines(p11, p12, p21, p22, cylinder_radius + 0.01)
+        cylinder_position = circle_center_tangent_to_lines(p11, p12, p21, p22, new_radius + 0.01)
         cylinder_position = SVector(0.0, cylinder_position[1], cylinder_position[2])  # Convert to SVector
     end
 
