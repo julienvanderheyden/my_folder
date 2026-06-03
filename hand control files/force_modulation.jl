@@ -273,11 +273,11 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                 state.accel_hysteresis[i] = -1
             end
 
-            @info "finger $(finger) - $(name) : penetration = $(round(penetration*1000, digits=1)) mm, radial velocity = $(round(radial_velocity*1000, digits=1)) mm/s, hysteresis state = $(state.accel_hysteresis[i])"
-
             if state.accel_hysteresis[i] == 1 && abs(radial_velocity) < 0.004 && penetration < -0.003
                 contact = true
             end
+
+            @info "finger $(finger) - $(name) : penetration = $(round(penetration*1000, digits=1)) mm, radial velocity = $(round(radial_velocity*1000, digits=1)) mm/s, hysteresis state = $(state.accel_hysteresis[i]), contact = $(contact)"
         end
 
         return contact
