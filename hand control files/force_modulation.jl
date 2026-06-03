@@ -277,9 +277,6 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                 contact = true
             end
 
-            @info "finger $(finger) - $(name) : penetration = $(round(penetration*1000, digits=1)) mm, radial velocity = $(round(radial_velocity*1000, digits=1)) mm/s, hysteresis state = $(state.accel_hysteresis[i]), contact = $(contact)"
-        end
-
         return contact
     end
 
@@ -354,7 +351,7 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                         state.equilibrium_detection_time = 0.0
                     end
                 else 
-                    state.virtual_object_radius = max(0.01, state.virtual_object_radius - 0.001 * (t - last_t))
+                    state.virtual_object_radius = max(0.01, state.virtual_object_radius - 0.002 * (t - last_t))
                     update_cylinder_radius(finger, cache, state.virtual_object_radius, radius_joints_dict, cylinder_radius_coord_dict, damper_component_dict)
                     update_cylinder_position(finger, cache, cylinder_pos_params, state.virtual_object_radius, root_joints_dict, cylinder_position_coord_dict)
                 end
@@ -393,13 +390,13 @@ function update_cylinder_position(finger, cache, cylinder_pos_params, new_radius
     end
 
     #change the root joint position of each attracted frame
-    # for i in 1:length(FINGER_CONFIGS[finger].attracted_frames)
-    #     frame_pos = configuration(kcache, get_compiled_coordID(kcache, FINGER_CONFIGS[finger].attracted_frames[i]))
-    #     cache[root_jointID[FINGER_CONFIGS[finger].attracted_frames_names[i]]] = remake(
-    #         cache[root_jointID[FINGER_CONFIGS[finger].attracted_frames_names[i]]];
-    #         jointData = Rigid(Transform(SVector(frame_pos[1], cylinder_pos[2], cylinder_pos[3])))
-    #     )
-    # end
+    for i in 1:length(FINGER_CONFIGS[finger].attracted_frames)
+        frame_pos = configuration(kcache, get_compiled_coordID(kcache, FINGER_CONFIGS[finger].attracted_frames[i]))
+        cache[root_jointID[FINGER_CONFIGS[finger].attracted_frames_names[i]]] = remake(
+            cache[root_jointID[FINGER_CONFIGS[finger].attracted_frames_names[i]]];
+            jointData = Rigid(Transform(SVector(frame_pos[1], cylinder_pos[2], cylinder_pos[3])))
+        )
+    end
 
     # # update the global position for the collision model
     # cache[cylinder_position_coord_dict[finger]] = remake(
