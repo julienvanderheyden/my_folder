@@ -273,7 +273,7 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                 state.accel_hysteresis[i] = -1
             end
 
-            if state.accel_hysteresis[i] == 1 && abs(radial_velocity) < 0.004 && penetration < -0.003
+            if state.accel_hysteresis[i] == 1 && abs(radial_velocity) < 0.004 && penetration < -0.002
                 contact = true
             end
         end 
