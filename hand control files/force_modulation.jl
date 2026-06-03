@@ -302,59 +302,70 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
 
         for (finger, cfg) in FINGER_CONFIGS
             state = finger_states[finger]
-            state.contact_detected && continue
+            
+            if !state.contact_detected
 
-            #contact = detect_contact_task_space(finger, cache, penetration_dict, real_robot_radial_pos_dict)
-            contact = detect_contact_joint_space(finger, cache , feedback_coordID_dict, real_robot_radial_pos_dict)
+                #contact = detect_contact_task_space(finger, cache, penetration_dict, real_robot_radial_pos_dict)
+                contact = detect_contact_joint_space(finger, cache , feedback_coordID_dict, real_robot_radial_pos_dict)
 
-            if contact
-                if state.contact_detection_time == 0.0
-                    state.contact_detection_time = t 
+                if contact
+                    if state.contact_detection_time == 0.0
+                        state.contact_detection_time = t 
 
-                elseif t - state.contact_detection_time > 0.2
-                    state.real_object_radius = minimum((only(configuration(cache, real_robot_radial_pos_dict[n])) for n in cfg.attracted_frames_names)) - cfg.finger_width
-                    state.contact_detected = true
-                    state.radius_modulation = false
-                    @info "Contact detected for $(finger) at r = $(round(state.real_object_radius*1000, digits=1)) mm"
-                    # CONTACT IS DETECTED : place the virtual object within the real object and adapt stiffnesses accordingly
+                    elseif t - state.contact_detection_time > 0.2
+                        state.real_object_radius = minimum((only(configuration(cache, real_robot_radial_pos_dict[n])) for n in cfg.attracted_frames_names)) - cfg.finger_width
+                        state.contact_detected = true
+                        state.radius_modulation = false
+                        @info "Contact detected for $(finger) at r = $(round(state.real_object_radius*1000, digits=1)) mm"
+                        # CONTACT IS DETECTED : place the virtual object within the real object and adapt stiffnesses accordingly
 
-                    # the position of the virtual object should be centered on the one of the real object 
-                    update_cylinder_position(finger, cache, cylinder_pos_params, state.real_object_radius, root_joints_dict, cylinder_position_coord_dict)
-                    # the radius of the virtual object should be within the one of the real object
-                    state.virtual_object_radius = state.real_object_radius - penetration_depth
-                    update_cylinder_radius(finger, cache, state.virtual_object_radius, radius_joints_dict, cylinder_radius_coord_dict, damper_component_dict)
-                    # the attractive stiffness should be unified to a single value for all fingers 
-                    for frame in FINGER_CONFIGS[finger].attracted_frames_names 
-                        cache[attraction_spring_component_dict[frame]] = remake(cache[attraction_spring_component_dict[frame]];
-                            stiffness = SMatrix{3,3}(attraction_stiffness * I))
+                        # the position of the virtual object should be centered on the one of the real object 
+                        update_cylinder_position(finger, cache, cylinder_pos_params, state.real_object_radius, root_joints_dict, cylinder_position_coord_dict)
+                        # the radius of the virtual object should be within the one of the real object and the stiffnesses should become unified. 
+                        # but the transition should be smooth so this is done in the else statement below to allow a progressive radius decrement over several iterations instead of an abrupt change
+                    end
+                else
+                    state.contact_detection_time = 0.0   # reset timer when contact lost
+
+                    if !state.radius_modulation 
+                        #check if equilibrium is reached
+                        velocity_equilibrium = all(cfg.attracted_frames_names) do point
+                            abs(only(velocity(cache, real_robot_radial_pos_dict[point]))) < 0.001
+                        end
+                        # position_equilibrium = all(cfg.attracted_frames_names) do point
+                        #     norm(only(configuration(cache, penetration_dict[point]))) < 0.005
+                        # end
+                        # latch for 0.5s
+                        if velocity_equilibrium # && position_equilibrium 
+                            if state.equilibrium_detection_time == 0.0
+                                state.equilibrium_detection_time = t
+                            elseif t - state.equilibrium_detection_time > 0.5
+                                state.radius_modulation = true
+                                @info "Equilibrium reached for $(finger) without contact, starting radius modulation"
+                            end
+                        else 
+                            state.equilibrium_detection_time = 0.0
+                        end
+                    else 
+                        state.virtual_object_radius = max(0.01, state.virtual_object_radius - 0.002 * (t - last_t))
+                        update_cylinder_radius(finger, cache, state.virtual_object_radius, radius_joints_dict, cylinder_radius_coord_dict, damper_component_dict)
+                        update_cylinder_position(finger, cache, cylinder_pos_params, state.virtual_object_radius, root_joints_dict, cylinder_position_coord_dict)
                     end
                 end
             else
-                state.contact_detection_time = 0.0   # reset timer when contact lost
+                # contact is detected but the transitions between the free motion and the force control should be smooth
+                if state.virtual_object_radius > state.real_object_radius - penetration_depth
+                    state.virtual_object_radius = max(state.real_object_radius - penetration_depth, state.virtual_object_radius - 0.002 * (t - last_t))
+                        update_cylinder_radius(finger, cache, state.virtual_object_radius, radius_joints_dict, cylinder_radius_coord_dict, damper_component_dict)
 
-                if !state.radius_modulation 
-                    #check if equilibrium is reached
-                    velocity_equilibrium = all(cfg.attracted_frames_names) do point
-                        abs(only(velocity(cache, real_robot_radial_pos_dict[point]))) < 0.001
-                    end
-                    # position_equilibrium = all(cfg.attracted_frames_names) do point
-                    #     norm(only(configuration(cache, penetration_dict[point]))) < 0.005
-                    # end
-                    # latch for 0.5s
-                    if velocity_equilibrium # && position_equilibrium 
-                        if state.equilibrium_detection_time == 0.0
-                            state.equilibrium_detection_time = t
-                        elseif t - state.equilibrium_detection_time > 0.5
-                            state.radius_modulation = true
-                            @info "Equilibrium reached for $(finger) without contact, starting radius modulation"
+                        linear_ratio = (state.virtual_object_radius - (state.real_object_radius - penetration_depth)) / (state.virtual_object_radius - state.real_object_radius + penetration_depth)
+                        current_stiffness = base_stiffness + linear_ratio * (attraction_stiffness - base_stiffness)
+                        # the attractive stiffness should be unified to a single value for all fingers 
+                        for frame in FINGER_CONFIGS[finger].attracted_frames_names 
+                            cache[attraction_spring_component_dict[frame]] = remake(cache[attraction_spring_component_dict[frame]];
+                                stiffness = SMatrix{3,3}(current_stiffness * I))
                         end
-                    else 
-                        state.equilibrium_detection_time = 0.0
-                    end
-                else 
-                    state.virtual_object_radius = max(0.01, state.virtual_object_radius - 0.002 * (t - last_t))
-                    update_cylinder_radius(finger, cache, state.virtual_object_radius, radius_joints_dict, cylinder_radius_coord_dict, damper_component_dict)
-                    update_cylinder_position(finger, cache, cylinder_pos_params, state.virtual_object_radius, root_joints_dict, cylinder_position_coord_dict)
+
                 end
             end
         end
