@@ -39,11 +39,11 @@ function compute_cylinder_position(robot, cylinder_radius)
     medium_wrap_preshape[21] = 1.2 # thumb extended
     kinematics!(kcache, 0.0, medium_wrap_preshape)
 
+    rh_ffknuckle_frame_id = get_compiled_frameID(m, "rh_ffknuckle")
+    ffknuckle_transform = get_transform(kcache, rh_ffknuckle_frame_id)
+
     if cylinder_radius < 0.015
         # add one centimeter to the radius to avoid intersection with the fingers 
-        rh_ffknuckle_frame_id = get_compiled_frameID(m, "rh_ffknuckle")
-        ffknuckle_transform = get_transform(kcache, rh_ffknuckle_frame_id)
-
         cylinder_position = SVector(0.0, -0.03, ffknuckle_transform.origin[3] - cylinder_radius - 0.007)
     else
         # Get the positions of the finger tips
