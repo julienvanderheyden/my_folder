@@ -68,7 +68,7 @@ function compute_cylinder_position(robot, cylinder_radius)
         cylinder_position = SVector(0.0, cylinder_position[1], cylinder_position[2])  # Convert to SVector
     end
 
-    kcache, p11, p12, p21, p22, ffknuckle_transform.origin[3] = cylinder_pos_params
+    cylinder_pos_params = kcache, p11, p12, p21, p22, ffknuckle_transform.origin[3] 
     return cylinder_position, cylinder_pos_params
 end
 
