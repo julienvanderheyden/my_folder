@@ -125,7 +125,7 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
     add_coordinate!(vm_robot, FrameOrigin("rh_thmiddle"); id="rh_thmiddle")
 
     # ------------------ BUILD THE VIRTUAL MECHANISM ------------------
-    cylinder_position, _ = compute_cylinder_position(vm_robot, cylinder_radius)
+    cylinder_position, cylinder_pos_params = compute_cylinder_position(vm_robot, cylinder_radius)
     
     build_cylinder_virtual_object(vm_robot, FINGER_CONFIGS, cylinder_position, cylinder_radius)
     
@@ -358,7 +358,7 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                     update_position_every = 1
                     state.time_filtering_variable = (state.time_filtering_variable + 1) % update_position_every
                     if state.time_filtering_variable == 0
-                        update_cylinder_position(finger, cache, shadow_robot, state.virtual_object_radius, root_joints_dict, cylinder_position_coord_dict)
+                        update_cylinder_position(finger, cache, cylinder_pos_params, state.virtual_object_radius, root_joints_dict, cylinder_position_coord_dict)
                     end
                 end
             end
@@ -385,10 +385,15 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
     end
 
 end
-function update_cylinder_position(finger, cache, robot, new_radius, root_jointID, cylinder_position_coord_dict)
+function update_cylinder_position(finger, cache, cylinder_pos_params, new_radius, root_jointID, cylinder_position_coord_dict)
 
-    cylinder_pos, kcache = compute_cylinder_position(robot, new_radius)
-    @info "computed cylinder position : $(cylinder_pos)"
+    kcache, p11, p12, p21, p22, knuckle_z_coord  = cylinder_pos_params
+    if new_radius < 0.015
+        cylinder_position = SVector(0.0, -0.03, knuckle_z_coord - new_radius - 0.007)
+    else
+        cylinder_position = circle_center_tangent_to_lines(p11, p12, p21, p22, cylinder_radius + 0.01)
+        cylinder_position = SVector(0.0, cylinder_position[1], cylinder_position[2])  # Convert to SVector
+    end
 
     #change the root joint position of each attracted frame
     # for i in 1:length(FINGER_CONFIGS[finger].attracted_frames)

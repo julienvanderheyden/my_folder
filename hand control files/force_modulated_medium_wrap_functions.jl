@@ -30,7 +30,9 @@ function build_robot(urdf_path; joint_limiting = false)
     return robot
 end
 
-function compute_cylinder_position(robot, cylinder_radius)
+
+# ONLY MEANT TO BE CALLED ONCE AT THE BEGINNING TO INITIALIZE THE CYLINDER POSITION, NOT TO BE CALLED IN THE CONTROL LOOP
+function compute_cylinder_position(robot, cylinder_radius) 
     m = compile(robot)
     kcache = new_kinematics_cache(m)  
     medium_wrap_preshape = zeros(24)
@@ -65,7 +67,9 @@ function compute_cylinder_position(robot, cylinder_radius)
         cylinder_position = circle_center_tangent_to_lines(p11, p12, p21, p22, cylinder_radius + 0.01)
         cylinder_position = SVector(0.0, cylinder_position[1], cylinder_position[2])  # Convert to SVector
     end
-    return cylinder_position, kcache
+
+    kcache, p11, p12, p21, p22, ffknuckle_transform.origin[3] = cylinder_pos_params
+    return cylinder_position, cylinder_pos_params
 end
 
 function build_cylinder_virtual_object(robot, finger_cfg, cylinder_position, cylinder_radius)
