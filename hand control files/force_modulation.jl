@@ -391,19 +391,19 @@ function update_cylinder_position(finger, cache, cylinder_pos_params, new_radius
     end
 
     #change the root joint position of each attracted frame
-    for i in 1:length(FINGER_CONFIGS[finger].attracted_frames)
-        frame_pos = configuration(kcache, get_compiled_coordID(kcache, FINGER_CONFIGS[finger].attracted_frames[i]))
-        cache[root_jointID[FINGER_CONFIGS[finger].attracted_frames_names[i]]] = remake(
-            cache[root_jointID[FINGER_CONFIGS[finger].attracted_frames_names[i]]];
-            jointData = Rigid(Transform(SVector(frame_pos[1], cylinder_pos[2], cylinder_pos[3])))
-        )
-    end
+    # for i in 1:length(FINGER_CONFIGS[finger].attracted_frames)
+    #     frame_pos = configuration(kcache, get_compiled_coordID(kcache, FINGER_CONFIGS[finger].attracted_frames[i]))
+    #     cache[root_jointID[FINGER_CONFIGS[finger].attracted_frames_names[i]]] = remake(
+    #         cache[root_jointID[FINGER_CONFIGS[finger].attracted_frames_names[i]]];
+    #         jointData = Rigid(Transform(SVector(frame_pos[1], cylinder_pos[2], cylinder_pos[3])))
+    #     )
+    # end
 
-    # update the global position for the collision model
-    cache[cylinder_position_coord_dict[finger]] = remake(
-        cache[cylinder_position_coord_dict[finger]];
-        coord_data = ConstCoord(cylinder_pos)
-    )
+    # # update the global position for the collision model
+    # cache[cylinder_position_coord_dict[finger]] = remake(
+    #     cache[cylinder_position_coord_dict[finger]];
+    #     coord_data = ConstCoord(cylinder_pos)
+    # )
 end
 
 function update_cylinder_radius(finger, cache, new_radius, radius_joints, cylinder_radius_coord_dict, virtual_object_damper_component_dict)
