@@ -27,11 +27,10 @@ mutable struct FingerModulationState
     virtual_object_radius::Float64
     radius_modulation::Bool
     equilibrium_detection_time::Float64
-    time_filtering_variable::Int
 end
 
 FingerModulationState(initial_radius::Float64, n_frames::Int) = FingerModulationState(
-    false, 0.0, zeros(Int, n_frames),0.0, initial_radius, false, 0.0, 0)
+    false, 0.0, zeros(Int, n_frames),0.0, initial_radius, false, 0.0)
 
 struct FingerConfig
     attracted_frames::Vector{String}       # mass coord IDs used for attraction springs
@@ -353,13 +352,9 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                         state.equilibrium_detection_time = 0.0
                     end
                 else 
-                    state.virtual_object_radius = max(0.01, state.virtual_object_radius - 0.0002 * (t - last_t))
+                    state.virtual_object_radius = max(0.01, state.virtual_object_radius - 0.002 * (t - last_t))
                     update_cylinder_radius(finger, cache, state.virtual_object_radius, radius_joints_dict, cylinder_radius_coord_dict, damper_component_dict)
-                    update_position_every = 1
-                    state.time_filtering_variable = (state.time_filtering_variable + 1) % update_position_every
-                    if state.time_filtering_variable == 0
-                        update_cylinder_position(finger, cache, cylinder_pos_params, state.virtual_object_radius, root_joints_dict, cylinder_position_coord_dict)
-                    end
+                    update_cylinder_position(finger, cache, cylinder_pos_params, state.virtual_object_radius, root_joints_dict, cylinder_position_coord_dict)
                 end
             end
         end
@@ -396,19 +391,19 @@ function update_cylinder_position(finger, cache, cylinder_pos_params, new_radius
     end
 
     #change the root joint position of each attracted frame
-    # for i in 1:length(FINGER_CONFIGS[finger].attracted_frames)
-    #     frame_pos = configuration(kcache, get_compiled_coordID(kcache, FINGER_CONFIGS[finger].attracted_frames[i]))
-    #     cache[root_jointID[FINGER_CONFIGS[finger].attracted_frames_names[i]]] = remake(
-    #         cache[root_jointID[FINGER_CONFIGS[finger].attracted_frames_names[i]]];
-    #         jointData = Rigid(Transform(SVector(frame_pos[1], cylinder_pos[2], cylinder_pos[3])))
-    #     )
-    # end
+    for i in 1:length(FINGER_CONFIGS[finger].attracted_frames)
+        frame_pos = configuration(kcache, get_compiled_coordID(kcache, FINGER_CONFIGS[finger].attracted_frames[i]))
+        cache[root_jointID[FINGER_CONFIGS[finger].attracted_frames_names[i]]] = remake(
+            cache[root_jointID[FINGER_CONFIGS[finger].attracted_frames_names[i]]];
+            jointData = Rigid(Transform(SVector(frame_pos[1], cylinder_pos[2], cylinder_pos[3])))
+        )
+    end
 
-    # # update the global position for the collision model
-    # cache[cylinder_position_coord_dict[finger]] = remake(
-    #     cache[cylinder_position_coord_dict[finger]];
-    #     coord_data = ConstCoord(cylinder_pos)
-    # )
+    # update the global position for the collision model
+    cache[cylinder_position_coord_dict[finger]] = remake(
+        cache[cylinder_position_coord_dict[finger]];
+        coord_data = ConstCoord(cylinder_pos)
+    )
 end
 
 function update_cylinder_radius(finger, cache, new_radius, radius_joints, cylinder_radius_coord_dict, virtual_object_damper_component_dict)
