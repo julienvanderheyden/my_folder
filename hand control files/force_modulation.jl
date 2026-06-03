@@ -277,7 +277,7 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                 contact = true
             end
         end 
-        
+
         return contact
     end
 
@@ -399,11 +399,11 @@ function update_cylinder_position(finger, cache, cylinder_pos_params, new_radius
         )
     end
 
-    # # update the global position for the collision model
-    # cache[cylinder_position_coord_dict[finger]] = remake(
-    #     cache[cylinder_position_coord_dict[finger]];
-    #     coord_data = ConstCoord(cylinder_pos)
-    # )
+    # update the global position for the collision model
+    cache[cylinder_position_coord_dict[finger]] = remake(
+        cache[cylinder_position_coord_dict[finger]];
+        coord_data = ConstCoord(cylinder_pos)
+    )
 end
 
 function update_cylinder_radius(finger, cache, new_radius, radius_joints, cylinder_radius_coord_dict, virtual_object_damper_component_dict)
