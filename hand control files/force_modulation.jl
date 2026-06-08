@@ -30,7 +30,7 @@ mutable struct FingerModulationState
 end
 
 FingerModulationState(initial_radius::Float64, n_frames::Int) = FingerModulationState(
-    false, 0.0, zeros(Int, n_frames),0.0, initial_radius, false, 0.0)
+    false, 0.0, zeros(Int, n_frames),0.0,  initial_radius, false, 0.0)
 
 struct FingerConfig
     attracted_frames::Vector{String}       # mass coord IDs used for attraction springs
@@ -108,7 +108,7 @@ const FINGER_CONFIGS = Dict{String, FingerConfig}(
 
 
 
-function force_modulation(cylinder_radius, penetration_depth, attraction_stiffness, feedback_stiffness, feedback_damping)
+function force_modulation(cylinder_radius, penetration_depth, attraction_stiffness, feedback_stiffness, feedback_damping, prior_trust)
 
     # ------------------ BUILD THE ROBOTS -------------------------
     shadow_robot = build_robot(shadow_hand_urdf_path)
@@ -313,7 +313,8 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                         state.contact_detection_time = t 
 
                     elseif t - state.contact_detection_time > 0.2
-                        state.real_object_radius = minimum((only(configuration(cache, real_robot_radial_pos_dict[n])) for n in cfg.attracted_frames_names)) - cfg.finger_width
+                        measured_object_radius = minimum((only(configuration(cache, real_robot_radial_pos_dict[n])) for n in cfg.attracted_frames_names)) - cfg.finger_width
+                        state.real_object_radius = prior_trust*cylinder_radius+ (1-prior_trust)*measured_object_radius
                         state.contact_detected = true
                         state.radius_modulation = false
                         @info "Contact detected for $(finger) at r = $(round(state.real_object_radius*1000, digits=1)) mm"
@@ -360,7 +361,7 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
 
                         linear_ratio = (state.virtual_object_radius - (state.real_object_radius - penetration_depth)) / (state.virtual_object_radius - state.real_object_radius + penetration_depth)
                         current_stiffness = base_stiffness + linear_ratio * (attraction_stiffness - base_stiffness)
-                        # the attractive stiffness should be unified to a single value for all fingers 
+                        # the attractive stiffness should be unified to a single value for all phalanx 
                         for frame in FINGER_CONFIGS[finger].attracted_frames_names 
                             cache[attraction_spring_component_dict[frame]] = remake(cache[attraction_spring_component_dict[frame]];
                                 stiffness = SMatrix{3,3}(current_stiffness * I))
