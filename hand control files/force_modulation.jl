@@ -361,6 +361,7 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
 
                         linear_ratio = (state.virtual_object_radius - (state.real_object_radius - penetration_depth)) / (state.virtual_object_radius - state.real_object_radius + penetration_depth)
                         current_stiffness = base_stiffness + linear_ratio * (attraction_stiffness - base_stiffness)
+                        println("current stiffness for $(finger) : $(round(current_stiffness, digits=3)) N/m")
                         # the attractive stiffness should be unified to a single value for all phalanx 
                         for frame in FINGER_CONFIGS[finger].attracted_frames_names 
                             cache[attraction_spring_component_dict[frame]] = remake(cache[attraction_spring_component_dict[frame]];
