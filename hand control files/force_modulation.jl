@@ -399,7 +399,7 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
 
     #connection in simulation with fixed dt 
     with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-        ros_vm_position_controller_fixed_dt(connection, cvms, qᵛ, joint_names, 1.0/125.0; f_control, f_setup, E_max=12.0)
+        ros_vm_position_controller_fixed_dt(connection, cvms, qᵛ, joint_names, 1.0/125.0; f_control, f_setup, E_max=20.0)
     end
 
 end
