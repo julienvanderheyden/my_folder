@@ -442,16 +442,11 @@ function ros_vm_position_controller(
             qʳ = view(state, 1:NDOF)
             q̇ʳ = view(state, NDOF+1:2*NDOF)
 
-            # Make the time go faster in the simulation by a given factor
-            acceleration_factor = 1.0
-            t_fast = acceleration_factor*t # make time go faster
-            dt_fast = acceleration_factor*dt # make time go faster
-
             # Main control step : loop control_steps times to increase simulation frequency and avoid unstabilities
             control_steps = 16
             for j in (control_steps-1):-1:0
-                t_sub = t_fast - j * dt_fast / control_steps  # Intermediate time step
-                f_control(control_cache, t_sub, args, (dt_fast/control_steps, i)) # Call user control function. 
+                t_sub = t - j * dt / control_steps  # Intermediate time step
+                f_control(control_cache, t_sub, args, (dt/control_steps, i)) # Call user control function. 
 
                 control_step!(control_cache, t_sub, qʳ, q̇ʳ) # takes around 0.5 ms (avg 431 µs)
                 # @timeit to "control_step" control_step!(control_cache, t_sub, qʳ, q̇ʳ) # allows timing. Output is shown by de-commenting the two "show(to)" lines.
@@ -488,9 +483,11 @@ function ros_vm_position_controller(
             return false
         end
     end
+
     # Check that stored energy is within bounds
     (E = stored_energy(control_cache)) > E_max && error("Initial stored energy exceeds $(E_max)J, was $(E)J")
     warmup_and_activate(connection, control_func!; )
+
 end
 
 function generate_virtual_robot_idxs(vms_compiled, ordered_joint_names)
@@ -524,6 +521,142 @@ function get_real_hand_state(state, idxs)
     end
     return hand_state
 end 
+
+function warmup_and_activate_fixed_dt(connection::ROSPyClientConnection, control_func!::Function, dt::Float64;)
+    if connection.stop[] != false
+        error("Connection already used, create a new connection instead.")
+    end
+
+    @info "Sending $START"
+    write(connection.command_socket, "$START\n")
+
+    state = STATE_WARMUP
+    while true
+        if state == STATE_WARMUP
+            state = loop_warmup(connection, control_func!)
+        elseif state == STATE_ACTIVE
+            state = loop_active_fixed_dt(connection, control_func!, dt)
+        elseif state == STATE_STOPPED
+            break
+        else
+            error("Invalid state: $state")
+        end
+    end
+end
+
+function loop_active_fixed_dt(connection::ROSPyClientConnection, control_func!::Function, dt::Float64)
+    @info "State: ACTIVE"
+    i = 1
+    t = 0.0
+    while true
+        yield() # To allow for interrupts
+        command = check_tcp(connection)::Union{String, Nothing}
+        if isnothing(command)
+            data = check_udp(connection)
+            if !isnothing(data)
+                t += dt
+                i += 1
+                stop = control_func!(connection.torques, data.state, i, t, dt)
+                stop && return STATE_STOPPED # Stop the controller gracefully
+                any(isnan, connection.torques) && error("Control function returned NaN torques: $(connection.torques)")
+                send_torques(connection, data.sequence_number)
+
+                print_connection_status_summary(connection)
+            end
+        else
+            error("Received unexpected command while active: \"$command\"")
+        end
+    end
+end
+
+function ros_vm_position_controller_fixed_dt(
+        connection::ROSPyClientConnection,
+        vms,
+        qᵛ,
+        joint_names,
+        dt; 
+        gravity=DEFAULT_GRAVITY,
+        f_setup=DEFAULT_F_SETUP,
+        f_control=DEFAULT_F_CONTROL,
+        E_max=1.0,
+        max_initial_state_age=1.0, 
+        steady_state_check=false
+    )
+
+    # Create cache
+    control_cache = new_control_cache(vms, qᵛ, gravity)
+
+    let # Set initial joint state in cache
+        state = get_initial_state(connection; max_initial_state_age)
+        NDOF = robot_ndof(control_cache)
+        qʳ = view(state.state, 1:NDOF)
+        q̇ʳ = zeros(eltype(control_cache), NDOF)
+        control_step!(control_cache, 0.0, qʳ, q̇ʳ) # Step at t=0 to set initial state
+    end
+
+    # create indices list
+    robot_vm_idxs = generate_virtual_robot_idxs(vms, joint_names)
+
+    args = f_setup(control_cache) # Call user setup function
+
+    # Create control callback
+    control_func! = let control_cache=control_cache, args=args
+        function control_func!(torques, state, i, t, dt)
+
+            state = get_real_hand_state(state, robot_vm_idxs)
+
+            NDOF = robot_ndof(control_cache)
+            @assert length(state) == 2*NDOF
+            qʳ = view(state, 1:NDOF)
+            q̇ʳ = view(state, NDOF+1:2*NDOF)
+
+            # Main control step : loop control_steps times to increase simulation frequency and avoid unstabilities
+            control_steps = 32
+            for j in (control_steps-1):-1:0
+                t_sub = t - j * dt / control_steps  # Intermediate time step
+                f_control(control_cache, t_sub, args, (dt/control_steps, i)) # Call user control function. 
+
+                control_step!(control_cache, t_sub, qʳ, q̇ʳ) # takes around 0.5 ms (avg 431 µs)
+                # @timeit to "control_step" control_step!(control_cache, t_sub, qʳ, q̇ʳ) # allows timing. Output is shown by de-commenting the two "show(to)" lines.
+                # the joint updates at 125Hz, so there is one update every 8 ms --> maximum of 16 control steps
+            end
+
+            qr, qv = get_q(control_cache)
+            # instead of sending torque the state of the virtual hand is sent :
+            hand_state = get_virtual_hand_state(qv, robot_vm_idxs) 
+            #display(hand_state)
+            torques .= hand_state
+
+            if steady_state_check == true 
+                # # --- STEADY STATE CHECK ---
+                velocity_threshold = 2e-2   # rad/s
+                mask = trues(length(q̇ʳ))
+                mask[[20,21]] .= false # exclude these two joints from the steady state check
+                velocities = abs.(q̇ʳ[mask])
+                vel_ok = all(velocities.< velocity_threshold)
+
+                if t > 3 && vel_ok
+                    @info "Steady state reached at t=$(t) seconds, stopping controller"
+                    #show(to)
+                    return true
+                end
+
+                if t > 15.0
+                    @info "15 seconds reached, stopping controller"
+                    #show(to)
+                    return true
+                end
+            end 
+            
+            return false
+        end
+    end
+
+    # Check that stored energy is within bounds
+    (E = stored_energy(control_cache)) > E_max && error("Initial stored energy exceeds $(E_max)J, was $(E)J")
+    warmup_and_activate_fixed_dt(connection, control_func!, dt; )
+
+end
 
 # this function should be used if you want to simulate 
 # both the robot and the virtual mechanism, instead of 

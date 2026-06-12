@@ -357,25 +357,21 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                 # contact is detected but the transitions between the free motion and the force control should be smooth
                 if state.virtual_object_radius > state.real_object_radius - penetration_depth
                     state.virtual_object_radius = max(state.real_object_radius - penetration_depth, state.virtual_object_radius - 0.002 * (t - last_t))
-                        update_cylinder_radius(finger, cache, state.virtual_object_radius, radius_joints_dict, cylinder_radius_coord_dict, damper_component_dict)
+                    update_cylinder_radius(finger, cache, state.virtual_object_radius, radius_joints_dict, cylinder_radius_coord_dict, damper_component_dict)
 
-                        # 1. Calculate the total distance the virtual radius travels
-                        total_range = cylinder_radius - (state.real_object_radius - penetration_depth)
-
-                        # 2. Prevent division by zero if the range happens to be 0
-                        if total_range > 0.0
-                            linear_ratio = clamp(((cylinder_radius - state.virtual_object_radius) / total_range), 0.0, 1.0)
-                        else
-                            linear_ratio = 1.0
-                        end
-
-                        # 3. Interpolate from base_stiffness (at ratio 0) to attraction_stiffness (at ratio 1)
-                        current_stiffness = base_stiffness + linear_ratio * (attraction_stiffness - base_stiffness)
-                        # the attractive stiffness should be unified to a single value for all phalanx 
-                        for frame in FINGER_CONFIGS[finger].attracted_frames_names 
-                            cache[attraction_spring_component_dict[frame]] = remake(cache[attraction_spring_component_dict[frame]];
-                                stiffness = SMatrix{3,3}(current_stiffness * I))
-                        end
+                    total_range = cylinder_radius - (state.real_object_radius - penetration_depth)
+                    # Prevent division by zero if the range happens to be 0
+                    if total_range > 0.0
+                        linear_ratio = clamp(((cylinder_radius - state.virtual_object_radius) / total_range), 0.0, 1.0)
+                    else
+                        linear_ratio = 1.0
+                    end
+                    current_stiffness = base_stiffness + linear_ratio * (attraction_stiffness - base_stiffness)
+                    # the attractive stiffness should be unified to a single value for all phalanx 
+                    for frame in FINGER_CONFIGS[finger].attracted_frames_names 
+                        cache[attraction_spring_component_dict[frame]] = remake(cache[attraction_spring_component_dict[frame]];
+                            stiffness = SMatrix{3,3}(current_stiffness * I))
+                    end
 
                 end
             end
@@ -396,9 +392,14 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                     "rh_THJ3", "rh_THJ4", "rh_THJ5"]
 
 
+    # with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
+    #     ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=12.0)
+    #     # ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0)
+    # end
+
+    #connection in simulation with fixed dt 
     with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=12.0)
-        # ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0)
+        ros_vm_position_controller_fixed_dt(connection, cvms, qᵛ, joint_names, 1.0/125.0; f_control, f_setup, E_max=12.0)
     end
 
 end
