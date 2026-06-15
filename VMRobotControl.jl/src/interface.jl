@@ -718,7 +718,7 @@ function control_step_verlet!(bundle::VMSDynamicsBundle, t_in, qʳ_in, q̇ʳ_in,
     #VERLET INTEGRATION
     dt² = dt * dt
     for i in eachindex(qᵛ)
-        q̈_t    = q̈ᵛ_prev[i]
+        q̈_t    = q̈ᵛ_prev_cache[i]
         q̈_tdt  = q̈ᵛ[i]
         qᵛ[i]  += q̇ᵛ[i] * dt + 0.5 * q̈_t * dt²
         q̇ᵛ[i]  += 0.5 * (q̈_t + q̈_tdt) * dt
