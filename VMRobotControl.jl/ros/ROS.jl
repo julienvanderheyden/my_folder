@@ -616,7 +616,7 @@ function ros_vm_position_controller_fixed_dt(
                 t_sub = t - j * dt / control_steps  # Intermediate time step
                 f_control(control_cache, t_sub, args, (dt/control_steps, i)) # Call user control function. 
 
-                control_step!(control_cache, t_sub, qʳ, q̇ʳ) # takes around 0.5 ms (avg 431 µs)
+                control_step_verlet!(control_cache, t_sub, qʳ, q̇ʳ) # takes around 0.5 ms (avg 431 µs)
                 # @timeit to "control_step" control_step!(control_cache, t_sub, qʳ, q̇ʳ) # allows timing. Output is shown by de-commenting the two "show(to)" lines.
                 # the joint updates at 125Hz, so there is one update every 8 ms --> maximum of 16 control steps
             end
