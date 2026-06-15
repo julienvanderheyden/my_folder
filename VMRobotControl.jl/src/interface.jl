@@ -715,12 +715,20 @@ function control_step_verlet!(bundle::VMSDynamicsBundle, t_in, qʳ_in, q̇ʳ_in,
         error("robot acceleration is NaN $(q̈ᵛ)")
     end
 
-    print("Previous acceleration is : $(q̈ᵛ_prev_cache), new one is : $(q̈ᵛ)")
-
-    for i in eachindex(cache.q[2])
-        qᵛ[i] += q̇ᵛ[i] * dt
-        q̇ᵛ[i] += q̈ᵛ[i] * dt
+    #VERLET INTEGRATION
+    dt² = dt * dt
+    for i in eachindex(qᵛ)
+        q̈_t    = q̈ᵛ_prev[i]
+        q̈_tdt  = q̈ᵛ[i]
+        qᵛ[i]  += q̇ᵛ[i] * dt + 0.5 * q̈_t * dt²
+        q̇ᵛ[i]  += 0.5 * (q̈_t + q̈_tdt) * dt
     end
+
+    # EULER INTEGRATION
+    # for i in eachindex(cache.q[2])
+    #     qᵛ[i] += q̇ᵛ[i] * dt
+    #     q̇ᵛ[i] += q̈ᵛ[i] * dt
+    # end
 
     # Return the torques for the robot
     return fʳ
