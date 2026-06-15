@@ -647,6 +647,85 @@ function control_step!(bundle::VMSDynamicsBundle, t_in, qʳ_in, q̇ʳ_in)
     return fʳ
 end
 
+function control_step_verlet! end
+
+
+function control_step_verlet!(bundle::VMSDynamicsBundle, t_in, qʳ_in, q̇ʳ_in)
+    vms, cache = bundle.vms, bundle.cache
+    
+    t = get_t(bundle)
+    qʳ, qᵛ = get_q(bundle)
+    q̇ʳ, q̇ᵛ = get_q̇(bundle)
+    uʳ, uᵛ = get_u(bundle)
+
+    _, q̈ᵛ_prev = get_q̈(bundle)
+
+    dt = t_in - t[]
+    @assert dt >= 0 "dt of less than zero is not allowed, got $(t_in - t[])"
+    t[] = t_in
+    copyto!(qʳ, qʳ_in)
+    copyto!(q̇ʳ, q̇ʳ_in)
+
+    _precompute!(bundle)
+    robot = vms.robot
+    virtual_mechanism = vms.virtual_mechanism
+    robot_bundle = robot_cache(bundle)
+    virtual_mechanism_bundle = virtual_mechanism_cache(bundle)
+    Mᵛ = _inertance_matrix!(virtual_mechanism_bundle)
+
+    if(any(isnan , Mᵛ ))
+        error("Inertance matrix is NaN $(Mᵛ)")
+    end
+    
+    # Zero generalized forces applied to robot
+    fʳ = get_generalized_force(robot_bundle)
+    fill!(fʳ, zero(eltype(fʳ)))
+    # DO NOT compute _generalized_force!(robot_bundle), as this represents forces due to components
+    # that exist on the actual robot. We do not need to apply these forces again!
+    # Instead, we only need to compute the forces on the virtual mechanism...
+    fᵛ = _generalized_force!(virtual_mechanism_bundle)
+
+    if(any(isnan , fᵛ ))
+        error("forces are NaN $(fᵛ)")
+    end
+    # ...and the add the forces due to the interconnecting storages/dissipations
+    generalized_force!((fʳ, fᵛ), bundle, components(vms)) # This adds to fʳ and fᵛ 
+    # the generalized force applied by the components linking the virtual mechanism to the real robot
+    
+    # Now we add to the generalized forces the additional control input,
+    # u, as set by the user with f_control
+    uʳ, uᵛ = get_u(bundle)
+    fʳ .+= uʳ
+    fᵛ .+= uᵛ
+
+    if(any(isnan , fᵛ ))
+        error("virtual forces are NaN $(fᵛ)")
+    end
+    if(any(isnan , fʳ ))
+        error("robot forces are NaN $(fʳ)")
+    end
+
+    # Solve VM accelerationand update VM state
+    _, q̈ᵛ = get_q̈(bundle)
+
+    _solve_dynamics_cholesky!(q̈ᵛ, Mᵛ, fᵛ, uᵛ, get_inertance_matrix_workspace(virtual_mechanism_bundle), get_generalized_force_workspace(virtual_mechanism_bundle))
+
+    if(any(isnan , q̈ᵛ ))
+        error("robot acceleration is NaN $(q̈)")
+    end
+
+    print("Previous acceleration is : $(q̈ᵛ_prev), new one is : $(q̈ᵛ)")
+
+    for i in eachindex(cache.q[2])
+        qᵛ[i] += q̇ᵛ[i] * dt
+        q̇ᵛ[i] += q̈ᵛ[i] * dt
+    end
+
+    # Return the torques for the robot
+    return fʳ
+end
+
+
 function dynamics_step!(bundle::VMSDynamicsBundle, t)
     dt = get_t(bundle) - t
     q̈ʳ, q̈ᵛ =  _dynamics!(bundle)
