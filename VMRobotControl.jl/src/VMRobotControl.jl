@@ -148,8 +148,7 @@ export
     generalized_force!,
     dynamics!,
     inverse_dynamics!,
-    control_step!,
-    control_step_verlet!
+    control_step!
 export # For setting up ODEs
     get_ode_dynamics,
     assemble_state,

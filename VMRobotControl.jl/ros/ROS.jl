@@ -599,8 +599,6 @@ function ros_vm_position_controller_fixed_dt(
 
     args = f_setup(control_cache) # Call user setup function
 
-    q̈ᵛ_prev_cache = zeros(length(get_q̈(control_cache)[2]))
-
     # Create control callback
     control_func! = let control_cache=control_cache, args=args
         function control_func!(torques, state, i, t, dt)
@@ -613,12 +611,12 @@ function ros_vm_position_controller_fixed_dt(
             q̇ʳ = view(state, NDOF+1:2*NDOF)
 
             # Main control step : loop control_steps times to increase simulation frequency and avoid unstabilities
-            control_steps = 64
+            control_steps = 32
             for j in (control_steps-1):-1:0
                 t_sub = t - j * dt / control_steps  # Intermediate time step
                 f_control(control_cache, t_sub, args, (dt/control_steps, i)) # Call user control function. 
 
-                control_step_verlet!(control_cache, t_sub, qʳ, q̇ʳ, q̈ᵛ_prev_cache) # takes around 0.5 ms (avg 431 µs)
+                control_step(control_cache, t_sub, qʳ, q̇ʳ) # takes around 0.5 ms (avg 431 µs)
                 # @timeit to "control_step" control_step!(control_cache, t_sub, qʳ, q̇ʳ) # allows timing. Output is shown by de-commenting the two "show(to)" lines.
                 # the joint updates at 125Hz, so there is one update every 8 ms --> maximum of 16 control steps
             end
