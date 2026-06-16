@@ -145,7 +145,8 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
     # -------------------- HAND MOTION --------------------------------
 
     # CYLINDER ATTRACTION CONNECTION
-    base_stiffness         = 0.05
+    # base_stiffness         = 0.05
+    base_stiffness = 5.0
     phalanx_scaling_factor = 0.5
     finger_scaling_factor  = 1.5
 
