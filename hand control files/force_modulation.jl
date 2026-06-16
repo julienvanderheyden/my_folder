@@ -414,15 +414,15 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
                     "rh_THJ3", "rh_THJ4", "rh_THJ5"]
 
 
-    with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-        ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=12.0)
-        # ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0)
-    end
+    # with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
+    #     ros_vm_position_controller(connection, cvms, qᵛ, joint_names; f_control, f_setup, E_max=12.0)
+    #     # ros_vm_position_controller(connection, cvms, qᵛ, joint_names; E_max=10.0)
+    # end
 
     #connection in simulation with fixed dt 
-    # with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
-    #     ros_vm_position_controller_fixed_dt(connection, cvms, qᵛ, joint_names, 1.0/125.0; f_control, f_setup, E_max=50.0)
-    # end
+    with_rospy_connection(Sockets.localhost, ROSPY_LISTEN_PORT, 24, 48) do connection
+        ros_vm_position_controller_fixed_dt(connection, cvms, qᵛ, joint_names, 1.0/125.0; f_control, f_setup, E_max=50.0)
+    end
 
 end
 function update_cylinder_position(finger, cache, cylinder_pos_params, new_radius, root_jointID, cylinder_position_coord_dict)
