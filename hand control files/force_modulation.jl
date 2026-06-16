@@ -168,7 +168,8 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
 
     for (i, joint_id) in enumerate(WRIST_JOINTS)
         if isnothing(feedback_stiffness)
-            add_joint_feedback!(vms, joint_id, MISMATCH_DEADZONE, WRIST_P_GAINS[i], WRIST_D_GAINS[i])
+            #add_joint_feedback!(vms, joint_id, MISMATCH_DEADZONE, WRIST_P_GAINS[i], WRIST_D_GAINS[i])
+            continue
         else
             add_joint_feedback!(vms, joint_id, MISMATCH_DEADZONE, feedback_stiffness, feedback_damping)
         end
