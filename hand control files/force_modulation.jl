@@ -41,6 +41,8 @@ struct FingerConfig
     uncoupled_joints::Vector{String}       # standard individual joints
     joints::Vector{String}                 # all joints of the finger (for convenience)
     finger_width::Float64                  # used for real object dimension estimation
+    p_gains::Vector{Float64}               # gains of the controlled hand to match them in VMC
+    d_gains::Vector{Float64}
 end
 
 
@@ -56,6 +58,8 @@ const FINGER_CONFIGS = Dict{String, FingerConfig}(
         ["rh_FFJ3", "rh_FFJ4"],
         ["rh_FFJ1", "rh_FFJ2", "rh_FFJ3", "rh_FFJ4"],
         0.005,
+        [1.2, 1.2, 2, 2.4],
+        [0.0, 0.0, 0.0, 0.0],
     ),
 
     "mf" => FingerConfig(
@@ -68,6 +72,8 @@ const FINGER_CONFIGS = Dict{String, FingerConfig}(
         ["rh_MFJ3", "rh_MFJ4"],
         ["rh_MFJ1", "rh_MFJ2", "rh_MFJ3", "rh_MFJ4"],
         0.005,
+        [1.2, 1.2, 2, 2.4],
+        [0.0, 0.0, 0.0, 0.0],
     ),
 
     "rf" => FingerConfig(
@@ -80,6 +86,8 @@ const FINGER_CONFIGS = Dict{String, FingerConfig}(
         ["rh_RFJ3", "rh_RFJ4"],
         ["rh_RFJ1", "rh_RFJ2", "rh_RFJ3", "rh_RFJ4"],
         0.005,
+        [1.2, 1.2, 2, 2.4],
+        [0.0, 0.0, 0.0, 0.0],
     ),
 
     "lf" => FingerConfig(
@@ -92,6 +100,8 @@ const FINGER_CONFIGS = Dict{String, FingerConfig}(
         ["rh_LFJ3", "rh_LFJ4", "rh_LFJ5"],
         ["rh_LFJ1", "rh_LFJ2", "rh_LFJ3", "rh_LFJ4", "rh_LFJ5"],
         0.005,
+        [1.2, 1.2, 2, 2.4, 2.3],
+        [0.0, 0.0, 0.0, 0.0, 0.0],
     ),
 
     "th" => FingerConfig(
@@ -102,13 +112,15 @@ const FINGER_CONFIGS = Dict{String, FingerConfig}(
         [],                                          # thumb has no coupled J0
         ["rh_THJ1", "rh_THJ2", "rh_THJ3", "rh_THJ4", "rh_THJ5"],
         ["rh_THJ1", "rh_THJ2", "rh_THJ3", "rh_THJ4", "rh_THJ5"],
-        0.007
+        0.007,
+        [1.85,2.05,2.5,1.8,1.85],
+        [0.0,0.0,0.0,0.0,0.0],
     ),
 )
 
 
 
-function force_modulation(cylinder_radius, penetration_depth, attraction_stiffness, feedback_stiffness, feedback_damping, prior_trust)
+function force_modulation(cylinder_radius, penetration_depth, attraction_stiffness, prior_trust; feedback_stiffness=nothing, feedback_damping=nothing)
 
     # ------------------ BUILD THE ROBOTS -------------------------
     shadow_robot = build_robot(shadow_hand_urdf_path)
@@ -150,9 +162,15 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
     # --------------- REAL/VIRTUAL HAND INTERCONNECTION -----------------
 
     WRIST_JOINTS = ["rh_WRJ1", "rh_WRJ2"]
+    WRIST_P_GAINS = [10.0, 12.0]
+    WRIST_D_GAINS = [0.0, 0.0]
 
-    for joint_id in WRIST_JOINTS
-        add_joint_feedback!(vms, joint_id, MISMATCH_DEADZONE, feedback_stiffness, feedback_damping)
+    for (i, joint_id) in enumerate(WRIST_JOINTS)
+        if isnothing(feedback_stiffness)
+            add_joint_feedback!(vms, joint_id, MISMATCH_DEADZONE, WRIST_P_GAINS[i], WRIST_D_GAINS[i])
+        else
+            add_joint_feedback!(vms, joint_id, MISMATCH_DEADZONE, feedback_stiffness, feedback_damping)
+        end
     end
 
     # IF USING REAL HAND WITH COUPLED JOINTS 
@@ -167,8 +185,12 @@ function force_modulation(cylinder_radius, penetration_depth, attraction_stiffne
 
     # IF USING IDEAL HAND IN SIMULATION
     for cfg in values(FINGER_CONFIGS)
-        for joint_id in cfg.joints
-            add_joint_feedback!(vms, joint_id, MISMATCH_DEADZONE, feedback_stiffness, feedback_damping)
+        for (i,joint_id) in enumerate(cfg.joints)
+            if isnothing(feedback_stiffness)
+                add_joint_feedback!(vms, joint_id, MISMATCH_DEADZONE, cfg.p_gains[i], cfg.d_gains[i])
+            else
+                add_joint_feedback!(vms, joint_id, MISMATCH_DEADZONE, feedback_stiffness, feedback_damping)
+            end
         end
     end
 
@@ -444,134 +466,3 @@ function update_cylinder_radius(finger, cache, new_radius, radius_joints, cylind
             bounds = (0.0, 1.05*new_radius))
     end
 end
-
-
-# function f_control(cache, t, args, extra)
-
-#     (radius_joints, root_joints,
-#     cylinder_radius_coord_dict, cylinder_position_coord_dict, damper_component_dict,
-#     feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID) = args
-
-#     for (finger, cfg) in FINGER_CONFIGS
-#         state = finger_states[finger]
-
-#         update_finger_state!(state, finger, cache, t,
-#                             attraction_coordID,
-#                             feedback_coordID_uncoupled,
-#                             feedback_coordID_coupled)
-
-#         apply_radius_modulation!(finger, state, cache, t, m, kcache,
-#                                 radius_joints, root_joints,
-#                                 cylinder_radius_coord_dict,
-#                                 cylinder_position_coord_dict,
-#                                 damper_component_dict, last_t)
-#     end
-
-#     last_t = t
-# end
-
-
-
-# function f_setup(cache)
-
-#     radius_joints                = Dict{String, Any}() # joint IDs of the rigid joints controlling the attracting cylinder radius for each finger
-#     root_joints                  = Dict{String, Any}() # joint IDs of the root joints controlling the attracting cylinder position for each finger
-#     attraction_coordID           = Dict{String, Any}() # coord IDs of the attraction spring between each attach point and the corresponding cylinder center (used to detect virtual contact)
-#     cylinder_radius_coord_dict   = Dict{String, Any}() # coord IDs of the spring rest length controlling the repulsive cylinder radius f
-#     cylinder_position_coord_dict = Dict{String, Any}() # coord IDs of the fixed point controlling the repulsive cylinder position
-#     damper_component_dict        = Dict{String, Any}() # component ID of the damper of the repulsive cylinder (cannot be modulated with coord)
-#     feedback_coordID_uncoupled   = Dict{String, Any}() # coord IDs of the feedback springs for uncoupled joints (used to detect real contact)
-#     feedback_coordID_coupled     = Dict{String, Any}() # coord IDs of the feedback springs for coupled joints (used to detect real contact, higher deadzone)
-
-#     for (finger, cfg) in FINGER_CONFIGS
-
-#         for frame in cfg.attracted_frames_names
-#             radius_joints[frame]      = get_compiled_jointID(cache, ".virtual_mechanism.fixed_joint_$(frame)")
-#             root_joints[frame]        = get_compiled_jointID(cache, ".virtual_mechanism.root_joint_$(frame)")
-#             attraction_coordID[frame] = get_compiled_coordID(cache, "ee $(frame) diff")
-#         end
-
-#         for frame in cfg.repulsed_frames_names
-#             cylinder_radius_coord_dict[frame]   = get_compiled_coordID(cache, "$(frame) cylinder radius")
-#             cylinder_position_coord_dict[frame] = get_compiled_coordID(cache, "$(frame) cylinder position")
-#             damper_component_dict[frame]        = get_compiled_componentID(cache, "$(frame) cylinder damper")
-#         end
-
-#         for joint in cfg.uncoupled_joints
-#             feedback_coordID_uncoupled[joint] = get_compiled_coordID(cache, "$(joint) coord diff")
-#         end
-
-#         for joint in cfg.coupled_joints
-#             feedback_coordID_coupled[joint] = get_compiled_coordID(cache, "$(joint) coord diff")
-#         end
-#     end
-
-#     return (radius_joints, root_joints,
-#             cylinder_radius_coord_dict, cylinder_position_coord_dict, damper_component_dict,
-#             feedback_coordID_uncoupled, feedback_coordID_coupled, attraction_coordID)
-# end
-
-
-
-# function update_finger_state!(state, finger, cache, t, attraction_coordID, feedback_coordID_uncoupled, feedback_coordID_coupled)
-
-#     cfg = FINGER_CONFIGS[finger]
-
-#     # ── 1. Virtual contact ────────────────────────────────────────────────────
-#     state.equilibrium = any(cfg.attracted_frames_names) do point
-#         norm(configuration(cache, attraction_coordID[point])) < 0.005
-#     end
-
-#     # ── 2. Real contact ───────────────────────────────────────────────────────
-#     uncoupled_contact = any(cfg.uncoupled_joints) do joint
-#         abs(only(configuration(cache, feedback_coordID_uncoupled[joint]))) > MISMATCH_DEADZONE
-#     end
-#     coupled_contact = any(cfg.coupled_joints) do joint
-#         abs(only(configuration(cache, feedback_coordID_coupled[joint]))) > 2 * MISMATCH_DEADZONE
-#     end
-#     state.contact_detected = uncoupled_contact || coupled_contact
-
-#     # ── 3. Activation: sustained virtual contact without real contact ─────────
-#     if !state.modulation_activated && !state.modulation_stopped
-#         if state.equilibrium && !state.contact_detected
-#             if state.activation_time == 0.0
-#                 state.activation_time = t
-#             elseif t - state.activation_time > 0.2
-#                 state.modulation_activated = true
-#                 @info "Radius modulation activated for finger $(finger)"
-#             end
-#         else
-#             state.activation_time = 0.0
-#         end
-#     end
-# end
-
-# function apply_radius_modulation!(finger, state, cache, t, m, kcache,
-#                                    radius_joints, root_joints,
-#                                    cylinder_radius_coord_dict,
-#                                    cylinder_position_coord_dict,
-#                                    damper_component_dict, last_t)
-
-#     (!state.modulation_activated || state.modulation_stopped) && return
-
-#     # ── 4. Decrement radius ───────────────────────────────────────────────────
-#     dt = t - last_t
-#     state.radius = max(state.radius - 0.002 * dt, 0.005)
-
-#     update_cylinder_radius(finger, cache, state.radius, radius_joints, cylinder_radius_coord_dict, damper_component_dict)
-
-#     update_cylinder_position(finger, m, cache, kcache, state.radius,root_joints, cylinder_position_coord_dict)
-
-#     # ── 5. Stopping: sustained real contact ───────────────────────────────────
-#     if state.contact_detected
-#         if state.stopping_time == 0.0
-#             state.stopping_time = t
-#         elseif t - state.stopping_time > 0.2
-#             state.modulation_activated = false
-#             state.modulation_stopped   = true
-#             @info "$(finger) modulation stopped at r = $(round(state.radius*1000, digits=1)) mm"
-#         end
-#     else
-#         state.stopping_time = 0.0
-#     end
-# end
